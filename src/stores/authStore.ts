@@ -17,7 +17,7 @@ export const useAuthStore = defineStore("auth", () => {
 
     if (parsed === null) return false;
 
-    if (parsed.exp ?? 0 * 1000 < Date.now()) return false;
+    if ((parsed?.exp ?? 0) * 1000 < Date.now()) return false;
 
     return true;
   });
@@ -27,7 +27,7 @@ export const useAuthStore = defineStore("auth", () => {
       const response = await axios.post("/auth/send-otp/email/" + data.email);
 
       return response.data;
-    }, axios);
+    });
 
   const signInViaEmail = (data: {
     email: string;
@@ -53,7 +53,7 @@ export const useAuthStore = defineStore("auth", () => {
       );
 
       return response.data;
-    }, axios);
+    });
 
   const refreshToken = () =>
     execute(async () => {
@@ -70,7 +70,7 @@ export const useAuthStore = defineStore("auth", () => {
       );
 
       return response.data;
-    }, axios);
+    });
 
   return {
     sendOtp,

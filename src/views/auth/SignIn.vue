@@ -10,8 +10,12 @@ import { reactive } from "vue";
 import { useAuthStore } from "../../stores/authStore";
 import { useAppStore } from "../../stores/appStore";
 
+import { useRouter } from "vue-router";
+
 const authStore = useAuthStore();
 const appStore = useAppStore();
+
+const router = useRouter();
 
 const state = reactive({
   loading: false,
@@ -35,6 +39,8 @@ const handleSubmit = async () => {
       verificationCode: formData.verificationCode ?? "",
       code: String(formData.otp ?? ""),
     });
+
+    await router.push({ name: "home" });
 
     state.otpPending = false;
   }

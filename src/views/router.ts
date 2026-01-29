@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
+import { useAuthStore } from "../stores/authStore";
 
 const routes: RouteRecordRaw[] = [
   {
@@ -7,8 +8,18 @@ const routes: RouteRecordRaw[] = [
       {
         path: "",
         component: () => import("./layouts/MainLayout.vue"),
+        beforeEnter: (from, to, next) => {
+          const authStore = useAuthStore();
+          if (!authStore.isAuthenticated) return next("/auth/sign-in");
+
+          return next();
+        },
         children: [
-          { path: "", component: () => import("./home/Dashboard.vue") },
+          {
+            name: "home",
+            path: "",
+            component: () => import("./home/Dashboard.vue"),
+          },
           { path: "courses", component: () => import("./course/Courses.vue") },
         ],
       },
@@ -16,6 +27,8 @@ const routes: RouteRecordRaw[] = [
         path: "auth",
         component: () => import("./layouts/AuthLayout.vue"),
         beforeEnter: (to, from, next) => {
+          const authStore = useAuthStore();
+          if (authStore.isAuthenticated) return next({ name: "home" });
           if (to.path == "/auth") return next("/auth/sign-in");
           next();
         },

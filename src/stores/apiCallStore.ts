@@ -4,6 +4,7 @@ import { useAppStore } from "./appStore";
 import { AxiosError } from "axios";
 import { useAuthStore } from "./authStore";
 import { useTokenStore } from "./tokenStore";
+import { axios } from "../integrations/axios";
 
 class HandlerChain implements IHandlerChain {
   private __handlers: THandler[] = [];
@@ -13,16 +14,13 @@ class HandlerChain implements IHandlerChain {
     return this;
   };
 
-  execute: THandler = async (action, axios) => {
+  execute: THandler = async (action) => {
     const dispatch = async (index: number, currentAction: any) => {
       const handler = this.__handlers[index];
 
       if (!handler) return await currentAction();
 
-      return dispatch(
-        index + 1,
-        async () => await handler(currentAction, axios),
-      );
+      return dispatch(index + 1, async () => await handler(currentAction));
     };
 
     return dispatch(0, action);
@@ -37,7 +35,7 @@ const useApiCallStore = defineStore("api_call", () => {
 
   handler
     //log api errors
-    .next(async (action, axios) => {
+    .next(async (action) => {
       try {
         return await action();
       } catch (error) {
@@ -48,7 +46,7 @@ const useApiCallStore = defineStore("api_call", () => {
       }
     })
     //loading handler
-    .next(async (action, axios) => {
+    .next(async (action) => {
       appStore.isLoading = true;
       try {
         return await action();
@@ -59,7 +57,7 @@ const useApiCallStore = defineStore("api_call", () => {
       }
     })
     //refresh token handler
-    .next(async (action, axios) => {
+    .next(async (action) => {
       try {
         return await action();
       } catch (error) {
@@ -78,7 +76,7 @@ const useApiCallStore = defineStore("api_call", () => {
       }
     })
     //access token handler
-    .next(async (action, axios) => {
+    .next(async (action) => {
       if (
         !!tokenStore.accessToken &&
         (tokenStore.accessToken! as any).length > 0
