@@ -43,10 +43,10 @@ const menuItems = [
 
 <template>
   <div class="w-full h-full flex flex-col">
-    <div class="flex">
-      <img class="shrink-0 object-cover h-[90px]" src="/images/brand.png" />
+    <div class="flex p-5">
+      <svg-icon icon="brand.svg" />
     </div>
-    <div class="flex flex-col gap-y-2">
+    <div class="flex flex-col gap-y-2 mt-2">
       <MenuItem
         v-for="item in menuItems"
         :key="item.path"
