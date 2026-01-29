@@ -16,26 +16,45 @@ const routes: RouteRecordRaw[] = [
         },
         children: [
           {
-            name: "home",
+            name: "dashboard",
             path: "dashboard",
             component: () => import("./home/Dashboard.vue"),
           },
-          { path: "users", component: () => import("./home/Users.vue") },
-          { path: "sales", component: () => import("./home/Sales.vue") },
           {
+            name: "users",
+            path: "users",
+            component: () => import("./home/Users.vue"),
+          },
+          {
+            name: "sales",
+            path: "sales",
+            component: () => import("./home/Sales.vue"),
+          },
+          {
+            name: "video_course",
             path: "video-course",
             component: () => import("./home/VideoCourse.vue"),
           },
-          { path: "premium", component: () => import("./home/Premium.vue") },
           {
+            name: "premium",
+            path: "premium",
+            component: () => import("./home/Premium.vue"),
+          },
+          {
+            name: "notifications",
             path: "notifications",
             component: () => import("./home/notifications.vue"),
           },
           {
+            name: "references",
             path: "references",
             component: () => import("./home/References.vue"),
           },
-          { path: "team", component: () => import("./home/Team.vue") },
+          {
+            name: "team",
+            path: "team",
+            component: () => import("./home/Team.vue"),
+          },
         ],
       },
       {

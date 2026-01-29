@@ -7,42 +7,34 @@ const currentRoute = useRoute();
 
 const menuItems = [
   {
-    title: "Home",
     icon: "navbar/home.svg",
     path: "/dashboard",
   },
   {
-    title: "Users",
     icon: "navbar/users.svg",
     path: "/users",
   },
   {
-    title: "Sales",
     icon: "navbar/money-bag.svg",
     path: "/sales",
   },
   {
-    title: "Video course",
     icon: "navbar/bookmark.svg",
     path: "/video-course",
   },
   {
-    title: "Premium",
     icon: "navbar/user-stat.svg",
     path: "/premium",
   },
   {
-    title: "Notifications",
     icon: "navbar/notification.svg",
     path: "/notifications",
   },
   {
-    title: "References",
     icon: "navbar/preference.svg",
     path: "/references",
   },
   {
-    title: "Team",
     icon: "navbar/user-edit.svg",
     path: "/team",
   },
@@ -62,7 +54,7 @@ const menuItems = [
         :is-active="currentRoute.path.startsWith(item.path)"
         @click="() => router.push({ path: item.path })"
       >
-        {{ item.title }}
+        {{ router.resolve(item.path).name ?? "change me" }}
       </MenuItem>
     </div>
   </div>
