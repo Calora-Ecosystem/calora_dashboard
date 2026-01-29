@@ -17,10 +17,25 @@ const routes: RouteRecordRaw[] = [
         children: [
           {
             name: "home",
-            path: "",
+            path: "dashboard",
             component: () => import("./home/Dashboard.vue"),
           },
-          { path: "courses", component: () => import("./course/Courses.vue") },
+          { path: "users", component: () => import("./home/Users.vue") },
+          { path: "sales", component: () => import("./home/Sales.vue") },
+          {
+            path: "video-course",
+            component: () => import("./home/VideoCourse.vue"),
+          },
+          { path: "premium", component: () => import("./home/Premium.vue") },
+          {
+            path: "notifications",
+            component: () => import("./home/notifications.vue"),
+          },
+          {
+            path: "references",
+            component: () => import("./home/References.vue"),
+          },
+          { path: "team", component: () => import("./home/Team.vue") },
         ],
       },
       {

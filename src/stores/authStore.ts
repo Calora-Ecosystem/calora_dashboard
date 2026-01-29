@@ -72,10 +72,17 @@ export const useAuthStore = defineStore("auth", () => {
       return response.data;
     });
 
+  const logOut = () =>
+    execute(async () => {
+      tokenStore.clearTokens();
+      await axios.get("/auth/logout");
+    });
+
   return {
     sendOtp,
     signInViaEmail,
     isAuthenticated,
     refreshToken,
+    logOut,
   };
 });
