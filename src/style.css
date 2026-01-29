@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+.el-table {
+  --el-table-header-bg-color: #f1f4f9;
+}
+
+.el-table thead {
+  border-radius: 12px;
+  overflow: hidden;
+}

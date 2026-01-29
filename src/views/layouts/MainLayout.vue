@@ -14,11 +14,11 @@ const router = useRouter();
         <Navbar />
       </div>
       <div class="flex-10 flex flex-col">
-        <div class="flex-1 shrink-0">
+        <div class="flex-1 shrink-0 overflow-scroll">
           <Header />
         </div>
         <div
-          class="flex-11 bg-[#F5F6FA] border border-solid border-gray-200 p-2 px-10"
+          class="flex-11 bg-[#F5F6FA] border border-solid border-gray-200 p-2 px-10 overflow-scroll"
         >
           <h1 class="text-[32px] font-semibold mb-5 mt-3">
             {{ router.currentRoute.value.name?.toLocaleUpperCase() }}
