@@ -9,7 +9,7 @@ const router = useRouter();
 
 const logOut = async () => {
   await authStore.logOut();
-  await router.replace({ path: "/auth/sign-in" });
+  await router.replace({ path: "/auth/sign-in", force: true });
 };
 </script>
 

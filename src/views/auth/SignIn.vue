@@ -40,7 +40,7 @@ const handleSubmit = async () => {
       code: String(formData.otp ?? ""),
     });
 
-    await router.push({ name: "home" });
+    await router.push({ name: "dashboard" });
 
     state.otpPending = false;
   }
