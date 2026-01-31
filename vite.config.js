@@ -9,4 +9,5 @@ export default defineConfig({
   server: {
     port: 7777,
   },
+  assetsInclude: ["**/*.svg"],
 });
