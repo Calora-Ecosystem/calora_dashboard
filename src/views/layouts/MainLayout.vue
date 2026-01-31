@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from "vue-router";
-import Header from "../../components/ui/header.vue";
+import Header from "../../components/ui/Header.vue";
 import Navbar from "../../components/ui/Navbar.vue";
 import ScreenLayout from "./ScreenLayout.vue";
 
