@@ -43,7 +43,7 @@ const routes: RouteRecordRaw[] = [
           {
             name: "notifications",
             path: "notifications",
-            component: () => import("./home/notifications.vue"),
+            component: () => import("./home/Notifications.vue"),
           },
           {
             name: "references",
