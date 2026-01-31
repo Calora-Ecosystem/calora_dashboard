@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ElEmpty } from "element-plus";
 import { computed, onBeforeMount, ref, watch } from "vue";
 
 type TValue = boolean | any[];
@@ -37,7 +38,11 @@ onBeforeMount(async () => {
 });
 </script>
 <template>
-  <template v-if="emptyRef"> Empty </template>
+  <template v-if="emptyRef">
+    <div>
+      <ElEmpty />
+    </div>
+  </template>
   <template v-else>
     <slot />
   </template>

@@ -19,7 +19,7 @@ import IfEmpty from "../../components/shared/IfEmpty.vue";
   <div class="h-7"></div>
   <div class="bg-white rounded-[14px] shadow-lg py-[16px] px-[8px]">
     <h1>Sales List</h1>
-    <IfEmpty :value="false">
+    <IfEmpty :value="true">
       <ElTable :fit="true" header-cell-class-name="bg-red-200">
         <ElTableColumn label="Email/Phone" />
         <ElTableColumn label="Product Type" />
