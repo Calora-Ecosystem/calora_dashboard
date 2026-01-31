@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ArrowDownBold, CloseBold } from "@element-plus/icons-vue";
-import { ElAvatar, ElCol, ElDropdown, ElIcon, ElRow } from "element-plus";
-import { useAuthStore } from "../../stores/authStore";
+import { ElAvatar, ElDropdown, ElIcon } from "element-plus";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "../../stores/authStore";
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -16,7 +16,7 @@ const logOut = async () => {
 <template>
   <div class="flex flex-row justify-around gap-x-2 items-center">
     <div class="flex justify-center items-center">
-      <ElAvatar class="shrink-0" src="/images/avatar.png" size="large" />
+      <ElAvatar class="shrink-0" :src="`/images/avatar.png`" size="large" />
     </div>
     <div>
       <ElDropdown size="large" placement="bottom" class="outline-none">
