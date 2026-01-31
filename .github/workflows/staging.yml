@@ -1,8 +1,8 @@
-name: Production Deploy
+name: Staging Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [staging]
 
 env:
   IMAGE_NAME: ghcr.io/$(echo ${{github.REPOSITORY}} | tr '[:upper:]' '[:lower:]')
@@ -17,7 +17,7 @@ jobs:
       - name: Checking out
         uses: actions/checkout@v4.1.7
       - name: Build
-        run: docker image build -t ${{env.IMAGE_NAME}} --build-arg BASE_URL=/dashboard .
+        run: docker image build -t ${{env.IMAGE_NAME}} --build-arg BASE_URL=/admin .
       - name: Docker login
         uses: docker/login-action@v3.3.0
         with:

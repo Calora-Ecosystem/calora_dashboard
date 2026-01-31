@@ -1,8 +1,8 @@
-name: Staging Deploy
+name: Production Deploy
 
 on:
   push:
-    branches: [staging]
+    branches: [main]
 
 env:
   IMAGE_NAME: ghcr.io/$(echo ${{github.REPOSITORY}} | tr '[:upper:]' '[:lower:]')
