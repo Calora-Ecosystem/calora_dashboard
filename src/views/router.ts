@@ -92,6 +92,6 @@ const routes: RouteRecordRaw[] = [
 console.log((import.meta as any).env);
 
 export const router = createRouter({
-  history: createWebHistory((import.meta as any).env.BASE_URL ?? "/"),
+  history: createWebHistory(),
   routes,
 });
