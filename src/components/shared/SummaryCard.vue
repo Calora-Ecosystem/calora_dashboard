@@ -14,7 +14,7 @@ const props = withDefaults(
     total: "0",
     percent: 0,
     percentText: "from anytime",
-  },
+  }
 );
 
 const abs = (value: number) => Math.abs(value);

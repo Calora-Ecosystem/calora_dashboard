@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import SvgIcon from "./SvgIcon.vue";
+import SvgIcon from "./shared/SvgIcon.vue";
 
 const props = withDefaults(
   defineProps<{ isActive?: boolean; icon: string; value?: any }>(),
   {
     isActive: false,
-  },
+  }
 );
 
 const emits = defineEmits<{
@@ -19,12 +19,12 @@ const isHovering = ref(false);
   <div class="flex flex-row justify-center p-2">
     <div class="flex-1 relative">
       <div
-        class="absolute h-full left-[-13px] w-[10px] rounded-[4px] transition-all"
+        class="absolute h-full -left-3.25 w-2.5 rounded-sm transition-all"
         :class="{ 'bg-[#7CC243]': isHovering, 'bg-transparent': !isHovering }"
       ></div>
     </div>
     <div
-      class="flex-10 flex flex-row h-[50px] rounded-[6px] justify-around p-2 gap-x-2 items-center cursor-pointer"
+      class="flex-10 flex flex-row h-12.5 rounded-md justify-around p-2 gap-x-2 items-center cursor-pointer"
       :class="{
         'bg-[#7CC243] text-white': props.isActive,
         '': !props.isActive,
@@ -43,7 +43,7 @@ const isHovering = ref(false);
           }"
         />
       </div>
-      <div class="flex-10 font-normal text-[14px]">
+      <div class="flex-10 font-normal text-[14px] select-none">
         <slot />
       </div>
     </div>

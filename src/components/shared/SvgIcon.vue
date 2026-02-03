@@ -3,13 +3,10 @@ import { defineAsyncComponent } from "vue";
 
 const props = defineProps<{ icon: string }>();
 
-const icons = import.meta.glob("../assets/**/*.svg", { eager: true });
-
-console.log(icons);
+const icons = import.meta.glob("../../assets/**/*.svg", { eager: true });
 
 const icon = defineAsyncComponent(() => {
-  const path = `../assets/${props.icon}`;
-  console.log(path);
+  const path = `../../assets/${props.icon}`;
   const comp = icons[path];
   if (!comp) throw new Error(`${path} not found`);
   return Promise.resolve(comp);

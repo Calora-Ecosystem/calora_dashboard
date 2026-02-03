@@ -1,9 +1,15 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
+import { pa } from "element-plus/es/locale/index.mjs";
 
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
+    beforeEnter: (to, from, next) => {
+      if (to.path === "/") return next({ name: "dashboard" });
+
+      return next();
+    },
     children: [
       {
         path: "",
@@ -31,9 +37,29 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/Sales.vue"),
           },
           {
-            name: "video_course",
             path: "video-course",
-            component: () => import("./home/VideoCourse.vue"),
+            children: [
+              {
+                name: "video_course",
+                path: "",
+                component: () => import("./course/VideoCourse.vue"),
+              },
+              {
+                path: ":courseId/workouts",
+                children: [
+                  {
+                    path: "",
+                    name: "workouts",
+                    component: () => import("./course/Workouts.vue"),
+                  },
+                  {
+                    path: ":workoutId/exercises",
+                    name: "exercises",
+                    component: () => import("./course/Exercises.vue"),
+                  },
+                ],
+              },
+            ],
           },
           {
             name: "premium",
