@@ -3,6 +3,8 @@ import App from "./App.vue";
 import { router } from "./views/router";
 
 import ElementPlus from "element-plus";
+import uzUz from "element-plus/es/locale/lang/uz-uz";
+
 import "element-plus/dist/index.css";
 import "./style.css";
 
@@ -18,7 +20,7 @@ pinia.use(piniaPluginPersistedstate);
 
 const app = createApp(App);
 
-app.use(ElementPlus);
+app.use(ElementPlus, { locale: uzUz });
 app.use(router);
 app.use(pinia);
 
