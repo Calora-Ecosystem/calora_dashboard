@@ -13,7 +13,7 @@ import { vMaska } from "maska/vue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 
-import SvgIcon from "./components/SvgIcon.vue";
+import SvgIcon from "./components/shared/SvgIcon.vue";
 
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);

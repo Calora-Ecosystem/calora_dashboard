@@ -9,19 +9,25 @@ const router = useRouter();
 
 <template>
   <ScreenLayout>
-    <div class="w-full h-full flex flex-row">
-      <div class="flex-2 shrink-0 min-w-[241px]">
+    <div class="w-full h-full flex overflow-hidden">
+      <!-- Sidebar -->
+      <div class="shrink-0 w-[241px]">
         <Navbar />
       </div>
-      <div class="flex-10 flex flex-col">
-        <div class="flex-1 shrink-0 overflow-scroll">
+
+      <!-- Main -->
+      <div class="flex-1 flex flex-col min-h-0 min-w-0">
+        <!-- Header -->
+        <div class="h-[80px] shrink-0">
           <Header />
         </div>
+
+        <!-- Scrollable content -->
         <div
-          class="flex-11 bg-[#F5F6FA] border border-solid border-gray-200 p-2 px-10 overflow-scroll"
+          class="flex-1 min-h-0 overflow-y-auto bg-[#F5F6FA] border border-gray-200 p-2 px-10"
         >
           <h1 class="text-[32px] font-semibold mb-5 mt-3">
-            {{ router.currentRoute.value.name?.toLocaleUpperCase() }}
+            {{ router.currentRoute.value.name?.toUpperCase() }}
           </h1>
           <router-view />
         </div>
