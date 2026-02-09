@@ -238,8 +238,24 @@ onMounted(async () => {
           <ElTableColumn label="Value" prop="value">
             <template #default="{ row }">
               <ElFormItem :prop="`metrics.${row.id}.value`">
-                <ElInputNumber v-model="row.value" />
+                <ElInputNumber v-model="row.value" :min="0" :max="9_999" />
               </ElFormItem>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn>
+            <template #default="{ row }">
+              <ElButton
+                type="danger"
+                size="small"
+                @click="
+                  () =>
+                    data.metrics.splice(
+                      data.metrics.findIndex((m) => m.id === row.id),
+                      1,
+                    )
+                "
+                >Remove</ElButton
+              >
             </template>
           </ElTableColumn>
         </ElTable>
@@ -258,5 +274,4 @@ onMounted(async () => {
       </div>
     </ElForm>
   </Card>
-  <pre>{{ data }}</pre>
 </template>
