@@ -3,13 +3,15 @@ import { ElButton, ElEmpty } from "element-plus";
 import { computed, onBeforeMount, ref, watch } from "vue";
 import SvgIcon from "./SvgIcon.vue";
 
-type TValue = boolean | any[];
+type TValue = boolean | any[] | any;
 
 const props = defineProps<{
   value: TValue | (() => Promise<TValue>) | (() => TValue);
 }>();
 
 const isEmpty = async (value: typeof props.value) => {
+  if (value === null || value === undefined) return true;
+
   if (Array.isArray(value)) return value.length == 0;
 
   if (typeof value === "boolean") return value;
@@ -31,7 +33,7 @@ watch(
   () => props.value,
   async () => {
     emptyRef.value = await isEmpty(props.value);
-  }
+  },
 );
 
 onBeforeMount(async () => {

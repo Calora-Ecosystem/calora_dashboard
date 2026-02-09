@@ -1,7 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 import { defineStore } from "pinia";
 import { computed } from "vue";
-import { axios } from "../integrations/axios";
+import { axios, axiosWithoutLang } from "../integrations/axios";
 import { useApiCallStore } from "./apiCallStore";
 import { useAppStore } from "./appStore";
 import { useTokenStore } from "./tokenStore";

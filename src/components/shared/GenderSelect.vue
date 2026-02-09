@@ -1,21 +1,28 @@
 <script setup lang="ts">
 import { ElButton, ElButtonGroup } from "element-plus";
-const model = defineModel<string | null>({ default: null, required: false });
+
+const MALE_SELECTOR = "male";
+const FEMALE_SELECTOR = "female";
+
+const model = defineModel<string | null>({
+  default: null,
+  required: false,
+});
 </script>
 <template>
   <div>
     <ElButtonGroup size="large">
       <ElButton
-        @click="model = 'man'"
-        :type="model === 'man' ? 'primary' : 'default'"
+        @click="model = MALE_SELECTOR"
+        :type="model === MALE_SELECTOR ? 'primary' : 'default'"
         class="rounded-l-xl!"
-        >Man</ElButton
+        >Male</ElButton
       >
       <ElButton
-        @click="model = 'woman'"
-        :type="model === 'woman' ? 'primary' : 'default'"
+        @click="model = FEMALE_SELECTOR"
+        :type="model === FEMALE_SELECTOR ? 'primary' : 'default'"
         class="rounded-r-xl!"
-        >Woman</ElButton
+        >Female</ElButton
       >
     </ElButtonGroup>
   </div>

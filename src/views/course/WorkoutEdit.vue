@@ -1,0 +1,1 @@
+<template>Workout edit</template>

@@ -15,14 +15,17 @@ import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 
 import SvgIcon from "./components/shared/SvgIcon.vue";
 
+import Vue3Lottie from "vue3-lottie";
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 const app = createApp(App);
 
 app.use(ElementPlus, { locale: uzUz });
-app.use(router);
 app.use(pinia);
+app.use(router);
+app.use(Vue3Lottie);
 
 app.directive("maska", vMaska);
 
