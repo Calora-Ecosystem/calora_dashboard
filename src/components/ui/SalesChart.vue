@@ -58,7 +58,7 @@ ChartJS.register(
   CategoryScale,
   LinearScale,
   PointElement,
-  Filler
+  Filler,
 );
 
 const chartRef = ref(null);
