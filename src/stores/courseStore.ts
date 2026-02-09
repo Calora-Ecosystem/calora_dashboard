@@ -43,11 +43,41 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
+  const getWorkoutById = async (workoutId: number) => {
+    return await execute(async () => {
+      const response = await axios.get(`/workouts`, {
+        params: { FilteringExpression: `id==${workoutId}` },
+      });
+      return response.data.content[0];
+    });
+  };
+
+  const modifyWorkout = async (data: any) => {
+    await execute(async () => {
+      const response = await axios.post(`/workouts`, data);
+    });
+  };
+
   const loadExercises = async (workoutId: number) => {
     await execute(async () => {
       const response = await axios.get(`/exercises?workoutId=${workoutId}`);
 
       Object.assign(exercises, { [workoutId]: response.data.content });
+    });
+  };
+
+  const getExerciseById = async (workoutId: number, exerciseId: number) => {
+    return await execute(async () => {
+      const response = await axios.get(`/exercises`, {
+        params: { FilteringExpression: `id==${exerciseId}`, workoutId },
+      });
+      return response.data.content[0];
+    });
+  };
+
+  const modifyExercise = async (data: any) => {
+    await execute(async () => {
+      const response = await axios.post(`/exercises`, data);
     });
   };
 
@@ -59,6 +89,10 @@ export const useCourseStore = defineStore("course", () => {
     getCourseById,
     modifyCourse,
     loadWorkouts,
+    getWorkoutById,
+    modifyWorkout,
     loadExercises,
+    getExerciseById,
+    modifyExercise,
   };
 });

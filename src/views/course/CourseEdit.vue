@@ -16,11 +16,14 @@ import { onMounted, reactive, ref } from "vue";
 import { Asset, CourseType, Gender, Mlf } from "../../@types/common";
 import { useCourseStore } from "../../stores/courseStore";
 import { useRouter } from "vue-router";
+import { useAppStore } from "../../stores/appStore";
 
 const courseStore = useCourseStore();
 const router = useRouter();
+const appStore = useAppStore();
 
 const data = reactive<{
+  id?: number;
   title: Mlf;
   description: Mlf;
   order: number;
@@ -119,11 +122,14 @@ const handleSubmit = async () => {
 
     await courseStore.modifyCourse(data);
 
-    router.replace("/courses");
+    router.back();
   } catch (error) {}
 };
 
 onMounted(async () => {
+  if (router.currentRoute.value.name !== "course_edit") {
+    return;
+  }
   const course = await courseStore.getCourseById(
     router.currentRoute.value.query.gender as string,
     Number(router.currentRoute.value.params.courseId),
@@ -256,7 +262,12 @@ onMounted(async () => {
       </div>
 
       <div class="mt-3 flex justify-center">
-        <ElButton type="primary" native-type="submit">Add</ElButton>
+        <ElButton
+          type="primary"
+          native-type="submit"
+          :loading="appStore.isLoading"
+          >Add</ElButton
+        >
       </div>
     </ElForm>
   </Card>

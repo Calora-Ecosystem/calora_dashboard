@@ -5,6 +5,7 @@ import IfEmpty from "../../components/shared/IfEmpty.vue";
 import { makeFileUrl } from "../../integrations/axios";
 import { useCourseStore } from "../../stores/courseStore";
 import ExerciseCard from "./components/ExerciseCard.vue";
+import { ElButton } from "element-plus";
 
 const courseStore = useCourseStore();
 const route = useRoute();
@@ -18,12 +19,21 @@ onMounted(async () => {
 </script>
 
 <template>
+  <div class="flex justify-between">
+    <div></div>
+    <div>
+      <RouterLink :to="{ name: 'exercises_create' }">
+        <ElButton type="primary" size="large">Create</ElButton>
+      </RouterLink>
+    </div>
+  </div>
   <IfEmpty :value="courseStore.exercises[workoutId] as any">
     <div class="flex flex-row gap-4 flex-wrap">
       <ExerciseCard
         v-for="value in courseStore.exercises[workoutId]"
         :key="value.id"
-        :title="value.title"
+        :id="value.id"
+        :title="value.title.uz"
         :animation-link="
           value.assets.find((a: { type: string }) => a.type === 'Lotte')?.url
             ? makeFileUrl(
@@ -44,7 +54,7 @@ onMounted(async () => {
               )
             : null
         "
-        :description="value.description"
+        :description="value.description.uz"
       />
     </div>
   </IfEmpty>

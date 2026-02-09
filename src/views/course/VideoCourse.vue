@@ -5,6 +5,7 @@ import GenderSelect from "../../components/shared/GenderSelect.vue";
 import { useCourseStore } from "../../stores/courseStore";
 import IfEmpty from "../../components/shared/IfEmpty.vue";
 import { useRoute, useRouter } from "vue-router";
+import { ElButton } from "element-plus";
 
 const route = useRoute();
 const router = useRouter();
@@ -24,7 +25,14 @@ watch(gender, async (newGender) => {
 </script>
 
 <template>
-  <GenderSelect v-model="gender" />
+  <div class="flex flex-row justify-between items-center">
+    <GenderSelect v-model="gender" />
+    <div>
+      <RouterLink :to="{ name: 'course_create' }">
+        <ElButton size="large" type="primary">Create</ElButton>
+      </RouterLink>
+    </div>
+  </div>
   <div class="flex flex-row flex-wrap gap-x-3">
     <IfEmpty :value="courseStore.courses as any">
       <CourseCard

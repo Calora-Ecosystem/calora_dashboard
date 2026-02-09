@@ -1,4 +1,11 @@
-export type Gender = "Male" | "Female";
+import {
+  ASSET_TYPES,
+  COURSE_TYPES,
+  GENDERS,
+  METRICS,
+} from "../constants/ApiContstants";
+
+export type Gender = (typeof GENDERS)[number];
 export type Mlf = {
   uz: string;
   ru: string;
@@ -7,8 +14,10 @@ export type Mlf = {
 };
 
 export type Asset = {
-  type: "MainImage" | "SubCoverImage" | "...";
+  type: (typeof ASSET_TYPES)[number];
   url: string;
 };
 
-export type CourseType = "Lesson" | "Workout";
+export type CourseType = (typeof COURSE_TYPES)[number];
+
+export type TMetrics = (typeof METRICS)[number];

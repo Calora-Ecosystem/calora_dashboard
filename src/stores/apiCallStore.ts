@@ -71,7 +71,7 @@ const useApiCallStore = defineStore("api_call", () => {
           if (error.response?.status === 401) {
             if (
               error.response.data?.error === "token_expired" ||
-              error.response.data?.error === "session_expired"
+              error.response.data?.error === "Session expired"
             ) {
               await authStore.refreshToken();
               return await Promise.resolve(action);
