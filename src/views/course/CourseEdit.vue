@@ -136,6 +136,10 @@ onMounted(async () => {
   );
 
   Object.assign(data, course);
+
+  if (!data.assets[1]) data.assets[1] = { type: "SubCoverImage", url: "" };
+
+  console.log(data);
 });
 </script>
 <template>

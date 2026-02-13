@@ -23,6 +23,10 @@ const menuItems = [
     path: "/video-course",
   },
   {
+    icon: "navbar/calories.svg",
+    path: "/calories",
+  },
+  {
     icon: "navbar/user-stat.svg",
     path: "/premium",
   },

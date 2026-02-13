@@ -14,10 +14,25 @@ import {
 import Card from "../../components/ui/Card.vue";
 import FileUpload from "../../components/shared/FileUpload.vue";
 import { onMounted, reactive, ref } from "vue";
-import { Asset, CourseType, Gender, Mlf } from "../../@types/common";
+import {
+  ActivityType,
+  Asset,
+  ComputationType,
+  CourseType,
+  EntityType,
+  Gender,
+  Mlf,
+} from "../../@types/common";
 import { useCourseStore } from "../../stores/courseStore";
 import { useRouter } from "vue-router";
 import { useAppStore } from "../../stores/appStore";
+import { en } from "element-plus/es/locale/index.mjs";
+import {
+  ACTIVITIES,
+  COMPUTATION_TYPE,
+  ENTITY_TYPES,
+} from "../../constants/ApiContstants";
+import ComputationEdit from "./components/ComputationEdit.vue";
 
 const courseStore = useCourseStore();
 const router = useRouter();
@@ -30,6 +45,14 @@ const data = reactive<{
   courseId: number;
   hasRest: boolean;
   assets: Asset[];
+  computations: {
+    id?: number;
+    entityId: number;
+    type: EntityType;
+    activity: ActivityType;
+    computationType: ComputationType;
+    value: number;
+  }[];
 }>({
   title: { uz: "", ru: "", eng: "" },
   description: { uz: "", ru: "", eng: "" },
@@ -40,6 +63,7 @@ const data = reactive<{
     { type: "MainImage", url: "" },
     { type: "SubCoverImage", url: "" },
   ],
+  computations: [],
 });
 
 const rules = reactive<FormRules<typeof data>>({
@@ -85,9 +109,36 @@ const rules = reactive<FormRules<typeof data>>({
       },
     },
   },
+  computations: {
+    type: "array",
+    defaultField: {
+      type: "object",
+      fields: {
+        entityId: { required: true },
+        type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
+        activity: { required: true, type: "enum", enum: ACTIVITIES as any },
+        computationType: {
+          required: true,
+          type: "enum",
+          enum: COMPUTATION_TYPE as any,
+        },
+        value: { required: true, type: "number" },
+      },
+    },
+  },
 });
 
 const form = ref<FormInstance>();
+
+const handleAddComputation = () => {
+  data.computations.push({
+    activity: ACTIVITIES[0],
+    computationType: COMPUTATION_TYPE[0],
+    entityId: 0,
+    type: ENTITY_TYPES[0],
+    value: 0,
+  });
+};
 
 const handleSubmit = async () => {
   try {
@@ -184,6 +235,8 @@ onMounted(async () => {
           <ElInputNumber v-model="data.order" :controls="false" />
         </ElFormItem>
       </div>
+
+      <ComputationEdit />
 
       <div class="mt-3 flex justify-center">
         <ElButton

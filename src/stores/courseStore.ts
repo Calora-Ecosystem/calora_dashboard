@@ -3,6 +3,7 @@ import { reactive, ref, watch } from "vue";
 import { useApiCallStore } from "./apiCallStore";
 import { axios } from "../integrations/axios";
 import { useRoute } from "vue-router";
+import { de } from "element-plus/es/locale/index.mjs";
 
 export const useCourseStore = defineStore("course", () => {
   const { execute } = useApiCallStore();
@@ -34,12 +35,29 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
+  const deleteCourse = async (courseId: number) => {
+    await execute(async () => {
+      const response = await axios.delete(`/course/${courseId}`);
+    });
+    await loadCourses((route.query.gender as string) ?? "male");
+  };
+
   const loadWorkouts = async (courseId: number) => {
     Object.assign(workouts, { [courseId]: [] });
     await execute(async () => {
       const response = await axios.get(`/workouts?courseId=${courseId}`);
 
       Object.assign(workouts, { [courseId]: response.data.content });
+    });
+  };
+
+  const getWorkoutComputations = async (workoutId: number) => {
+    await execute(async () => {
+      const response = await axios.get(
+        `/workouts/computations?courseId=${workoutId}`,
+      );
+
+      return response.data.content;
     });
   };
 
@@ -88,7 +106,9 @@ export const useCourseStore = defineStore("course", () => {
     loadCourses,
     getCourseById,
     modifyCourse,
+    deleteCourse,
     loadWorkouts,
+    getWorkoutComputations,
     getWorkoutById,
     modifyWorkout,
     loadExercises,
