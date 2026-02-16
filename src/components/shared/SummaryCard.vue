@@ -5,13 +5,13 @@ const props = withDefaults(
   defineProps<{
     icon: string;
     totalText?: string;
-    total?: string;
+    total?: number | string;
     percent?: number;
     percentText?: string;
   }>(),
   {
     totalText: "Total",
-    total: "0",
+    total: 0,
     percent: 0,
     percentText: "from anytime",
   },

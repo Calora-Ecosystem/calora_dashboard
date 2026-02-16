@@ -28,3 +28,16 @@ export type TMetrics = (typeof METRICS)[number];
 export type EntityType = (typeof ENTITY_TYPES)[number];
 export type ActivityType = (typeof ACTIVITIES)[number];
 export type ComputationType = (typeof COMPUTATION_TYPE)[number];
+
+export type ApiBaseResponse<T = any> = {
+  id: string;
+  code: number;
+  error?: string;
+  total: number;
+  content: T;
+  query?: string;
+  modelStateError?: {
+    key: string;
+    errorMessage: string;
+  }[];
+};
