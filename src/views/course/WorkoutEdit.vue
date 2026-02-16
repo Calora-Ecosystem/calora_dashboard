@@ -39,6 +39,7 @@ const router = useRouter();
 const appStore = useAppStore();
 
 const data = reactive<{
+  id?: number;
   title: Mlf;
   description: Mlf;
   order: number;
@@ -145,6 +146,10 @@ const handleSubmit = async () => {
     await form.value.validate();
 
     await courseStore.modifyWorkout(data);
+    const workout = await courseStore.getWorkoutById(
+      Number(router.currentRoute.value.params.workoutId),
+    );
+    Object.assign(data, workout);
 
     router.back();
   } catch (error) {}
@@ -236,7 +241,9 @@ onMounted(async () => {
         </ElFormItem>
       </div>
 
-      <ComputationEdit />
+      <ElFormItem label="Computations" required prop="computations">
+        <ComputationEdit type="Workout" :entityId="data.id" />
+      </ElFormItem>
 
       <div class="mt-3 flex justify-center">
         <ElButton
