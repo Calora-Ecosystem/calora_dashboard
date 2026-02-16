@@ -157,22 +157,22 @@ onMounted(async () => {
       :model="data"
     >
       <ElFormItem label="Title" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required class="" prop="title.uz">
-            <ElInput placeholder="uz" v-model="data.title.uz" />
+        <div class="flex flex-row gap-x-2 w-full">
+          <ElFormItem required class="flex-auto" prop="title.uz">
+            <ElInput class="w-auto" placeholder="uz" v-model="data.title.uz" />
           </ElFormItem>
-          <ElFormItem required prop="title.ru">
-            <ElInput placeholder="ru" v-model="data.title.ru" />
+          <ElFormItem class="flex-auto" required prop="title.ru">
+            <ElInput class="w-auto" placeholder="ru" v-model="data.title.ru" />
           </ElFormItem>
           <ElFormItem required prop="title.eng">
-            <ElInput placeholder="en" v-model="data.title.eng" />
+            <ElInput class="w-auto" placeholder="en" v-model="data.title.eng" />
           </ElFormItem>
         </div>
       </ElFormItem>
 
-      <ElFormItem label="Description" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required prop="description.uz">
+      <ElFormItem label="Description" required class="w-full">
+        <div class="flex flex-row gap-x-2 w-full">
+          <ElFormItem required prop="description.uz" class="flex-auto">
             <ElInput
               style="width: 250px"
               placeholder="uz"
@@ -181,7 +181,7 @@ onMounted(async () => {
               v-model="data.description.uz"
             />
           </ElFormItem>
-          <ElFormItem required prop="description.ru">
+          <ElFormItem required prop="description.ru" class="flex-auto">
             <ElInput
               style="width: 250px"
               placeholder="ru"
