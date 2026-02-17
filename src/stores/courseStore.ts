@@ -51,6 +51,13 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
+  const getWorkoutById = async (workoutId: number) => {
+    await execute(async () => {
+      const response = await axios.get(`/workouts/${workoutId}`);
+      return response.data.content;
+    });
+  };
+
   const getWorkoutComputations = async (workoutId: number) => {
     await execute(async () => {
       const response = await axios.get(
@@ -58,15 +65,6 @@ export const useCourseStore = defineStore("course", () => {
       );
 
       return response.data.content;
-    });
-  };
-
-  const getWorkoutById = async (workoutId: number) => {
-    return await execute(async () => {
-      const response = await axios.get(`/workouts`, {
-        params: { FilteringExpression: `id==${workoutId}` },
-      });
-      return response.data.content[0];
     });
   };
 
@@ -93,6 +91,16 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
+  const getExerciseComputations = async (exerciseId: number) => {
+    await execute(async () => {
+      const response = await axios.get(
+        `/exercises/computations?exerciseId=${exerciseId}`,
+      );
+
+      return response.data.content;
+    });
+  };
+
   const modifyExercise = async (data: any) => {
     await execute(async () => {
       const response = await axios.post(`/exercises`, data);
@@ -113,6 +121,7 @@ export const useCourseStore = defineStore("course", () => {
     modifyWorkout,
     loadExercises,
     getExerciseById,
+    getExerciseComputations,
     modifyExercise,
   };
 });
