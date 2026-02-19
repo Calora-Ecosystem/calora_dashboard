@@ -115,7 +115,7 @@ const rules = reactive<FormRules<typeof data>>({
     defaultField: {
       type: "object",
       fields: {
-        entityId: { required: true },
+        entityId: { required: true, type: "number", min: 1 },
         type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
         activity: { required: true, type: "enum", enum: ACTIVITIES as any },
         computationType: {
@@ -131,28 +131,35 @@ const rules = reactive<FormRules<typeof data>>({
 
 const form = ref<FormInstance>();
 
-const handleAddComputation = () => {
-  data.computations.push({
-    activity: ACTIVITIES[0],
-    computationType: COMPUTATION_TYPE[0],
-    entityId: 0,
-    type: ENTITY_TYPES[0],
-    value: 0,
-  });
-};
-
 const handleSubmit = async () => {
   try {
     await form.value.validate();
 
     await courseStore.modifyWorkout(data);
+
+    await courseStore.modifyWorkoutComputations(
+      data.computations.map((c) => ({
+        ...c,
+        entityId: c.entityId <= 0 ? data.id : c.entityId,
+        id: c.id === 0 ? null : c.id,
+      })),
+    );
+
     const workout = await courseStore.getWorkoutById(
       Number(router.currentRoute.value.params.workoutId),
     );
     Object.assign(data, workout);
 
-    router.back();
+    // router.back();
   } catch (error) {}
+};
+
+const loadComputations = async () => {
+  const computations = await courseStore.getWorkoutComputations(
+    Number(data.id ?? 0),
+  );
+
+  Object.assign(data.computations, computations);
 };
 
 onMounted(async () => {
@@ -163,7 +170,21 @@ onMounted(async () => {
     Number(router.currentRoute.value.params.workoutId),
   );
 
+  workout.assets = [
+    ...workout.assets,
+    workout.assets.find((a) => a.type === "MainImage") ?? {
+      type: "MainImage",
+      url: "",
+    },
+    workout.assets.find((a) => a.type === "SubCoverImage") ?? {
+      type: "SubCoverImage",
+      url: "",
+    },
+  ];
+
   Object.assign(data, workout);
+
+  await loadComputations();
 });
 </script>
 <template>
@@ -242,7 +263,11 @@ onMounted(async () => {
       </div>
 
       <ElFormItem label="Computations" required prop="computations">
-        <ComputationEdit type="Workout" :entityId="data.id" />
+        <ComputationEdit
+          type="Workout"
+          :entityId="data.id"
+          v-model="data.computations"
+        />
       </ElFormItem>
 
       <div class="mt-3 flex justify-center">

@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { onMounted, reactive } from "vue";
-import {
-  ACTIVITIES,
-  COMPUTATION_TYPE,
-  ENTITY_TYPES,
-} from "../../../constants/ApiContstants";
 import {
   ActivityType,
   ComputationType,
   EntityType,
 } from "../../../@types/common";
-import { useCourseStore } from "../../../stores/courseStore";
+import { ACTIVITIES, COMPUTATION_TYPE } from "../../../constants/ApiContstants";
 
-const courseStore = useCourseStore();
+const model = defineModel<
+  {
+    id?: number;
+    entityId: number;
+    type: EntityType;
+    activity: ActivityType;
+    computationType: ComputationType;
+    value: number;
+  }[]
+>();
 
 const props = withDefaults(
   defineProps<{
@@ -23,46 +26,13 @@ const props = withDefaults(
     entityId: 0,
   },
 );
-
-const data = reactive<{
-  computations: {
-    id?: number;
-    entityId: number;
-    type: EntityType;
-    activity: ActivityType;
-    computationType: ComputationType;
-    value: number;
-  }[];
-}>({
-  computations: [],
-});
-
-const handleAddComputation = () => {
-  data.computations.push({
-    activity: ACTIVITIES[0],
-    computationType: COMPUTATION_TYPE[0],
-    entityId: props.entityId,
-    type: props.type,
-    value: 0,
-  });
-};
-
-onMounted(async () => {
-  if (props.type === "Workout") {
-    const computations = await courseStore.getWorkoutComputations(
-      props.entityId,
-    );
-
-    Object.assign(data, { computations });
-  }
-});
 </script>
 <template>
-  <ElTable :data="data.computations">
+  <ElTable :data="model">
     <ElTableColumn label="Activity" prop="activity">
       <template #default="{ row, index }">
         <ElFormItem :prop="`computations.${row.id}.activity`">
-          <ElSelect v-model="row.activity">
+          <ElSelect v-model="row.activity" :disabled="true">
             <ElOption
               v-for="value in ACTIVITIES"
               :key="value"
@@ -94,7 +64,7 @@ onMounted(async () => {
         </ElFormItem>
       </template>
     </ElTableColumn>
-    <ElTableColumn>
+    <!-- <ElTableColumn>
       <template #default="{ row }">
         <ElButton
           type="danger"
@@ -109,11 +79,16 @@ onMounted(async () => {
           >Remove</ElButton
         >
       </template>
-    </ElTableColumn>
+    </ElTableColumn> -->
   </ElTable>
   <div>
-    <ElButton type="success" plain @click="handleAddComputation" size="default"
+    <!-- <ElButton
+      type="success"
+      plain
+      @click="handleAddComputation"
+      size="default"
+      hidden
       >+</ElButton
-    >
+    > -->
   </div>
 </template>
