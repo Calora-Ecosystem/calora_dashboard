@@ -15,18 +15,32 @@ import {
 } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Asset, Mlf, TMetrics } from "../../@types/common";
+import {
+  Asset,
+  Mlf,
+  TMetrics,
+  ActivityType,
+  ComputationType,
+  EntityType,
+} from "../../@types/common";
 import FileUpload from "../../components/shared/FileUpload.vue";
 import Card from "../../components/ui/Card.vue";
 import { useCourseStore } from "../../stores/courseStore";
 import { useAppStore } from "../../stores/appStore";
-import { METRICS } from "../../constants/ApiContstants";
+import {
+  ACTIVITIES,
+  COMPUTATION_TYPE,
+  ENTITY_TYPES,
+  METRICS,
+} from "../../constants/ApiContstants";
+import ComputationEdit from "./components/ComputationEdit.vue";
 
 const courseStore = useCourseStore();
 const router = useRouter();
 const appStore = useAppStore();
 
 const data = reactive<{
+  id?: number;
   title: Mlf;
   description: Mlf;
   order: number;
@@ -34,6 +48,14 @@ const data = reactive<{
   duration: string;
   assets: Asset[];
   metrics: { id: number; metric: TMetrics; value: number }[];
+  computations: {
+    id?: number;
+    entityId: number;
+    type: EntityType;
+    activity: ActivityType;
+    computationType: ComputationType;
+    value: number;
+  }[];
 }>({
   title: { uz: "", ru: "", eng: "" },
   description: { uz: "", ru: "", eng: "" },
@@ -42,6 +64,7 @@ const data = reactive<{
   duration: "",
   assets: [{ type: "Default", url: "" }],
   metrics: [],
+  computations: [],
 });
 
 const rules = reactive<FormRules<typeof data>>({
@@ -115,6 +138,24 @@ const rules = reactive<FormRules<typeof data>>({
       },
     },
   },
+
+  computations: {
+    type: "array",
+    defaultField: {
+      type: "object",
+      fields: {
+        entityId: { required: true, type: "number", min: 1 },
+        type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
+        activity: { required: true, type: "enum", enum: ACTIVITIES as any },
+        computationType: {
+          required: true,
+          type: "enum",
+          enum: COMPUTATION_TYPE as any,
+        },
+        value: { required: true, type: "number" },
+      },
+    },
+  },
 });
 
 const form = ref<FormInstance>();
@@ -133,6 +174,15 @@ const handleAddMetric = () => {
   data.metrics.push({ id: data.metrics.length, metric: METRICS[0], value: 0 });
 };
 
+const loadComputations = async () => {
+  const computations = await courseStore.getExerciseComputations(
+    Number(data.id ?? 0),
+  );
+
+
+  Object.assign(data.computations, computations);
+};
+
 onMounted(async () => {
   if (router.currentRoute.value.name !== "exercise_edit") {
     return;
@@ -143,6 +193,7 @@ onMounted(async () => {
   );
 
   Object.assign(data, exercise);
+  await loadComputations();
 });
 </script>
 <template>
@@ -264,14 +315,23 @@ onMounted(async () => {
         </div>
       </ElFormItem>
 
+      <ElFormItem label="Computations" required prop="computations">
+        <ComputationEdit
+          type="Exercise"
+          :entityId="data.id"
+          v-model="data.computations"
+        />
+      </ElFormItem>
+
       <div class="mt-3 flex justify-center">
         <ElButton
           type="primary"
           native-type="submit"
           :loading="appStore.isLoading"
-          >Add</ElButton
+          >{{ data.id && data.id > 0 ? "Update" : "Add" }}</ElButton
         >
       </div>
     </ElForm>
   </Card>
+  <pre>{{ data }}</pre>
 </template>

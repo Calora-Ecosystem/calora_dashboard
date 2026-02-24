@@ -5,6 +5,14 @@ import {
   EntityType,
 } from "../../../@types/common";
 import { ACTIVITIES, COMPUTATION_TYPE } from "../../../constants/ApiContstants";
+import {
+  ElFormItem,
+  ElInputNumber,
+  ElOption,
+  ElSelect,
+  ElTable,
+  ElTableColumn,
+} from "element-plus";
 
 const model = defineModel<
   {
@@ -64,31 +72,5 @@ const props = withDefaults(
         </ElFormItem>
       </template>
     </ElTableColumn>
-    <!-- <ElTableColumn>
-      <template #default="{ row }">
-        <ElButton
-          type="danger"
-          size="default"
-          @click="
-            () =>
-              data.computations.splice(
-                data.computations.findIndex((m) => m.id === row.id),
-                1,
-              )
-          "
-          >Remove</ElButton
-        >
-      </template>
-    </ElTableColumn> -->
   </ElTable>
-  <div>
-    <!-- <ElButton
-      type="success"
-      plain
-      @click="handleAddComputation"
-      size="default"
-      hidden
-      >+</ElButton
-    > -->
-  </div>
 </template>

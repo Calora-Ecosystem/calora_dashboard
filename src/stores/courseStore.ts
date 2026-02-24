@@ -99,7 +99,7 @@ export const useCourseStore = defineStore("course", () => {
   };
 
   const getExerciseComputations = async (exerciseId: number) => {
-    await execute(async () => {
+    return await execute(async () => {
       const response = await axios.get(
         `/exercises/computations?exerciseId=${exerciseId}`,
       );
