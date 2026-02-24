@@ -89,12 +89,10 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
-  const getExerciseById = async (workoutId: number, exerciseId: number) => {
+  const getExerciseById = async (exerciseId: number) => {
     return await execute(async () => {
-      const response = await axios.get(`/exercises`, {
-        params: { FilteringExpression: `id==${exerciseId}`, workoutId },
-      });
-      return response.data.content[0];
+      const response = await axios.get(`/exercises/${exerciseId}`);
+      return response.data.content;
     });
   };
 

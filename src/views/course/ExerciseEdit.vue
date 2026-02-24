@@ -166,6 +166,14 @@ const handleSubmit = async () => {
 
     await courseStore.modifyExercise(data);
 
+    await courseStore.modifyWorkoutComputations(
+      data.computations.map((c) => ({
+        ...c,
+        entityId: c.entityId <= 0 ? data.id : c.entityId,
+        id: c.id === 0 ? null : c.id,
+      })),
+    );
+
     router.back();
   } catch (error) {}
 };
@@ -175,10 +183,15 @@ const handleAddMetric = () => {
 };
 
 const loadComputations = async () => {
-  const computations = await courseStore.getExerciseComputations(
+  let computations = await courseStore.getExerciseComputations(
     Number(data.id ?? 0),
   );
 
+  computations = computations.map((x) => ({
+    ...x,
+    type: ENTITY_TYPES[1],
+    fromType: x?.type,
+  }));
 
   Object.assign(data.computations, computations);
 };
@@ -188,7 +201,6 @@ onMounted(async () => {
     return;
   }
   const exercise = await courseStore.getExerciseById(
-    Number(router.currentRoute.value.params.workoutId),
     Number(router.currentRoute.value.params.exerciseId),
   );
 
@@ -277,7 +289,9 @@ onMounted(async () => {
               <ElFormItem :prop="`metrics.${row.id}.metric`">
                 <ElSelect v-model="row.metric">
                   <ElOption
-                    v-for="value in METRICS"
+                    v-for="value in METRICS.filter((r) =>
+                      data.metrics.every((x) => x.metric !== r),
+                    )"
                     :key="value"
                     :label="value"
                     :value="value"
@@ -297,7 +311,7 @@ onMounted(async () => {
             <template #default="{ row }">
               <ElButton
                 type="danger"
-                size="small"
+                size="default"
                 @click="
                   () =>
                     data.metrics.splice(
@@ -333,5 +347,4 @@ onMounted(async () => {
       </div>
     </ElForm>
   </Card>
-  <pre>{{ data }}</pre>
 </template>

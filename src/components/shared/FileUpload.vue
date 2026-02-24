@@ -108,7 +108,7 @@ const previewItems = computed(() =>
 
 <template>
   <ElUpload
-    class="border-[0.6px] border-solid border-[#D5D5D5] bg-[#F5F6FA] rounded-sm w-90 flex flex-row-reverse items-start justify-between px-2 gap-x-2"
+    class="border-[0.6px] border-solid border-[#D5D5D5] bg-[#F5F6FA] rounded-sm w-90 flex flex-row-reverse items-center justify-between px-2 gap-x-2"
     :show-file-list="false"
     :action="makeFileUrl('')"
     :headers="{ Authorization: `Bearer ${tokenStore.accessToken}` }"
