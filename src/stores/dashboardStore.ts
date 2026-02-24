@@ -24,10 +24,16 @@ export const useDashboardStore = defineStore("dashboard", () => {
     });
   };
 
-  const loadSubscriptionOrders = async () => {
-    await execute(async () => {
-      const response = await axios.get("/dashboard/orders/subscriptions");
-      subscriptionOrders.value = response.data.content;
+  const loadSubscriptionOrders = async (
+    skip: number = 0,
+    take: number = 10,
+  ) => {
+    return await execute(async () => {
+      return (
+        await axios.get("/dashboard/orders/subscriptions", {
+          params: { skip, take },
+        })
+      ).data;
     });
   };
 

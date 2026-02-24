@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ElButton, ElImage, ElLink } from "element-plus";
-import SvgIcon from "./SvgIcon.vue";
 import { makeFileUrl } from "../../integrations/axios";
+import { useCourseStore } from "../../stores/courseStore";
+
+const courseStore = useCourseStore();
 
 const props = defineProps<{
   id: number;
@@ -41,6 +43,12 @@ const props = defineProps<{
       <ElLink :href="`/video-course/${props.id}/workouts`">
         <ElButton type="primary" class="mt-4 w-auto!">View</ElButton>
       </ElLink>
+      <ElButton
+        type="danger"
+        class="mt-4 w-auto!"
+        @click="courseStore.deleteCourse(props.id)"
+        >Delete</ElButton
+      >
     </div>
   </div>
 </template>

@@ -14,22 +14,46 @@ import {
 import Card from "../../components/ui/Card.vue";
 import FileUpload from "../../components/shared/FileUpload.vue";
 import { onMounted, reactive, ref } from "vue";
-import { Asset, CourseType, Gender, Mlf } from "../../@types/common";
+import {
+  ActivityType,
+  Asset,
+  ComputationType,
+  CourseType,
+  EntityType,
+  Gender,
+  Mlf,
+} from "../../@types/common";
 import { useCourseStore } from "../../stores/courseStore";
 import { useRouter } from "vue-router";
 import { useAppStore } from "../../stores/appStore";
+import { en } from "element-plus/es/locale/index.mjs";
+import {
+  ACTIVITIES,
+  COMPUTATION_TYPE,
+  ENTITY_TYPES,
+} from "../../constants/ApiContstants";
+import ComputationEdit from "./components/ComputationEdit.vue";
 
 const courseStore = useCourseStore();
 const router = useRouter();
 const appStore = useAppStore();
 
 const data = reactive<{
+  id?: number;
   title: Mlf;
   description: Mlf;
   order: number;
   courseId: number;
   hasRest: boolean;
   assets: Asset[];
+  computations: {
+    id?: number;
+    entityId: number;
+    type: EntityType;
+    activity: ActivityType;
+    computationType: ComputationType;
+    value: number;
+  }[];
 }>({
   title: { uz: "", ru: "", eng: "" },
   description: { uz: "", ru: "", eng: "" },
@@ -40,6 +64,7 @@ const data = reactive<{
     { type: "MainImage", url: "" },
     { type: "SubCoverImage", url: "" },
   ],
+  computations: [],
 });
 
 const rules = reactive<FormRules<typeof data>>({
@@ -85,6 +110,23 @@ const rules = reactive<FormRules<typeof data>>({
       },
     },
   },
+  computations: {
+    type: "array",
+    defaultField: {
+      type: "object",
+      fields: {
+        entityId: { required: true, type: "number", min: 1 },
+        type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
+        activity: { required: true, type: "enum", enum: ACTIVITIES as any },
+        computationType: {
+          required: true,
+          type: "enum",
+          enum: COMPUTATION_TYPE as any,
+        },
+        value: { required: true, type: "number" },
+      },
+    },
+  },
 });
 
 const form = ref<FormInstance>();
@@ -95,8 +137,29 @@ const handleSubmit = async () => {
 
     await courseStore.modifyWorkout(data);
 
-    router.back();
+    await courseStore.modifyWorkoutComputations(
+      data.computations.map((c) => ({
+        ...c,
+        entityId: c.entityId <= 0 ? data.id : c.entityId,
+        id: c.id === 0 ? null : c.id,
+      })),
+    );
+
+    const workout = await courseStore.getWorkoutById(
+      Number(router.currentRoute.value.params.workoutId),
+    );
+    Object.assign(data, workout);
+
+    // router.back();
   } catch (error) {}
+};
+
+const loadComputations = async () => {
+  const computations = await courseStore.getWorkoutComputations(
+    Number(data.id ?? 0),
+  );
+
+  Object.assign(data.computations, computations);
 };
 
 onMounted(async () => {
@@ -107,7 +170,21 @@ onMounted(async () => {
     Number(router.currentRoute.value.params.workoutId),
   );
 
+  workout.assets = [
+    ...workout.assets,
+    workout.assets.find((a) => a.type === "MainImage") ?? {
+      type: "MainImage",
+      url: "",
+    },
+    workout.assets.find((a) => a.type === "SubCoverImage") ?? {
+      type: "SubCoverImage",
+      url: "",
+    },
+  ];
+
   Object.assign(data, workout);
+
+  await loadComputations();
 });
 </script>
 <template>
@@ -185,12 +262,20 @@ onMounted(async () => {
         </ElFormItem>
       </div>
 
+      <ElFormItem label="Computations" required prop="computations">
+        <ComputationEdit
+          type="Workout"
+          :entityId="data.id"
+          v-model="data.computations"
+        />
+      </ElFormItem>
+
       <div class="mt-3 flex justify-center">
         <ElButton
           type="primary"
           native-type="submit"
           :loading="appStore.isLoading"
-          >Add</ElButton
+          >{{ data.id && data.id > 0 ? 'Update' : 'Add' }}</ElButton
         >
       </div>
     </ElForm>

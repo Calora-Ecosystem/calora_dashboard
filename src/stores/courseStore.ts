@@ -3,6 +3,7 @@ import { reactive, ref, watch } from "vue";
 import { useApiCallStore } from "./apiCallStore";
 import { axios } from "../integrations/axios";
 import { useRoute } from "vue-router";
+import { de } from "element-plus/es/locale/index.mjs";
 
 export const useCourseStore = defineStore("course", () => {
   const { execute } = useApiCallStore();
@@ -34,6 +35,13 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
+  const deleteCourse = async (courseId: number) => {
+    await execute(async () => {
+      const response = await axios.delete(`/course/${courseId}`);
+    });
+    await loadCourses((route.query.gender as string) ?? "male");
+  };
+
   const loadWorkouts = async (courseId: number) => {
     Object.assign(workouts, { [courseId]: [] });
     await execute(async () => {
@@ -45,16 +53,31 @@ export const useCourseStore = defineStore("course", () => {
 
   const getWorkoutById = async (workoutId: number) => {
     return await execute(async () => {
-      const response = await axios.get(`/workouts`, {
-        params: { FilteringExpression: `id==${workoutId}` },
-      });
-      return response.data.content[0];
+      const response = await axios.get(`/workouts/${workoutId}`);
+      return response.data.content;
+    });
+  };
+
+  const getWorkoutComputations = async (workoutId: number) => {
+    return await execute(async () => {
+      const response = await axios.get(
+        `/workouts/computations?workoutId=${workoutId}`,
+      );
+
+      return response.data.content;
     });
   };
 
   const modifyWorkout = async (data: any) => {
-    await execute(async () => {
+    return await execute(async () => {
       const response = await axios.post(`/workouts`, data);
+      return response.data.content;
+    });
+  };
+
+  const modifyWorkoutComputations = async (data: any[]) => {
+    await execute(async () => {
+      const response = await axios.post(`/workouts/computations`, data);
     });
   };
 
@@ -66,12 +89,20 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
-  const getExerciseById = async (workoutId: number, exerciseId: number) => {
+  const getExerciseById = async (exerciseId: number) => {
     return await execute(async () => {
-      const response = await axios.get(`/exercises`, {
-        params: { FilteringExpression: `id==${exerciseId}`, workoutId },
-      });
-      return response.data.content[0];
+      const response = await axios.get(`/exercises/${exerciseId}`);
+      return response.data.content;
+    });
+  };
+
+  const getExerciseComputations = async (exerciseId: number) => {
+    return await execute(async () => {
+      const response = await axios.get(
+        `/exercises/computations?exerciseId=${exerciseId}`,
+      );
+
+      return response.data.content;
     });
   };
 
@@ -88,11 +119,15 @@ export const useCourseStore = defineStore("course", () => {
     loadCourses,
     getCourseById,
     modifyCourse,
+    deleteCourse,
     loadWorkouts,
+    getWorkoutComputations,
     getWorkoutById,
     modifyWorkout,
+    modifyWorkoutComputations,
     loadExercises,
     getExerciseById,
+    getExerciseComputations,
     modifyExercise,
   };
 });

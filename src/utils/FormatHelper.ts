@@ -10,7 +10,6 @@ export const formatMoney = (
 };
 
 export const formatDate = (value: string | Date) => {
-  console.log(new Date(value).toLocaleDateString("uz-UZ"));
   if (value instanceof Date) {
     return value.toLocaleDateString("uz-UZ");
   }

@@ -15,18 +15,32 @@ import {
 } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Asset, Mlf, TMetrics } from "../../@types/common";
+import {
+  Asset,
+  Mlf,
+  TMetrics,
+  ActivityType,
+  ComputationType,
+  EntityType,
+} from "../../@types/common";
 import FileUpload from "../../components/shared/FileUpload.vue";
 import Card from "../../components/ui/Card.vue";
 import { useCourseStore } from "../../stores/courseStore";
 import { useAppStore } from "../../stores/appStore";
-import { METRICS } from "../../constants/ApiContstants";
+import {
+  ACTIVITIES,
+  COMPUTATION_TYPE,
+  ENTITY_TYPES,
+  METRICS,
+} from "../../constants/ApiContstants";
+import ComputationEdit from "./components/ComputationEdit.vue";
 
 const courseStore = useCourseStore();
 const router = useRouter();
 const appStore = useAppStore();
 
 const data = reactive<{
+  id?: number;
   title: Mlf;
   description: Mlf;
   order: number;
@@ -34,6 +48,14 @@ const data = reactive<{
   duration: string;
   assets: Asset[];
   metrics: { id: number; metric: TMetrics; value: number }[];
+  computations: {
+    id?: number;
+    entityId: number;
+    type: EntityType;
+    activity: ActivityType;
+    computationType: ComputationType;
+    value: number;
+  }[];
 }>({
   title: { uz: "", ru: "", eng: "" },
   description: { uz: "", ru: "", eng: "" },
@@ -42,6 +64,7 @@ const data = reactive<{
   duration: "",
   assets: [{ type: "Default", url: "" }],
   metrics: [],
+  computations: [],
 });
 
 const rules = reactive<FormRules<typeof data>>({
@@ -115,6 +138,24 @@ const rules = reactive<FormRules<typeof data>>({
       },
     },
   },
+
+  computations: {
+    type: "array",
+    defaultField: {
+      type: "object",
+      fields: {
+        entityId: { required: true, type: "number", min: 1 },
+        type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
+        activity: { required: true, type: "enum", enum: ACTIVITIES as any },
+        computationType: {
+          required: true,
+          type: "enum",
+          enum: COMPUTATION_TYPE as any,
+        },
+        value: { required: true, type: "number" },
+      },
+    },
+  },
 });
 
 const form = ref<FormInstance>();
@@ -125,6 +166,14 @@ const handleSubmit = async () => {
 
     await courseStore.modifyExercise(data);
 
+    await courseStore.modifyWorkoutComputations(
+      data.computations.map((c) => ({
+        ...c,
+        entityId: c.entityId <= 0 ? data.id : c.entityId,
+        id: c.id === 0 ? null : c.id,
+      })),
+    );
+
     router.back();
   } catch (error) {}
 };
@@ -133,16 +182,30 @@ const handleAddMetric = () => {
   data.metrics.push({ id: data.metrics.length, metric: METRICS[0], value: 0 });
 };
 
+const loadComputations = async () => {
+  let computations = await courseStore.getExerciseComputations(
+    Number(data.id ?? 0),
+  );
+
+  computations = computations.map((x) => ({
+    ...x,
+    type: ENTITY_TYPES[1],
+    fromType: x?.type,
+  }));
+
+  Object.assign(data.computations, computations);
+};
+
 onMounted(async () => {
   if (router.currentRoute.value.name !== "exercise_edit") {
     return;
   }
   const exercise = await courseStore.getExerciseById(
-    Number(router.currentRoute.value.params.workoutId),
     Number(router.currentRoute.value.params.exerciseId),
   );
 
   Object.assign(data, exercise);
+  await loadComputations();
 });
 </script>
 <template>
@@ -157,22 +220,22 @@ onMounted(async () => {
       :model="data"
     >
       <ElFormItem label="Title" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required class="" prop="title.uz">
-            <ElInput placeholder="uz" v-model="data.title.uz" />
+        <div class="flex flex-row gap-x-2 w-full">
+          <ElFormItem required class="flex-auto" prop="title.uz">
+            <ElInput class="w-auto" placeholder="uz" v-model="data.title.uz" />
           </ElFormItem>
-          <ElFormItem required prop="title.ru">
-            <ElInput placeholder="ru" v-model="data.title.ru" />
+          <ElFormItem class="flex-auto" required prop="title.ru">
+            <ElInput class="w-auto" placeholder="ru" v-model="data.title.ru" />
           </ElFormItem>
           <ElFormItem required prop="title.eng">
-            <ElInput placeholder="en" v-model="data.title.eng" />
+            <ElInput class="w-auto" placeholder="en" v-model="data.title.eng" />
           </ElFormItem>
         </div>
       </ElFormItem>
 
-      <ElFormItem label="Description" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required prop="description.uz">
+      <ElFormItem label="Description" required class="w-full">
+        <div class="flex flex-row gap-x-2 w-full">
+          <ElFormItem required prop="description.uz" class="flex-auto">
             <ElInput
               style="width: 250px"
               placeholder="uz"
@@ -181,7 +244,7 @@ onMounted(async () => {
               v-model="data.description.uz"
             />
           </ElFormItem>
-          <ElFormItem required prop="description.ru">
+          <ElFormItem required prop="description.ru" class="flex-auto">
             <ElInput
               style="width: 250px"
               placeholder="ru"
@@ -226,7 +289,9 @@ onMounted(async () => {
               <ElFormItem :prop="`metrics.${row.id}.metric`">
                 <ElSelect v-model="row.metric">
                   <ElOption
-                    v-for="value in METRICS"
+                    v-for="value in METRICS.filter((r) =>
+                      data.metrics.every((x) => x.metric !== r),
+                    )"
                     :key="value"
                     :label="value"
                     :value="value"
@@ -246,7 +311,7 @@ onMounted(async () => {
             <template #default="{ row }">
               <ElButton
                 type="danger"
-                size="small"
+                size="default"
                 @click="
                   () =>
                     data.metrics.splice(
@@ -264,12 +329,20 @@ onMounted(async () => {
         </div>
       </ElFormItem>
 
+      <ElFormItem label="Computations" required prop="computations">
+        <ComputationEdit
+          type="Exercise"
+          :entityId="data.id"
+          v-model="data.computations"
+        />
+      </ElFormItem>
+
       <div class="mt-3 flex justify-center">
         <ElButton
           type="primary"
           native-type="submit"
           :loading="appStore.isLoading"
-          >Add</ElButton
+          >{{ data.id && data.id > 0 ? "Update" : "Add" }}</ElButton
         >
       </div>
     </ElForm>
