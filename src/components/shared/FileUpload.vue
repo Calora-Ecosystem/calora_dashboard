@@ -145,7 +145,7 @@ const previewItems = computed(() =>
               type="danger"
               text
               circle
-              class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white! transition-opacity text-red-600 rounded-full shadow !p-0 w-7 h-7 flex items-center justify-center"
+              class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white! transition-opacity text-red-600 rounded-full shadow p-0! w-7 h-7 flex items-center justify-center"
               @click.stop="removeItem(item.raw)"
               aria-label="Remove file"
               title="Remove"
