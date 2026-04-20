@@ -1,8 +1,9 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.PROD
-  ? "https://calora.uz/api"
-  : "https://staging.calora.uz/api";
+const baseURL =
+  import.meta.env.MODE === "production"
+    ? "https://calora.uz/api"
+    : "https://staging.calora.uz/api";
 
 const axiosInstance = axios.create({
   baseURL: baseURL,
