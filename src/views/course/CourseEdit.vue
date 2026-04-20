@@ -136,6 +136,10 @@ onMounted(async () => {
   );
 
   Object.assign(data, course);
+
+  if (!data.assets[1]) data.assets[1] = { type: "SubCoverImage", url: "" };
+
+  console.log(data);
 });
 </script>
 <template>
@@ -266,7 +270,7 @@ onMounted(async () => {
           type="primary"
           native-type="submit"
           :loading="appStore.isLoading"
-          >Add</ElButton
+          >{{ data.id && data.id > 0 ? 'Update' : 'Add' }}</ElButton
         >
       </div>
     </ElForm>

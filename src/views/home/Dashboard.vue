@@ -8,6 +8,7 @@ import SalesSummary from "../../components/ui/SalesSummary.vue";
 import { useDashboardStore } from "../../stores/dashboardStore";
 import { onMounted } from "vue";
 import { formatDate, formatMoney } from "../../utils/FormatHelper";
+import DataTable from "../../components/shared/DataTable.vue";
 
 const dashboardStore = useDashboardStore();
 
@@ -24,24 +25,26 @@ onMounted(async () => {
   </div>
   <div class="h-7"></div>
   <Card title="Sales List">
-    <IfEmpty :value="dashboardStore.subscriptionOrders">
-      <ElTable :fit="true" :data="dashboardStore.subscriptionOrders">
-        <ElTableColumn label="ID" prop="id" />
-        <ElTableColumn label="User name" prop="userName" />
-        <ElTableColumn label="Plan" prop="plan" />
-        <ElTableColumn
-          label="Price"
-          prop="amount"
-          :formatter="(val) => formatMoney(val.amount, 'standard')"
-        />
-        <ElTableColumn
-          label="Date"
-          prop="createdAt"
-          :formatter="(val) => formatDate(val.createdAt)"
-        />
-        <ElTableColumn label="Status" prop="orderStatus" />
-      </ElTable>
-    </IfEmpty>
+    <DataTable
+      :loader="
+        (skip, take) => dashboardStore.loadSubscriptionOrders(skip, take)
+      "
+    >
+      <ElTableColumn label="ID" prop="id" />
+      <ElTableColumn label="User name" prop="userName" />
+      <ElTableColumn label="Plan" prop="plan" />
+      <ElTableColumn
+        label="Price"
+        prop="amount"
+        :formatter="(val) => formatMoney(val.amount, 'standard')"
+      />
+      <ElTableColumn
+        label="Date"
+        prop="createdAt"
+        :formatter="(val) => formatDate(val.createdAt)"
+      />
+      <ElTableColumn label="Status" prop="orderStatus" />
+    </DataTable>
   </Card>
 </template>
 

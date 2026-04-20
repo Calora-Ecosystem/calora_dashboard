@@ -97,6 +97,16 @@ const routes: RouteRecordRaw[] = [
             ],
           },
           {
+            path: "calories",
+            children: [
+              {
+                path: "",
+                name: "calories",
+                component: () => import("./calories/Index.vue"),
+              },
+            ],
+          },
+          {
             name: "premium",
             path: "premium",
             component: () => import("./home/Premium.vue"),
