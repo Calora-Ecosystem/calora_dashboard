@@ -43,7 +43,8 @@ watch(gender, async (newGender) => {
         :gender="item.gender"
         svg="programming"
         :description="item.description.uz"
-        :image-link="item.assets.find((x) => x.type === 'MainImage')?.url"
+        :image-link="item.assets.find((x: any) => x.type === 'MainImage')?.url"
+        :type="item.type"
       />
     </IfEmpty>
   </div>

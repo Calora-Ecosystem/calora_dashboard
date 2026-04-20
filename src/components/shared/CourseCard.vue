@@ -2,6 +2,7 @@
 import { ElButton, ElImage, ElLink } from "element-plus";
 import { makeFileUrl } from "../../integrations/axios";
 import { useCourseStore } from "../../stores/courseStore";
+import { CourseType } from "../../@types/common";
 
 const courseStore = useCourseStore();
 
@@ -11,7 +12,13 @@ const props = defineProps<{
   imageLink: string;
   description: string;
   gender: string;
+  type: CourseType;
 }>();
+
+const childLink =
+  props.type === "Workout"
+    ? `/courses/${props.id}/workouts`
+    : `/courses/${props.id}/lessons`;
 </script>
 <template>
   <div
@@ -34,13 +41,13 @@ const props = defineProps<{
     <div class="flex gap-x-2">
       <RouterLink
         :to="{
-          path: `/video-course/${props.id}`,
+          path: `/courses/${props.id}`,
           query: { gender: props.gender },
         }"
       >
         <ElButton type="primary" class="mt-4 w-auto!">Edit</ElButton>
       </RouterLink>
-      <ElLink :href="`/video-course/${props.id}/workouts`">
+      <ElLink :href="childLink">
         <ElButton type="primary" class="mt-4 w-auto!">View</ElButton>
       </ElLink>
       <ElButton

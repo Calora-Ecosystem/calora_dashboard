@@ -1,32 +1,39 @@
 <script setup lang="ts">
 import {
   ElButton,
+  ElDialog,
   ElForm,
   ElFormItem,
   ElInput,
   ElInputNumber,
-  ElSwitch,
+  ElOption,
+  ElSelect,
+  ElTable,
+  ElTableColumn,
   FormInstance,
   FormRules,
 } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
-  ActivityType,
   Asset,
+  Mlf,
+  TMetrics,
+  ActivityType,
   ComputationType,
   EntityType,
-  Mlf,
 } from "../../@types/common";
 import FileUpload from "../../components/shared/FileUpload.vue";
 import Card from "../../components/ui/Card.vue";
+import { useCourseStore } from "../../stores/courseStore";
+import { useAppStore } from "../../stores/appStore";
 import {
   ACTIVITIES,
+  ASSET_TYPES,
   COMPUTATION_TYPE,
   ENTITY_TYPES,
+  METRICS,
 } from "../../constants/ApiContstants";
-import { useAppStore } from "../../stores/appStore";
-import { useCourseStore } from "../../stores/courseStore";
 import ComputationEdit from "./components/ComputationEdit.vue";
 
 const courseStore = useCourseStore();
@@ -39,27 +46,20 @@ const data = reactive<{
   description: Mlf;
   order: number;
   courseId: number;
-  hasRest: boolean;
+  isFree: boolean;
+  duration: string;
   assets: Asset[];
-  computations: {
-    id?: number;
-    entityId: number;
-    type: EntityType;
-    activity: ActivityType;
-    computationType: ComputationType;
-    value: number;
-  }[];
 }>({
   title: { uz: "", ru: "", eng: "" },
   description: { uz: "", ru: "", eng: "" },
   order: 0,
   courseId: Number(router.currentRoute.value.params.courseId),
-  hasRest: false,
+  isFree: false,
+  duration: "",
   assets: [
-    { type: "MainImage", url: "" },
-    { type: "SubCoverImage", url: "" },
+    { type: "CoverImage", url: "" },
+    { type: "Video", url: "" },
   ],
-  computations: [],
 });
 
 const rules = reactive<FormRules<typeof data>>({
@@ -85,8 +85,8 @@ const rules = reactive<FormRules<typeof data>>({
     { required: true, message: "Order is required" },
     { type: "number", min: 0, message: "Order must be a positive number" },
   ],
+  duration: { required: true, message: "Duration is required" },
   courseId: { required: true, message: "Course ID is required" },
-  hasRest: { required: true, message: "Has Rest is required" },
   assets: {
     type: "array",
     len: 2,
@@ -105,23 +105,7 @@ const rules = reactive<FormRules<typeof data>>({
       },
     },
   },
-  computations: {
-    type: "array",
-    defaultField: {
-      type: "object",
-      fields: {
-        entityId: { required: true, type: "number", min: 1 },
-        type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
-        activity: { required: true, type: "enum", enum: ACTIVITIES as any },
-        computationType: {
-          required: true,
-          type: "enum",
-          enum: COMPUTATION_TYPE as any,
-        },
-        value: { required: true, type: "number" },
-      },
-    },
-  },
+  isFree: { required: true, message: "Is Free is required" },
 });
 
 const form = ref<FormInstance>();
@@ -130,56 +114,34 @@ const handleSubmit = async () => {
   try {
     await form.value?.validate();
 
-    await courseStore.modifyWorkout(data);
+    await courseStore.modifyLesson(data);
 
-    await courseStore.modifyWorkoutComputations(
-      data.computations.map((c) => ({
-        ...c,
-        entityId: c.entityId <= 0 ? data.id : c.entityId,
-        id: c.id === 0 ? null : c.id,
-      })),
-    );
-
-    const workout = await courseStore.getWorkoutById(
-      Number(router.currentRoute.value.params.workoutId),
-    );
-    Object.assign(data, workout);
-
-    // router.back();
+    router.back();
   } catch (error) {}
 };
 
-const loadComputations = async () => {
-  const computations = await courseStore.getWorkoutComputations(
-    Number(data.id ?? 0),
-  );
-
-  Object.assign(data.computations, computations);
-};
-
 onMounted(async () => {
-  if (router.currentRoute.value.name !== "workout_edit") {
+  if (router.currentRoute.value.name !== "lesson_edit") {
     return;
   }
-  const workout = await courseStore.getWorkoutById(
-    Number(router.currentRoute.value.params.workoutId),
-  );
-
-  workout.assets = [
-    ...workout.assets,
-    workout.assets.find((a: any) => a.type === "MainImage") ?? {
-      type: "MainImage",
-      url: "",
-    },
-    workout.assets.find((a: any) => a.type === "SubCoverImage") ?? {
-      type: "SubCoverImage",
-      url: "",
-    },
-  ];
-
-  Object.assign(data, workout);
-
-  await loadComputations();
+  await courseStore
+    .getLessonById(Number(router.currentRoute.value.params.lessonId))
+    .then((response) => {
+      const assets: any[] = [];
+      assets.push(
+        response.assets?.find((x: any) => x.type === ASSET_TYPES[3]) ?? {
+          type: ASSET_TYPES[3],
+          url: "",
+        },
+      );
+      assets.push(
+        response.assets?.find((x: any) => x.type === ASSET_TYPES[4]) ?? {
+          type: ASSET_TYPES[4],
+          url: "",
+        },
+      );
+      Object.assign(data, { ...response, assets });
+    });
 });
 </script>
 <template>
@@ -194,22 +156,22 @@ onMounted(async () => {
       :model="data"
     >
       <ElFormItem label="Title" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required class="" prop="title.uz">
-            <ElInput placeholder="uz" v-model="data.title.uz" />
+        <div class="flex flex-row gap-x-2 w-full">
+          <ElFormItem required class="flex-auto" prop="title.uz">
+            <ElInput class="w-auto" placeholder="uz" v-model="data.title.uz" />
           </ElFormItem>
-          <ElFormItem required prop="title.ru">
-            <ElInput placeholder="ru" v-model="data.title.ru" />
+          <ElFormItem class="flex-auto" required prop="title.ru">
+            <ElInput class="w-auto" placeholder="ru" v-model="data.title.ru" />
           </ElFormItem>
           <ElFormItem required prop="title.eng">
-            <ElInput placeholder="en" v-model="data.title.eng" />
+            <ElInput class="w-auto" placeholder="en" v-model="data.title.eng" />
           </ElFormItem>
         </div>
       </ElFormItem>
 
-      <ElFormItem label="Description" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required prop="description.uz">
+      <ElFormItem label="Description" required class="w-full">
+        <div class="flex flex-row gap-x-2 w-full">
+          <ElFormItem required prop="description.uz" class="flex-auto">
             <ElInput
               style="width: 250px"
               placeholder="uz"
@@ -218,7 +180,7 @@ onMounted(async () => {
               v-model="data.description.uz"
             />
           </ElFormItem>
-          <ElFormItem required prop="description.ru">
+          <ElFormItem required prop="description.ru" class="flex-auto">
             <ElInput
               style="width: 250px"
               placeholder="ru"
@@ -240,30 +202,28 @@ onMounted(async () => {
       </ElFormItem>
 
       <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
-        <ElFormItem label="Main Image" required prop="assets.0.url">
+        <ElFormItem label="Cover Image" required prop="assets.0.url">
           <FileUpload v-model="data.assets[0].url" />
         </ElFormItem>
-        <ElFormItem label="Sub Cover Image" required prop="assets.1.url">
+        <ElFormItem label="Video" required prop="assets.1.url">
           <FileUpload v-model="data.assets[1].url" />
         </ElFormItem>
       </div>
       <div class="flex flex-row gap-x-5">
-        <ElFormItem label="Dam olish" required prop="hasRest">
-          <ElSwitch v-model="data.hasRest"></ElSwitch>
+        <ElFormItem label="Bepul?" required prop="isFree">
+          <ElSwitch v-model="data.isFree"></ElSwitch>
         </ElFormItem>
-
         <ElFormItem label="Order" required prop="order">
           <ElInputNumber v-model="data.order" :controls="false" />
         </ElFormItem>
+        <ElFormItem label="Duration" required prop="duration">
+          <ElInput
+            v-model="data.duration"
+            v-maska="'##:##:##'"
+            placeholder="hh:mm:ss"
+          />
+        </ElFormItem>
       </div>
-
-      <ElFormItem label="Computations" required prop="computations">
-        <ComputationEdit
-          type="Workout"
-          :entityId="data.id as number"
-          v-model="data.computations"
-        />
-      </ElFormItem>
 
       <div class="mt-3 flex justify-center">
         <ElButton

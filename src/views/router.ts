@@ -37,10 +37,10 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/Sales.vue"),
           },
           {
-            path: "video-course",
+            path: "courses",
             children: [
               {
-                name: "video_course",
+                name: "course",
                 path: "",
                 component: () => import("./course/VideoCourse.vue"),
               },
@@ -91,6 +91,26 @@ const routes: RouteRecordRaw[] = [
                         component: () => import("./course/ExerciseEdit.vue"),
                       },
                     ],
+                  },
+                ],
+              },
+              {
+                path: ":courseId/lessons",
+                children: [
+                  {
+                    path: "",
+                    name: "lessons",
+                    component: () => import("./course/Lessons.vue"),
+                  },
+                  {
+                    path: ":lessonId",
+                    name: "lesson_edit",
+                    component: () => import("./course/LessonEdit.vue"),
+                  },
+                  {
+                    path: "create",
+                    name: "lesson_create",
+                    component: () => import("./course/LessonEdit.vue"),
                   },
                 ],
               },

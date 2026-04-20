@@ -112,6 +112,30 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
+  const getLessonsByCourseId = async (courseId: number) => {
+    return await execute(async () => {
+      const response = await axios.get(`/lessons?courseId=${courseId}`, {
+        params: { SortPropName: "id" },
+      });
+      return response.data.content;
+    });
+  };
+
+  const getLessonById = async (lessonId: number) => {
+    return await execute(async () => {
+      const response = await axios.get(`/lessons`, {
+        params: { FilteringExpression: `id==${lessonId}` },
+      });
+      return response.data.content?.[0];
+    });
+  };
+
+  const modifyLesson = async (data: any) => {
+    await execute(async () => {
+      const response = await axios.post(`/lessons`, data);
+    });
+  };
+
   return {
     courses,
     workouts,
@@ -129,5 +153,8 @@ export const useCourseStore = defineStore("course", () => {
     getExerciseById,
     getExerciseComputations,
     modifyExercise,
+    getLessonsByCourseId,
+    getLessonById,
+    modifyLesson,
   };
 });

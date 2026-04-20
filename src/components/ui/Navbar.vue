@@ -20,7 +20,7 @@ const menuItems = [
   },
   {
     icon: "navbar/bookmark.svg",
-    path: "/video-course",
+    path: "/courses",
   },
   {
     icon: "navbar/calories.svg",
