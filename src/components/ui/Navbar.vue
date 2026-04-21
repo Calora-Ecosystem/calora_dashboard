@@ -20,7 +20,11 @@ const menuItems = [
   },
   {
     icon: "navbar/bookmark.svg",
-    path: "/video-course",
+    path: "/courses",
+  },
+  {
+    icon: "navbar/calories.svg",
+    path: "/calories",
   },
   {
     icon: "navbar/user-stat.svg",

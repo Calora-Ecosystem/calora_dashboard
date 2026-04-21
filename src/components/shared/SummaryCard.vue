@@ -5,13 +5,13 @@ const props = withDefaults(
   defineProps<{
     icon: string;
     totalText?: string;
-    total?: string;
+    total?: number | string;
     percent?: number;
     percentText?: string;
   }>(),
   {
     totalText: "Total",
-    total: "0",
+    total: 0,
     percent: 0,
     percentText: "from anytime",
   },
@@ -32,13 +32,15 @@ const isHovering = ref(false);
       @mouseleave="() => (isHovering = false)"
     >
       <div class="flex-9 flex flex-row px-2 py-4">
-        <div class="flex-8 flex flex-col gap-y-4">
+        <div class="flex-8 flex flex-col gap-y-4 shrink-0">
           <p class="font-semibold text-[#202224] opacity-70 text-[16px]">
             {{ props.totalText }}
           </p>
-          <p class="font-bold text-[#202224] text-[28px]">{{ props.total }}</p>
+          <p class="font-bold text-[#202224] text-[28px]">
+            {{ props.total }}
+          </p>
         </div>
-        <div class="flex-4 flex justify-center">
+        <div class="flex-4 flex justify-center shrink-0">
           <svg-icon :icon="props.icon" />
         </div>
       </div>

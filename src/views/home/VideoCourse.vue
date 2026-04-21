@@ -1,1 +1,0 @@
-<template>View</template>

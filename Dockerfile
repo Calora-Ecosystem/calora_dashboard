@@ -1,10 +1,10 @@
 FROM node:22-alpine AS build
-ARG BASE_URL=/
+ARG MODE=production
 RUN npm i -g pnpm
 WORKDIR /src
 COPY . .
 RUN pnpm i
-RUN pnpm run build --base=${BASE_URL}
+RUN pnpm run build --mode=${MODE}
 
 FROM nginx:alpine AS publish
 COPY --from=build /src/dist /usr/share/nginx/html

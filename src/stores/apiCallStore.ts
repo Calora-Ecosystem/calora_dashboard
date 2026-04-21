@@ -25,6 +25,12 @@ class HandlerChain implements IHandlerChain {
 
     return dispatch(0, action);
   };
+
+  clone: () => HandlerChain = () => {
+    const cloned = new HandlerChain();
+    cloned.__handlers = [...this.__handlers];
+    return cloned;
+  };
 }
 
 const useApiCallStore = defineStore("api_call", () => {
@@ -65,7 +71,7 @@ const useApiCallStore = defineStore("api_call", () => {
           if (error.response?.status === 401) {
             if (
               error.response.data?.error === "token_expired" ||
-              error.response.data?.error === "session_expired"
+              error.response.data?.error === "Session expired"
             ) {
               await authStore.refreshToken();
               return await Promise.resolve(action);
@@ -86,6 +92,11 @@ const useApiCallStore = defineStore("api_call", () => {
 
       return await action();
     });
+  //language
+  // .next(async (action) => {
+  //   axios.defaults.headers.common["Accept-Language"] = "UZ";
+  //   return await action();
+  // });
 
   return {
     handler,

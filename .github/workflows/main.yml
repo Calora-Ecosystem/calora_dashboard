@@ -2,10 +2,11 @@ name: Production Deploy
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 env:
-  IMAGE_NAME: ghcr.io/$(echo ${{github.REPOSITORY}} | tr '[:upper:]' '[:lower:]')/${{ github.ref_name }}
+  IMAGE_NAME: ghcr.io/$(echo ${{github.REPOSITORY}} | tr '[:upper:]' '[:lower:]')/${{ github.ref_name }}:latest
 
 jobs:
   Publish:

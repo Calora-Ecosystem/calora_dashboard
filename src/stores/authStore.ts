@@ -5,6 +5,7 @@ import { axios } from "../integrations/axios";
 import { useApiCallStore } from "./apiCallStore";
 import { useAppStore } from "./appStore";
 import { useTokenStore } from "./tokenStore";
+import { AxiosError } from "axios";
 
 export const useAuthStore = defineStore("auth", () => {
   const appStore = useAppStore();
@@ -55,22 +56,30 @@ export const useAuthStore = defineStore("auth", () => {
       return response.data;
     });
 
-  const refreshToken = () =>
+  const refreshToken = () => {
     execute(async () => {
-      const response = await axios.get("/auth/refresh-token/", {
-        params: { rToken: tokenStore.refreshToken },
-      });
+      try {
+        const response = await axios.get("/auth/refresh-token/", {
+          params: { rToken: tokenStore.refreshToken },
+        });
 
-      const { content } = response.data;
+        const { content } = response.data;
 
-      tokenStore.setTokens(
-        content.accessToken,
-        content.refreshToken,
-        content.refreshTokenExpireAt,
-      );
+        tokenStore.setTokens(
+          content.accessToken,
+          content.refreshToken,
+          content.refreshTokenExpireAt,
+        );
 
-      return response.data;
+        return response.data;
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          tokenStore.clearTokens();
+          window.location.reload();
+        }
+      }
     });
+  };
 
   const logOut = () =>
     execute(async () => {

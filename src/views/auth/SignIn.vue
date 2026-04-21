@@ -60,7 +60,7 @@ const handleSubmit = async () => {
       <ElFormItem label="Email" required label-width="auto">
         <ElInput
           v-model="formData.email"
-          placeholder="Enter your email: xyz@example.com"
+          placeholder="example@gmail.com"
           type="email"
           :disabled="state.otpPending"
         >

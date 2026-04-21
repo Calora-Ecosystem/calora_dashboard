@@ -1,9 +1,15 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
+import { pa } from "element-plus/es/locale/index.mjs";
 
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
+    beforeEnter: (to, from, next) => {
+      if (to.path === "/") return next({ name: "dashboard" });
+
+      return next();
+    },
     children: [
       {
         path: "",
@@ -31,9 +37,94 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/Sales.vue"),
           },
           {
-            name: "video_course",
-            path: "video-course",
-            component: () => import("./home/VideoCourse.vue"),
+            path: "courses",
+            children: [
+              {
+                name: "course",
+                path: "",
+                component: () => import("./course/VideoCourse.vue"),
+              },
+              {
+                path: "create",
+                name: "course_create",
+                component: () => import("./course/CourseEdit.vue"),
+              },
+              {
+                path: ":courseId",
+                name: "course_edit",
+                component: () => import("./course/CourseEdit.vue"),
+              },
+              {
+                path: ":courseId/workouts",
+                children: [
+                  {
+                    path: "",
+                    name: "workouts",
+                    component: () => import("./course/Workouts.vue"),
+                  },
+                  {
+                    path: "create",
+                    name: "workout_create",
+                    component: () => import("./course/WorkoutEdit.vue"),
+                  },
+                  {
+                    path: ":workoutId",
+                    name: "workout_edit",
+                    component: () => import("./course/WorkoutEdit.vue"),
+                  },
+                  {
+                    path: ":workoutId/exercises",
+                    children: [
+                      {
+                        path: "",
+                        name: "exercises",
+                        component: () => import("./course/Exercises.vue"),
+                      },
+                      {
+                        path: "create",
+                        name: "exercises_create",
+                        component: () => import("./course/ExerciseEdit.vue"),
+                      },
+                      {
+                        path: ":exerciseId",
+                        name: "exercise_edit",
+                        component: () => import("./course/ExerciseEdit.vue"),
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                path: ":courseId/lessons",
+                children: [
+                  {
+                    path: "",
+                    name: "lessons",
+                    component: () => import("./course/Lessons.vue"),
+                  },
+                  {
+                    path: ":lessonId",
+                    name: "lesson_edit",
+                    component: () => import("./course/LessonEdit.vue"),
+                  },
+                  {
+                    path: "create",
+                    name: "lesson_create",
+                    component: () => import("./course/LessonEdit.vue"),
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            path: "calories",
+            children: [
+              {
+                path: "",
+                name: "calories",
+                component: () => import("./calories/Index.vue"),
+              },
+            ],
           },
           {
             name: "premium",

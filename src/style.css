@@ -8,3 +8,9 @@
   border-radius: 12px;
   overflow: hidden;
 }
+
+:root {
+  --el-color-primary: #7cc243;
+  --el-color-primary-light-3: #89d848;
+  --el-color-primary-dark-2: #6ba739;
+}

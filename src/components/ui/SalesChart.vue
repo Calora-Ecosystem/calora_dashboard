@@ -1,22 +1,24 @@
 <template>
-  <div class="p-6 bg-white rounded-xl shadow-md">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-lg font-semibold">Sales Details</h2>
-      <div class="w-50">
-        <el-select
-          v-model="selectedYear"
-          placeholder="Select Year"
-          class="w-full"
-        >
-          <el-option
-            v-for="year in years"
-            :key="year"
-            :label="year"
-            :value="year"
-          />
-        </el-select>
+  <Card title="Sales Details">
+    <template #title>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="font-semibold text-[24px]">Sales Details</h2>
+        <div class="w-50">
+          <el-select
+            v-model="selectedYear"
+            placeholder="Select Year"
+            class="w-full"
+          >
+            <el-option
+              v-for="year in years"
+              :key="year"
+              :label="year"
+              :value="year"
+            />
+          </el-select>
+        </div>
       </div>
-    </div>
+    </template>
     <div class="chart-wrapper">
       <Bar
         ref="chartRef"
@@ -26,7 +28,7 @@
         :height="50"
       />
     </div>
-  </div>
+  </Card>
 </template>
 
 <script setup>
@@ -45,6 +47,7 @@ import {
 } from "chart.js";
 import { Line, Bar } from "vue-chartjs";
 import { ElSelect, ElOption } from "element-plus";
+import Card from "./Card.vue";
 
 ChartJS.register(
   Title,

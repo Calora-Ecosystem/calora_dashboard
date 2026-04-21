@@ -3,33 +3,49 @@ import { ElTable, ElTableColumn } from "element-plus";
 import SummaryCard from "../../components/shared/SummaryCard.vue";
 import SalesChart from "../../components/ui/SalesChart.vue";
 import IfEmpty from "../../components/shared/IfEmpty.vue";
+import Card from "../../components/ui/Card.vue";
+import SalesSummary from "../../components/ui/SalesSummary.vue";
+import { useDashboardStore } from "../../stores/dashboardStore";
+import { onMounted } from "vue";
+import { formatDate, formatMoney } from "../../utils/FormatHelper";
+import DataTable from "../../components/shared/DataTable.vue";
+
+const dashboardStore = useDashboardStore();
+
+onMounted(async () => {
+  await dashboardStore.loadSubscriptionOrders();
+});
 </script>
 
 <template>
-  <div class="flex flex-row justify-between gap-x-2">
-    <SummaryCard icon="summary/user-group.svg" total-text="total_users" />
-    <SummaryCard icon="summary/stat.svg" total-text="total_sales" />
-    <SummaryCard icon="summary/course.svg" total-text="course_sales" />
-    <SummaryCard icon="summary/timer.svg" total-text="subscription_sales" />
-  </div>
+  <SalesSummary />
   <div class="h-7"></div>
   <div>
     <SalesChart />
   </div>
   <div class="h-7"></div>
-  <div class="bg-white rounded-[14px] shadow-lg py-[16px] px-[8px]">
-    <h1>Sales List</h1>
-    <IfEmpty :value="true">
-      <ElTable :fit="true" header-cell-class-name="bg-red-200">
-        <ElTableColumn label="Email/Phone" />
-        <ElTableColumn label="Product Type" />
-        <ElTableColumn label="Date - Time" />
-        <ElTableColumn label="Price" />
-        <ElTableColumn label="Ex-date" />
-        <ElTableColumn label="Status" />
-      </ElTable>
-    </IfEmpty>
-  </div>
+  <Card title="Sales List">
+    <DataTable
+      :loader="
+        (skip, take) => dashboardStore.loadSubscriptionOrders(skip, take)
+      "
+    >
+      <ElTableColumn label="ID" prop="id" />
+      <ElTableColumn label="User name" prop="userName" />
+      <ElTableColumn label="Plan" prop="plan" />
+      <ElTableColumn
+        label="Price"
+        prop="amount"
+        :formatter="(val) => formatMoney(val.amount, 'standard')"
+      />
+      <ElTableColumn
+        label="Date"
+        prop="createdAt"
+        :formatter="(val) => formatDate(val.createdAt)"
+      />
+      <ElTableColumn label="Status" prop="orderStatus" />
+    </DataTable>
+  </Card>
 </template>
 
 <style></style>
