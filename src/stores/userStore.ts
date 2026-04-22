@@ -13,7 +13,7 @@ export const useUserStore = defineStore("user", () => {
   ): Promise<ApiBaseResponse<GetAllUsersDto[]>> => {
     return await execute(async () => {
       const response = await axios.get("/users", {
-        params: { skip, take },
+        params: { skip, take, sortPropName: "id" },
       });
       return response.data;
     });
