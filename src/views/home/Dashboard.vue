@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { ElTable, ElTableColumn } from "element-plus";
-import SummaryCard from "../../components/shared/SummaryCard.vue";
-import SalesChart from "../../components/ui/SalesChart.vue";
-import IfEmpty from "../../components/shared/IfEmpty.vue";
+import { ElTableColumn } from "element-plus";
+import { onMounted } from "vue";
+import DataTable from "../../components/shared/DataTable.vue";
 import Card from "../../components/ui/Card.vue";
+import SalesChart from "../../components/ui/SalesChart.vue";
 import SalesSummary from "../../components/ui/SalesSummary.vue";
 import { useDashboardStore } from "../../stores/dashboardStore";
-import { onMounted } from "vue";
 import { formatDate, formatMoney } from "../../utils/FormatHelper";
-import DataTable from "../../components/shared/DataTable.vue";
 
 const dashboardStore = useDashboardStore();
 
