@@ -34,3 +34,7 @@ export const ACTIVITIES = [
 export const COMPUTATION_TYPE = ["Duration", "Count"] as const;
 
 export const MENU = ["Breakfast", "Lunch", "Dinner", "Snack"] as const;
+
+export const PLANS = ["Free", "Premium", "Pro"] as const;
+
+export const ROLES = ["SuperAdmin", "User"] as const;

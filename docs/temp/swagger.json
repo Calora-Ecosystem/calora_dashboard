@@ -4,20 +4,12 @@
     "title": "WebApi",
     "version": "v1"
   },
-  "servers": [
-    {
-      "url": "/api/",
-      "description": "Staging Server"
-    },
-    {
-      "url": "https://calora.uz/api/",
-      "description": "Staging Server"
-    }
-  ],
   "paths": {
     "/auth/sign-in/email": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Also create new user with verified email",
         "parameters": [
           {
@@ -25,7 +17,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -77,14 +74,21 @@
     },
     "/auth/sign-in/phone": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -135,14 +139,21 @@
     },
     "/auth/sign-in/google": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -193,14 +204,21 @@
     },
     "/auth/sign-in/apple": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -251,7 +269,9 @@
     },
     "/auth/refresh-token": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "rToken",
@@ -266,7 +286,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -298,7 +323,9 @@
     },
     "/auth/send-otp/email/{email}": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "email",
@@ -314,7 +341,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -346,7 +378,9 @@
     },
     "/auth/send-otp/phone/{phone}": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "phone",
@@ -363,7 +397,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -395,14 +434,21 @@
     },
     "/auth/roles": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -434,14 +480,21 @@
     },
     "/auth": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -473,14 +526,21 @@
     },
     "/auth/logout": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -512,7 +572,9 @@
     },
     "/billing/orders": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -559,7 +621,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -591,7 +658,9 @@
     },
     "/billing/orders/my": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -638,7 +707,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -670,7 +744,9 @@
     },
     "/billing/orders/subscription/plans/{plan}": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "plan",
@@ -725,7 +801,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -757,14 +838,21 @@
     },
     "/billing/orders/subscription": {
       "post": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -815,7 +903,9 @@
     },
     "/billing/orders/{orderId}": {
       "delete": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "orderId",
@@ -832,7 +922,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -864,7 +959,9 @@
     },
     "/billing/orders/{orderId}/payment-link": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "orderId",
@@ -881,7 +978,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -913,7 +1015,9 @@
     },
     "/billing/coupons": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -960,7 +1064,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -990,14 +1099,21 @@
         }
       },
       "post": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1048,7 +1164,9 @@
     },
     "/billing/coupons/{couponId}/usages": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "couponId",
@@ -1105,7 +1223,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1137,7 +1260,9 @@
     },
     "/billing/coupons/check": {
       "get": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "code",
@@ -1151,7 +1276,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1183,14 +1313,21 @@
     },
     "/billing/rc": {
       "post": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1222,14 +1359,21 @@
     },
     "/billing/click": {
       "post": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1330,14 +1474,21 @@
     },
     "/billing/payme": {
       "post": {
-        "tags": ["Billing"],
+        "tags": [
+          "Billing"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1371,7 +1522,9 @@
     },
     "/course": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "Gender",
@@ -1425,7 +1578,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1455,14 +1613,21 @@
         }
       },
       "post": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1513,7 +1678,9 @@
     },
     "/course/{courseId}": {
       "delete": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "courseId",
@@ -1530,7 +1697,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1562,7 +1734,9 @@
     },
     "/course/reorder/{itemId}": {
       "put": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "itemId",
@@ -1603,7 +1777,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1635,7 +1814,9 @@
     },
     "/exercises": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -1697,7 +1878,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1727,14 +1913,21 @@
         }
       },
       "post": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1785,7 +1978,9 @@
     },
     "/exercises/{exerciseId}": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "exerciseId",
@@ -1802,7 +1997,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1832,7 +2032,9 @@
         }
       },
       "delete": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "exerciseId",
@@ -1849,7 +2051,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1881,7 +2088,9 @@
     },
     "/exercises/computations": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "exerciseId",
@@ -1896,7 +2105,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1928,7 +2142,9 @@
     },
     "/exercises/finish/{exerciseId}": {
       "put": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "exerciseId",
@@ -1945,7 +2161,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -1977,7 +2198,9 @@
     },
     "/lessons": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -2032,7 +2255,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2062,14 +2290,21 @@
         }
       },
       "post": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2120,7 +2355,9 @@
     },
     "/lessons/finish/{lessonId}": {
       "put": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "lessonId",
@@ -2137,7 +2374,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2169,7 +2411,9 @@
     },
     "/lessons/{lessonId}": {
       "delete": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "lessonId",
@@ -2186,7 +2430,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2218,7 +2467,9 @@
     },
     "/workouts": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -2280,7 +2531,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2310,14 +2566,21 @@
         }
       },
       "post": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2368,7 +2631,9 @@
     },
     "/workouts/{workoutId}": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "workoutId",
@@ -2385,7 +2650,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2415,7 +2685,9 @@
         }
       },
       "delete": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "workoutId",
@@ -2432,7 +2704,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2464,7 +2741,9 @@
     },
     "/workouts/computations": {
       "get": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "workoutId",
@@ -2479,7 +2758,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2509,14 +2793,21 @@
         }
       },
       "post": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2576,7 +2867,9 @@
     },
     "/workouts/finish/{workoutId}": {
       "put": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "workoutId",
@@ -2593,7 +2886,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2625,7 +2923,9 @@
     },
     "/workouts/reset/{workoutId}": {
       "put": {
-        "tags": ["Course"],
+        "tags": [
+          "Course"
+        ],
         "parameters": [
           {
             "name": "workoutId",
@@ -2642,7 +2942,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2674,14 +2979,21 @@
     },
     "/dashboard/summary": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2713,14 +3025,21 @@
     },
     "/dashboard/sales/summary": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2752,7 +3071,9 @@
     },
     "/dashboard/orders/subscriptions": {
       "get": {
-        "tags": ["Dashboard"],
+        "tags": [
+          "Dashboard"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -2799,7 +3120,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2831,14 +3157,21 @@
     },
     "/face/analyze": {
       "post": {
-        "tags": ["FaceAnalysis"],
+        "tags": [
+          "FaceAnalysis"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2848,7 +3181,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": ["File"],
+                "required": [
+                  "File"
+                ],
                 "type": "object",
                 "properties": {
                   "File": {
@@ -2891,7 +3226,9 @@
     },
     "/file": {
       "post": {
-        "tags": ["File"],
+        "tags": [
+          "File"
+        ],
         "summary": "Upload a file",
         "parameters": [
           {
@@ -2899,7 +3236,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2909,7 +3251,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": ["File"],
+                "required": [
+                  "File"
+                ],
                 "type": "object",
                 "properties": {
                   "File": {
@@ -2952,7 +3296,9 @@
     },
     "/file/process-image-save": {
       "post": {
-        "tags": ["File"],
+        "tags": [
+          "File"
+        ],
         "summary": "Upload a image with resize options\r\nAllowed content types:\r\nimage/png\r\nimage/jpeg\r\nimage/bmp\r\nimage/webp",
         "parameters": [
           {
@@ -2960,7 +3306,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -2970,7 +3321,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": ["File"],
+                "required": [
+                  "File"
+                ],
                 "type": "object",
                 "properties": {
                   "Width": {
@@ -3027,7 +3380,9 @@
     },
     "/food": {
       "get": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "Latest",
@@ -3095,7 +3450,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3125,14 +3485,21 @@
         }
       },
       "post": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3183,7 +3550,9 @@
     },
     "/food/favourites": {
       "get": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -3230,7 +3599,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3262,7 +3636,9 @@
     },
     "/food/favourites/toggle/{foodId}": {
       "post": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "foodId",
@@ -3279,7 +3655,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3311,7 +3692,9 @@
     },
     "/food/{foodId}": {
       "get": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "foodId",
@@ -3328,7 +3711,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3358,7 +3746,9 @@
         }
       },
       "put": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "foodId",
@@ -3375,7 +3765,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3424,7 +3819,9 @@
         }
       },
       "delete": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "summary": "",
         "parameters": [
           {
@@ -3443,7 +3840,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3475,14 +3877,21 @@
     },
     "/food/general": {
       "post": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3533,14 +3942,21 @@
     },
     "/food/recognization": {
       "post": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3550,7 +3966,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "required": ["File"],
+                "required": [
+                  "File"
+                ],
                 "type": "object",
                 "properties": {
                   "File": {
@@ -3593,7 +4011,9 @@
     },
     "/food/user-food/{foodId}": {
       "delete": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "summary": "",
         "parameters": [
           {
@@ -3612,7 +4032,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3644,7 +4069,9 @@
     },
     "/food/categories": {
       "get": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -3691,7 +4118,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3721,14 +4153,21 @@
         }
       },
       "post": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3779,7 +4218,9 @@
     },
     "/food/categories/{id}": {
       "delete": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "categoryId",
@@ -3802,7 +4243,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3834,7 +4280,9 @@
     },
     "/food/menu": {
       "get": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -3896,7 +4344,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3926,14 +4379,21 @@
         }
       },
       "post": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -3984,7 +4444,9 @@
     },
     "/food/menu/{itemId}": {
       "delete": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "parameters": [
           {
             "name": "itemId",
@@ -4001,7 +4463,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4033,7 +4500,9 @@
     },
     "/food/summary": {
       "get": {
-        "tags": ["Food"],
+        "tags": [
+          "Food"
+        ],
         "summary": "User nutrition summary",
         "parameters": [
           {
@@ -4050,7 +4519,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4082,14 +4556,21 @@
     },
     "/Gemini/ask": {
       "post": {
-        "tags": ["Gemini"],
+        "tags": [
+          "Gemini"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4123,7 +4604,9 @@
     },
     "/notifications": {
       "get": {
-        "tags": ["Notification"],
+        "tags": [
+          "Notification"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -4170,7 +4653,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4200,14 +4688,21 @@
         }
       },
       "post": {
-        "tags": ["Notification"],
+        "tags": [
+          "Notification"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4258,14 +4753,21 @@
     },
     "/notifications/unread": {
       "get": {
-        "tags": ["Notification"],
+        "tags": [
+          "Notification"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4297,7 +4799,9 @@
     },
     "/notifications/mark-as-read/{notificationId}": {
       "put": {
-        "tags": ["Notification"],
+        "tags": [
+          "Notification"
+        ],
         "parameters": [
           {
             "name": "notificationId",
@@ -4314,7 +4818,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4346,14 +4855,21 @@
     },
     "/notifications/mark-as-read/all": {
       "put": {
-        "tags": ["Notification"],
+        "tags": [
+          "Notification"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4385,7 +4901,9 @@
     },
     "/ref/purpose": {
       "get": {
-        "tags": ["References"],
+        "tags": [
+          "References"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -4432,7 +4950,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4462,14 +4985,21 @@
         }
       },
       "post": {
-        "tags": ["References"],
+        "tags": [
+          "References"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4518,7 +5048,9 @@
         }
       },
       "delete": {
-        "tags": ["References"],
+        "tags": [
+          "References"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -4533,7 +5065,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4565,7 +5102,9 @@
     },
     "/reminder": {
       "get": {
-        "tags": ["Reminder"],
+        "tags": [
+          "Reminder"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -4612,7 +5151,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4642,14 +5186,21 @@
         }
       },
       "post": {
-        "tags": ["Reminder"],
+        "tags": [
+          "Reminder"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4700,7 +5251,9 @@
     },
     "/reminder/{id}": {
       "delete": {
-        "tags": ["Reminder"],
+        "tags": [
+          "Reminder"
+        ],
         "summary": "Remove a reminder",
         "parameters": [
           {
@@ -4719,7 +5272,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4751,14 +5309,21 @@
     },
     "/email": {
       "get": {
-        "tags": ["Support"],
+        "tags": [
+          "Support"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4773,14 +5338,21 @@
     },
     "/telegram": {
       "get": {
-        "tags": ["Support"],
+        "tags": [
+          "Support"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4795,14 +5367,21 @@
     },
     "/send": {
       "post": {
-        "tags": ["Ticket"],
+        "tags": [
+          "Ticket"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4836,7 +5415,9 @@
     },
     "/users/{userId}": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "userId",
@@ -4853,7 +5434,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4885,14 +5471,21 @@
     },
     "/users/me": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4922,16 +5515,109 @@
         }
       }
     },
+    "/users": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "FilteringExpression",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "Skip",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Take",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "SortPropName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/BRB.Core.Common.Enums.SortDirection"
+            }
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "allowEmptyValue": true,
+            "schema": {
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
+              "default": "UZ"
+            },
+            "example": "UZ"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWrapper.Library.WrapperGeneric`1[[System.Collections.Generic.IEnumerable`1[[Core.Services.User.Contracts.GetAllUsersDto, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWrapper.Library.WrapperGeneric`1[[System.Collections.Generic.IEnumerable`1[[Core.Services.User.Contracts.GetAllUsersDto, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultWrapper.Library.WrapperGeneric`1[[System.Collections.Generic.IEnumerable`1[[Core.Services.User.Contracts.GetAllUsersDto, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/extras": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -4961,14 +5647,21 @@
         }
       },
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5017,14 +5710,21 @@
         }
       },
       "delete": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5056,7 +5756,9 @@
     },
     "/users/norms": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -5110,7 +5812,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5140,14 +5847,21 @@
         }
       },
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5198,7 +5912,9 @@
     },
     "/users/norms/{metric}": {
       "delete": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "metric",
@@ -5213,7 +5929,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5245,7 +5966,9 @@
     },
     "/users/dailies": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -5324,7 +6047,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5354,14 +6082,21 @@
         }
       },
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5412,7 +6147,9 @@
     },
     "/users/dailies/reset": {
       "delete": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "date",
@@ -5427,7 +6164,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5459,14 +6201,21 @@
     },
     "/users/dailies/batch": {
       "post": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5526,7 +6275,9 @@
     },
     "/users/dailies/{date}": {
       "delete": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "metric",
@@ -5550,7 +6301,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5582,7 +6338,9 @@
     },
     "/users/steps/stat": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "from",
@@ -5645,7 +6403,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5677,7 +6440,9 @@
     },
     "/users/steps/metrics": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "from",
@@ -5708,7 +6473,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5740,7 +6510,9 @@
     },
     "/users/{userId}/assign-role": {
       "get": {
-        "tags": ["User"],
+        "tags": [
+          "User"
+        ],
         "parameters": [
           {
             "name": "userId",
@@ -5764,7 +6536,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5796,7 +6573,9 @@
     },
     "/versions": {
       "get": {
-        "tags": ["Version"],
+        "tags": [
+          "Version"
+        ],
         "parameters": [
           {
             "name": "FilteringExpression",
@@ -5843,7 +6622,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5873,14 +6657,21 @@
         }
       },
       "post": {
-        "tags": ["Version"],
+        "tags": [
+          "Version"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5931,7 +6722,9 @@
     },
     "/versions/{version}": {
       "get": {
-        "tags": ["Version"],
+        "tags": [
+          "Version"
+        ],
         "parameters": [
           {
             "name": "version",
@@ -5946,7 +6739,12 @@
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -5978,14 +6776,21 @@
     },
     "/versions/latest": {
       "get": {
-        "tags": ["Version"],
+        "tags": [
+          "Version"
+        ],
         "parameters": [
           {
             "name": "Accept-Language",
             "in": "header",
             "allowEmptyValue": true,
             "schema": {
-              "enum": ["UZ", "RU", "CYRL", "ENG"],
+              "enum": [
+                "UZ",
+                "RU",
+                "CYRL",
+                "ENG"
+              ],
               "default": "UZ"
             },
             "example": "UZ"
@@ -6019,7 +6824,10 @@
   "components": {
     "schemas": {
       "BRB.Core.Common.Enums.SortDirection": {
-        "enum": ["Ascending", "Descending"],
+        "enum": [
+          "Ascending",
+          "Descending"
+        ],
         "type": "string"
       },
       "BRB.Core.Common.Models.MultiLanguageField": {
@@ -6063,15 +6871,25 @@
         "additionalProperties": false
       },
       "Core.Entities.Billing.Enum.EnumOrderStatus": {
-        "enum": ["Pending", "Confirmed", "Cancelled"],
+        "enum": [
+          "Pending",
+          "Confirmed",
+          "Cancelled"
+        ],
         "type": "string"
       },
       "Core.Entities.Billing.Enum.EnumOrderType": {
-        "enum": ["Subscription"],
+        "enum": [
+          "Subscription"
+        ],
         "type": "string"
       },
       "Core.Entities.Billing.Enum.EnumPaymentProviders": {
-        "enum": ["Click", "Payme", "Iap"],
+        "enum": [
+          "Click",
+          "Payme",
+          "Iap"
+        ],
         "type": "string"
       },
       "Core.Entities.Course.Asset": {
@@ -6099,11 +6917,18 @@
         "type": "string"
       },
       "Core.Entities.Course.Enum.EnumComputationType": {
-        "enum": ["Duration", "Count"],
+        "enum": [
+          "Duration",
+          "Count"
+        ],
         "type": "string"
       },
       "Core.Entities.Course.Enum.EnumEntityType": {
-        "enum": ["Lesson", "Exercise", "Workout"],
+        "enum": [
+          "Lesson",
+          "Exercise",
+          "Workout"
+        ],
         "type": "string"
       },
       "Core.Entities.FoodEntites.FoodCategory": {
@@ -6171,47 +6996,96 @@
         "additionalProperties": false
       },
       "Core.Enums.EnumActivityLevel": {
-        "enum": ["Minimal", "Less", "Medium", "High", "Maximal"],
+        "enum": [
+          "Minimal",
+          "Less",
+          "Medium",
+          "High",
+          "Maximal"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumCourseType": {
-        "enum": ["Lesson", "Workout"],
+        "enum": [
+          "Lesson",
+          "Workout"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumGender": {
-        "enum": ["Male", "Female"],
+        "enum": [
+          "Male",
+          "Female"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumLanguage": {
-        "enum": ["Uzbek", "Cyrillic", "Russian", "English"],
+        "enum": [
+          "Uzbek",
+          "Cyrillic",
+          "Russian",
+          "English"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumMenu": {
-        "enum": ["Breakfast", "Lunch", "Dinner", "Snack"],
+        "enum": [
+          "Breakfast",
+          "Lunch",
+          "Dinner",
+          "Snack"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumMetrics": {
-        "enum": ["Protein", "Fat", "Carb", "Kcal", "Water", "Step", "Weight"],
+        "enum": [
+          "Protein",
+          "Fat",
+          "Carb",
+          "Kcal",
+          "Water",
+          "Step",
+          "Weight"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumMomentType": {
-        "enum": ["Food", "Water", "Sleep", "DailyChallenge"],
+        "enum": [
+          "Food",
+          "Water",
+          "Sleep",
+          "DailyChallenge"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumPhysicalActivity": {
-        "enum": ["Healthy", "Unhealthy"],
+        "enum": [
+          "Healthy",
+          "Unhealthy"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumPurpose": {
-        "enum": ["WeightLoss", "SaveCurrent", "MuscleDevelopment"],
+        "enum": [
+          "WeightLoss",
+          "SaveCurrent",
+          "MuscleDevelopment"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumRole": {
-        "enum": ["SuperAdmin", "User"],
+        "enum": [
+          "SuperAdmin",
+          "User"
+        ],
         "type": "string"
       },
       "Core.Enums.EnumSPlans": {
-        "enum": ["Free", "Premium", "Pro"],
+        "enum": [
+          "Free",
+          "Premium",
+          "Pro"
+        ],
         "type": "string"
       },
       "Core.Services.Ai.Contracts.AnalyzeFaceDto": {
@@ -6286,7 +7160,10 @@
         "additionalProperties": false
       },
       "Core.Services.Auth.Contracts.DeviceDto": {
-        "required": ["key", "name"],
+        "required": [
+          "key",
+          "name"
+        ],
         "type": "object",
         "properties": {
           "key": {
@@ -6306,7 +7183,9 @@
         "additionalProperties": false
       },
       "Core.Services.Auth.Contracts.SignInViaEmailDto": {
-        "required": ["deviceInfo"],
+        "required": [
+          "deviceInfo"
+        ],
         "type": "object",
         "properties": {
           "email": {
@@ -6332,7 +7211,9 @@
         "additionalProperties": false
       },
       "Core.Services.Auth.Contracts.SignInViaPhoneDto": {
-        "required": ["deviceInfo"],
+        "required": [
+          "deviceInfo"
+        ],
         "type": "object",
         "properties": {
           "phone": {
@@ -6358,7 +7239,10 @@
         "additionalProperties": false
       },
       "Core.Services.Auth.Contracts.SsoSignInDto": {
-        "required": ["deviceInfo", "ssoToken"],
+        "required": [
+          "deviceInfo",
+          "ssoToken"
+        ],
         "type": "object",
         "properties": {
           "ssoToken": {
@@ -6609,12 +7493,17 @@
             "type": "string",
             "nullable": true
           },
-          "params": {}
+          "params": { }
         },
         "additionalProperties": false
       },
       "Core.Services.Course.Common.EnumCourseItemType": {
-        "enum": ["Course", "Lesson", "Workout", "Exercise"],
+        "enum": [
+          "Course",
+          "Lesson",
+          "Workout",
+          "Exercise"
+        ],
         "type": "string"
       },
       "Core.Services.Course.Course.Contracts.CreateOrUpdateCourseDto": {
@@ -6812,6 +7701,27 @@
         },
         "additionalProperties": false
       },
+      "Core.Services.Course.Workout.Contracts.ComputationShortDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "activity": {
+            "$ref": "#/components/schemas/Core.Enums.EnumActivityLevel"
+          },
+          "computationType": {
+            "$ref": "#/components/schemas/Core.Entities.Course.Enum.EnumComputationType"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "Core.Services.Course.Workout.Contracts.CreateOrUpdateExerciseDto": {
         "type": "object",
         "properties": {
@@ -6994,7 +7904,7 @@
             "format": "double"
           },
           "computation": {
-            "$ref": "#/components/schemas/Core.Services.Course.Workout.Contracts.ComputationDto"
+            "$ref": "#/components/schemas/Core.Services.Course.Workout.Contracts.ComputationShortDto"
           }
         },
         "additionalProperties": false
@@ -7241,7 +8151,9 @@
         "additionalProperties": false
       },
       "Core.Services.FoodService.Contracts.FoodDtos.CreateUserFood": {
-        "required": ["userId"],
+        "required": [
+          "userId"
+        ],
         "type": "object",
         "properties": {
           "categoryId": {
@@ -7802,6 +8714,41 @@
         },
         "additionalProperties": false
       },
+      "Core.Services.User.Contracts.GetAllUsersDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "subscription": {
+            "$ref": "#/components/schemas/Core.Services.User.Contracts.SubscriptionDto"
+          },
+          "extra": {
+            "$ref": "#/components/schemas/Core.Services.User.Contracts.UserExtraShortDto"
+          }
+        },
+        "additionalProperties": false
+      },
       "Core.Services.User.Contracts.GetDailyDto": {
         "type": "object",
         "properties": {
@@ -7962,6 +8909,30 @@
         },
         "additionalProperties": false
       },
+      "Core.Services.User.Contracts.SubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/Core.Enums.EnumSPlans"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "Core.Services.User.Contracts.UserDto": {
         "type": "object",
         "properties": {
@@ -7979,6 +8950,16 @@
           },
           "extra": {
             "$ref": "#/components/schemas/Core.Services.User.Contracts.ExtraDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Core.Services.User.Contracts.UserExtraShortDto": {
+        "type": "object",
+        "properties": {
+          "photo": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -9196,6 +10177,42 @@
         },
         "additionalProperties": false
       },
+      "ResultWrapper.Library.WrapperGeneric`1[[System.Collections.Generic.IEnumerable`1[[Core.Services.User.Contracts.GetAllUsersDto, Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Core.Services.User.Contracts.GetAllUsersDto"
+            },
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "query": {
+            "nullable": true
+          },
+          "modelStateError": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResultWrapper.Library.Common.ModelError"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ResultWrapper.Library.WrapperGeneric`1[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]": {
         "type": "object",
         "properties": {
@@ -9254,7 +10271,9 @@
   },
   "security": [
     {
-      "Bearer": ["Bearer"]
+      "Bearer": [
+        "Bearer"
+      ]
     }
   ]
 }

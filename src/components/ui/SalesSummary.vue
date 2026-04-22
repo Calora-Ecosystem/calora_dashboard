@@ -17,6 +17,7 @@ onMounted(async () => {
       :total="dashboardStore.overallSummary?.totalUsers"
       :percent="dashboardStore.overallSummary?.totalUsersGrows"
       percent-text="yesterday"
+      url="/users"
     />
     <SummaryCard
       icon="summary/stat.svg"
