@@ -4,5 +4,6 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "types": ["vite/client"]
-  }
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
 }
