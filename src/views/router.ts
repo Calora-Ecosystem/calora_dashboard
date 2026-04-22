@@ -124,6 +124,46 @@ const routes: RouteRecordRaw[] = [
                 name: "calories",
                 component: () => import("./calories/Index.vue"),
               },
+              {
+                path: "categories",
+                children: [
+                  {
+                    path: "",
+                    name: "food_categories",
+                    component: () => import("./calories/FoodCategories.vue"),
+                  },
+                  {
+                    path: "create",
+                    name: "category_create",
+                    component: () => import("./calories/FoodCategoryEdit.vue"),
+                  },
+                  {
+                    path: ":categoryId",
+                    name: "category_edit",
+                    component: () => import("./calories/FoodCategoryEdit.vue"),
+                  },
+                ],
+              },
+              {
+                path: "foods",
+                children: [
+                  {
+                    path: "",
+                    name: "foods",
+                    component: () => import("./calories/Foods.vue"),
+                  },
+                  {
+                    path: "create",
+                    name: "food_create",
+                    component: () => import("./calories/FoodEdit.vue"),
+                  },
+                  {
+                    path: ":foodId",
+                    name: "food_edit",
+                    component: () => import("./calories/FoodEdit.vue"),
+                  },
+                ],
+              },
             ],
           },
           {

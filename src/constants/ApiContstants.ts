@@ -32,3 +32,5 @@ export const ACTIVITIES = [
 ] as const;
 
 export const COMPUTATION_TYPE = ["Duration", "Count"] as const;
+
+export const MENU = ["Breakfast", "Lunch", "Dinner", "Snack"] as const;
