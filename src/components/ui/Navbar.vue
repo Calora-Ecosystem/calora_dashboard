@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import MenuItem from "../MenuItem.vue";
 
@@ -25,6 +26,10 @@ const menuItems = [
   {
     icon: "navbar/calories.svg",
     path: "/calories",
+    children: [
+      { label: "Kategoriyalar", path: "/calories/categories" },
+      { label: "Taomlar", path: "/calories/foods" },
+    ],
   },
   {
     icon: "navbar/user-stat.svg",
@@ -43,6 +48,10 @@ const menuItems = [
     path: "/team",
   },
 ];
+
+const isCaloriesOpen = computed(() =>
+  currentRoute.path.startsWith("/calories")
+);
 </script>
 
 <template>
@@ -51,15 +60,32 @@ const menuItems = [
       <svg-icon icon="brand.svg" />
     </div>
     <div class="flex flex-col gap-y-2 mt-2">
-      <MenuItem
-        v-for="item in menuItems"
-        :key="item.path"
-        :icon="item.icon"
-        :is-active="currentRoute.path.startsWith(item.path)"
-        @click="() => router.push({ path: item.path })"
-      >
-        {{ router.resolve(item.path).name ?? "change me" }}
-      </MenuItem>
+      <template v-for="item in menuItems" :key="item.path">
+        <MenuItem
+          :icon="item.icon"
+          :is-active="currentRoute.path.startsWith(item.path)"
+          @click="() => router.push({ path: item.path })"
+        >
+          {{ router.resolve(item.path).name ?? "change me" }}
+        </MenuItem>
+        <div
+          v-if="item.children && isCaloriesOpen && item.path === '/calories'"
+          class="flex flex-col gap-y-1 pl-8"
+        >
+          <div
+            v-for="child in item.children"
+            :key="child.path"
+            class="cursor-pointer text-sm px-3 py-1.5 rounded-md transition-colors"
+            :class="{
+              'bg-[#7CC243] text-white': currentRoute.path.startsWith(child.path),
+              'text-gray-600 hover:bg-gray-100': !currentRoute.path.startsWith(child.path),
+            }"
+            @click="() => router.push({ path: child.path })"
+          >
+            {{ child.label }}
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
