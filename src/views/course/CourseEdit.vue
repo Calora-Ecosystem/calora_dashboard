@@ -28,7 +28,7 @@ const data = reactive<{
   description: Mlf;
   order: number;
   type: CourseType | null;
-  gender: Gender;
+  gender?: Gender;
   info: Mlf;
   assets: Asset[];
   price: number;
@@ -37,7 +37,7 @@ const data = reactive<{
   description: { uz: "", ru: "", eng: "" },
   info: { uz: "", ru: "", eng: "" },
   price: 0,
-  gender: null,
+  gender: undefined,
   order: 0,
   type: null,
   assets: [
@@ -118,7 +118,7 @@ const form = ref<FormInstance>();
 
 const handleSubmit = async () => {
   try {
-    await form.value.validate();
+    await form.value?.validate();
 
     await courseStore.modifyCourse(data);
 
@@ -138,8 +138,6 @@ onMounted(async () => {
   Object.assign(data, course);
 
   if (!data.assets[1]) data.assets[1] = { type: "SubCoverImage", url: "" };
-
-  console.log(data);
 });
 </script>
 <template>

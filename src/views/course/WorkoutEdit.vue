@@ -59,7 +59,13 @@ const data = reactive<{
     { type: "MainImage", url: "" },
     { type: "SubCoverImage", url: "" },
   ],
-  computations: [],
+  computations: ACTIVITIES.map((x) => ({
+    entityId: 0,
+    type: "Workout",
+    activity: x,
+    computationType: COMPUTATION_TYPE[0],
+    value: 0,
+  })) as [],
 });
 
 const rules = reactive<FormRules<typeof data>>({
