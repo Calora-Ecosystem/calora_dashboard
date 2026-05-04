@@ -16,6 +16,12 @@ const workoutId = computed(() => Number(route.params.workoutId));
 onMounted(async () => {
   await courseStore.loadExercises(workoutId.value);
 });
+
+const handleDelete = async (exerciseId: number) => {
+  await courseStore.deleteExerciseById(exerciseId);
+  await courseStore.loadExercises(workoutId.value);
+};
+
 </script>
 
 <template>
@@ -40,7 +46,7 @@ onMounted(async () => {
                 value.assets.find((a: { type: string }) => a.type === 'Lotte')
                   ?.url,
               )
-            : null
+            : (null as any)
         "
         :gif="
           value.assets.find(
@@ -52,9 +58,10 @@ onMounted(async () => {
                     a.type === 'Default' || a.type === 'Gif',
                 )?.url,
               )
-            : null
+            : (null as any)
         "
         :description="value.description.uz"
+        @delete="handleDelete(value.id)"
       />
     </div>
   </IfEmpty>

@@ -225,4 +225,13 @@ console.log((import.meta as any).env);
 export const router = createRouter({
   history: createWebHistory(),
   routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return {
+        ...savedPosition,
+        behavior: "smooth",
+      };
+    }
+    return { top: 0, behavior: "smooth" };
+  },
 });

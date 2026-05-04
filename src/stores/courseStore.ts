@@ -107,8 +107,15 @@ export const useCourseStore = defineStore("course", () => {
   };
 
   const modifyExercise = async (data: any) => {
-    await execute(async () => {
+    return await execute(async () => {
       const response = await axios.post(`/exercises`, data);
+      return response.data.content;
+    });
+  };
+
+  const deleteExerciseById = async (exerciseId: number) => {
+    await execute(async () => {
+      const response = await axios.delete(`/exercises/${exerciseId}`);
     });
   };
 
@@ -153,6 +160,7 @@ export const useCourseStore = defineStore("course", () => {
     getExerciseById,
     getExerciseComputations,
     modifyExercise,
+    deleteExerciseById,
     getLessonsByCourseId,
     getLessonById,
     modifyLesson,

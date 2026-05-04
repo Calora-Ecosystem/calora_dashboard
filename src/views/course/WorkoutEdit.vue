@@ -135,7 +135,7 @@ const handleSubmit = async () => {
   try {
     await form.value?.validate();
 
-    await courseStore.modifyWorkout(data);
+    data.id = await courseStore.modifyWorkout(data);
 
     await courseStore.modifyWorkoutComputations(
       data.computations.map((c) => ({
@@ -145,12 +145,16 @@ const handleSubmit = async () => {
       })),
     );
 
-    const workout = await courseStore.getWorkoutById(
-      Number(router.currentRoute.value.params.workoutId),
-    );
-    Object.assign(data, workout);
+    await router.replace({
+      name: "workout_edit",
+      params: { workoutId: data.id },
+    });
+    // const workout = await courseStore.getWorkoutById(
+    //   Number(data.id!),
+    // );
+    // Object.assign(data, workout);
 
-    // router.back();
+    // // router.back();
   } catch (error) {}
 };
 

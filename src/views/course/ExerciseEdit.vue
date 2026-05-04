@@ -64,7 +64,13 @@ const data = reactive<{
   duration: "",
   assets: [{ type: "Default", url: "" }],
   metrics: [],
-  computations: [],
+  computations: ACTIVITIES.map((x) => ({
+    entityId: 0,
+    type: "Exercise",
+    activity: x,
+    computationType: COMPUTATION_TYPE[0],
+    value: 0,
+  })) as [],
 });
 
 const rules = reactive<FormRules<typeof data>>({
@@ -144,7 +150,6 @@ const rules = reactive<FormRules<typeof data>>({
     defaultField: {
       type: "object",
       fields: {
-        entityId: { required: true, type: "number", min: 1 },
         type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
         activity: { required: true, type: "enum", enum: ACTIVITIES as any },
         computationType: {
@@ -152,7 +157,7 @@ const rules = reactive<FormRules<typeof data>>({
           type: "enum",
           enum: COMPUTATION_TYPE as any,
         },
-        value: { required: true, type: "number" },
+        value: { required: true, type: "number", min: 1 },
       },
     },
   },
@@ -162,9 +167,11 @@ const form = ref<FormInstance>();
 
 const handleSubmit = async () => {
   try {
-    await form.value.validate();
+    await form.value?.validate();
 
-    await courseStore.modifyExercise(data);
+    const responseId = await courseStore.modifyExercise(data);
+    
+    data.id = Number(responseId);
 
     await courseStore.modifyWorkoutComputations(
       data.computations.map((c) => ({
@@ -174,7 +181,11 @@ const handleSubmit = async () => {
       })),
     );
 
-    router.back();
+    await router.replace({
+      name: "exercise_edit",
+      params: { exerciseId: data.id },
+    });
+    // router.back();
   } catch (error) {}
 };
 
@@ -187,7 +198,7 @@ const loadComputations = async () => {
     Number(data.id ?? 0),
   );
 
-  computations = computations.map((x) => ({
+  computations = computations.map((x: any) => ({
     ...x,
     type: ENTITY_TYPES[1],
     fromType: x?.type,
@@ -332,7 +343,7 @@ onMounted(async () => {
       <ElFormItem label="Computations" required prop="computations">
         <ComputationEdit
           type="Exercise"
-          :entityId="data.id"
+          :entityId="data.id as number"
           v-model="data.computations"
         />
       </ElFormItem>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElButton, ElImage, ElLink } from "element-plus";
+import { ElButton } from "element-plus";
 import Lottie from "../../../components/shared/Lottie.vue";
 
 const props = withDefaults(
@@ -15,6 +15,10 @@ const props = withDefaults(
     description: "description",
   },
 );
+
+const emits = defineEmits<{
+  delete: [];
+}>();
 </script>
 
 <template>
@@ -45,6 +49,11 @@ const props = withDefaults(
         <RouterLink to="">
           <ElButton type="default"> Open </ElButton>
         </RouterLink>
+        <el-popconfirm title="are_you_sure" @confirm="emits('delete')">
+          <template #reference>
+            <ElButton type="danger">Delete</ElButton>
+          </template>
+        </el-popconfirm>
       </div>
     </div>
   </div>
