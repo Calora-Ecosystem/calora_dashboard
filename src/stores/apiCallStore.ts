@@ -5,6 +5,7 @@ import { AxiosError } from "axios";
 import { useAuthStore } from "./authStore";
 import { useTokenStore } from "./tokenStore";
 import { axios } from "../integrations/axios";
+import { router } from "../views/router";
 
 class HandlerChain implements IHandlerChain {
   private __handlers: THandler[] = [];
@@ -71,10 +72,13 @@ const useApiCallStore = defineStore("api_call", () => {
           if (error.response?.status === 401) {
             if (
               error.response.data?.error === "token_expired" ||
-              error.response.data?.error === "Session expired"
+              error.response.data?.error === "session_expired"
             ) {
               await authStore.refreshToken();
               return await Promise.resolve(action);
+            } else {
+              await authStore.logOut();
+              router.replace("/");
             }
           }
         }

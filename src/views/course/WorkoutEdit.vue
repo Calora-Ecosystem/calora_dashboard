@@ -140,7 +140,7 @@ const handleSubmit = async () => {
     await courseStore.modifyWorkoutComputations(
       data.computations.map((c) => ({
         ...c,
-        entityId: c.entityId <= 0 ? data.id : c.entityId,
+        entityId: data.id,
         id: c.id === 0 ? null : c.id,
       })),
     );
