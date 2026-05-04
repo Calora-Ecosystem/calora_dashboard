@@ -7,6 +7,8 @@ import { useTokenStore } from "./tokenStore";
 import { axios } from "../integrations/axios";
 import { router } from "../views/router";
 
+let __tokenRefreshing = null as any | null;
+
 class HandlerChain implements IHandlerChain {
   private __handlers: THandler[] = [];
 
@@ -74,8 +76,15 @@ const useApiCallStore = defineStore("api_call", () => {
               error.response.data?.error === "token_expired" ||
               error.response.data?.error === "session_expired"
             ) {
-              await authStore.refreshToken();
-              return await Promise.resolve(action);
+              if (!__tokenRefreshing) {
+                __tokenRefreshing = authStore.refreshToken().finally(() => {
+                  __tokenRefreshing = null;
+                });
+              }
+
+              await __tokenRefreshing;
+
+              return await action();
             } else {
               await authStore.logOut();
               router.replace("/");

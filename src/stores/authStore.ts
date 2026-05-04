@@ -56,8 +56,8 @@ export const useAuthStore = defineStore("auth", () => {
       return response.data;
     });
 
-  const refreshToken = () => {
-    execute(async () => {
+  const refreshToken = async () => {
+    await execute(async () => {
       try {
         const response = await axios.get("/auth/refresh-token/", {
           params: { rToken: tokenStore.refreshToken },
