@@ -116,7 +116,6 @@ const rules = reactive<FormRules<typeof data>>({
     defaultField: {
       type: "object",
       fields: {
-        entityId: { required: true, type: "number", min: 1 },
         type: { required: true, type: "enum", enum: ENTITY_TYPES as any },
         activity: { required: true, type: "enum", enum: ACTIVITIES as any },
         computationType: {
