@@ -186,6 +186,31 @@ const routes: RouteRecordRaw[] = [
             path: "team",
             component: () => import("./home/Team.vue"),
           },
+          {
+            path: "billing",
+            children: [
+              {
+                path: "coupons",
+                name: "coupons",
+                component: () => import("./billing/Coupons.vue"),
+              },
+              {
+                path: "coupons/create",
+                name: "coupon_create",
+                component: () => import("./billing/CouponCreate.vue"),
+              },
+              {
+                path: "coupons/:couponId",
+                name: "coupon_edit",
+                component: () => import("./billing/CouponCreate.vue"),
+              },
+              {
+                path: "coupons/:couponId/usages",
+                name: "coupon_usages",
+                component: () => import("./billing/CouponUsages.vue"),
+              },
+            ],
+          },
         ],
       },
       {

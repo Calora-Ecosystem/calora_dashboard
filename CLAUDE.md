@@ -95,3 +95,18 @@ Domain enums used across forms and API calls: `METRICS`, `COURSE_TYPES`, `ASSET_
 - Authorized API lar uchun token olib keyin ishlatish lozim.
 - Token olgandan keyin vaqti tugagunch ko'p marta ishlatish uchun docs/api_token.md faylga tokenlarni saqlab qo'ysang bo'ladi
 - Agar docs/api_token.md da ishlatsa bo'ladigan token bo'lsa Qayta Auth qilmay o'shani ishlat
+
+
+## Testlash.
+Qanday vazifa berilmasin imkon qadar o'zing testlab ko'r.
+Testlash uchun kod yozma. Hammasini UI da bajarishga harakat qil.
+Testlash uchun Playwright MCP dan foydalanib brauzerni ishga tushir
+Loyihani localhost:7777 da so'rov berish orqali allaqachon ishga tushgan yoki yo'qligini aniqlay olasan
+Agar ishga tushmagan bo'lsa ```pnpm run dev``` orqali ishga tushirsang bo'ladi
+Playwright MCP orqali brauzer ga ulan. Loyihani och va tekshir
+Auth qilish uchun:
+ - Email: 0605AbMu@gmail.com
+ - OTP: 777777 - bu o'zgarmaydi.
+Faqat dev muhitda ishla va tekshir
+Agar Playwright MCP sozlanmagan bo'lsa loyihaga playwright mcp ni sozla va qo'sh
+Hech qachon UI test qil deganimda CURL dan foydalanib test qilma

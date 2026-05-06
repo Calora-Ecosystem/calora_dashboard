@@ -6,6 +6,7 @@ import { useAuthStore } from "./authStore";
 import { useTokenStore } from "./tokenStore";
 import { axios } from "../integrations/axios";
 import { router } from "../views/router";
+import { ElNotification } from "element-plus";
 
 let __tokenRefreshing = null as any | null;
 
@@ -43,6 +44,25 @@ const useApiCallStore = defineStore("api_call", () => {
   const tokenStore = useTokenStore();
 
   handler
+    //notification handler
+    .next(async (action) => {
+      try {
+        const result: any = await action();
+        if (result?.code !== undefined && result.code !== 200 && result.error) {
+          ElNotification({ title: "Xato", message: result.error, type: "error" });
+        }
+        return result;
+      } catch (error) {
+        if (error instanceof AxiosError && error.response?.status !== 401) {
+          ElNotification({
+            title: "Xato",
+            message: error.response?.data?.error ?? error.message,
+            type: "error",
+          });
+        }
+        throw error;
+      }
+    })
     //log api errors
     .next(async (action) => {
       try {

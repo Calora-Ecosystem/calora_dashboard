@@ -75,6 +75,7 @@ async function loadData() {
 | `apiCallStore`   | Barcha API chaqiruvlari uchun middleware chain |
 | `courseStore`    | Courses, workouts, exercises, lessons CRUD    |
 | `dashboardStore` | Dashboard summary va sales data               |
+| `billingStore`   | Kuponlar CRUD va kupon foydalanishlari        |
 
 **Qoidalar:**
 - Yangi store `src/stores/` papkasiga qo'shiladi
@@ -103,6 +104,9 @@ async function loadData() {
 /courses/:courseId
 /courses/:courseId/workouts/:workoutId/exercises
 /courses/:courseId/lessons
+/billing/coupons
+/billing/coupons/create
+/billing/coupons/:couponId/usages
 ```
 
 Router fayli: `src/views/router.ts`
@@ -146,7 +150,18 @@ const fullUrl = makeFileUrl(relativeFilePath)
 
 ---
 
-## 11. Umumiy Kod Yozish Qoidalari
+## 11. Testlash Qoidalari
+
+- Har qanday vazifa bajarilgandan keyin **UI da** testlab ko'riladi — test kodi yozilmaydi
+- Testlash uchun **Playwright MCP** orqali brauzerga ulaniladi
+- Avval `http://localhost:7777` ga so'rov berib server ishga tushganligini tekshir
+- Agar server o'chiq bo'lsa — `pnpm run dev` bilan ishga tushiriladi
+- Auth uchun: Email `0605AbMu@gmail.com`, OTP kodi `777777` (staging da o'zgarmaydi)
+- Faqat **dev muhitda** (localhost:7777) ishlab tekshiriladi
+- Agar Playwright MCP sozlanmagan bo'lsa — uni loyihaga sozlab qo'shiladi, o'tkazib yuborilmaydi
+- **"UI test qil" deyilganda hech qachon `curl` ishlatilmaydi** — faqat brauzer orqali tekshiriladi
+
+## 12. Umumiy Kod Yozish Qoidalari
 
 - Kommentariy faqat "nima uchun" aniq bo'lmagan holatlarda yoziladi — "nima qiladi" yozilmaydi
 - `Error handling` faqat tashqi API va foydalanuvchi inputi uchun qo'shiladi

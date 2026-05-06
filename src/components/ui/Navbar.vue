@@ -47,10 +47,21 @@ const menuItems = [
     icon: "navbar/user-edit.svg",
     path: "/team",
   },
+  {
+    icon: "navbar/money-bag.svg",
+    path: "/billing",
+    children: [
+      { label: "Kuponlar", path: "/billing/coupons" },
+    ],
+  },
 ];
 
 const isCaloriesOpen = computed(() =>
   currentRoute.path.startsWith("/calories")
+);
+
+const isBillingOpen = computed(() =>
+  currentRoute.path.startsWith("/billing")
 );
 </script>
 
@@ -69,7 +80,7 @@ const isCaloriesOpen = computed(() =>
           {{ router.resolve(item.path).name ?? "change me" }}
         </MenuItem>
         <div
-          v-if="item.children && isCaloriesOpen && item.path === '/calories'"
+          v-if="item.children && ((isCaloriesOpen && item.path === '/calories') || (isBillingOpen && item.path === '/billing'))"
           class="flex flex-col gap-y-1 pl-8"
         >
           <div

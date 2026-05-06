@@ -1,6 +1,6 @@
 ---
 name: Calora Dashboard Project Ruleset
-description: Foydalanuvchi barcha so'rovlarda docs/claude_ruleset.md qoidalariga amal qilishni so'radi — Vue 3, API pattern, store, komponent, routing va kod yozish qoidalari
+description: Foydalanuvchi barcha so'rovlarda docs/claude_ruleset.md qoidalariga amal qilishni so'radi — Vue 3, API pattern, store, komponent, routing, testlash qoidalari
 type: project
 ---
 
@@ -16,6 +16,29 @@ Foydalanuvchi barcha so'rovlarda `docs/claude_ruleset.md` asosida ishlashni tasd
 - Staging token avval `docs/api_token.md` dan tekshiriladi
 - Destructive git amallar foydalanuvchi ruxsatisiz bajarilmaydi
 
-**Why:** Foydalanuvchi loyihada izchil arxitektura va kod sifatini saqlashni xohlaydi.
+**Storlar (to'liq ro'yxat):**
+- `tokenStore` — JWT saqlash (persisted)
+- `authStore` — Login, OTP, refresh, logout
+- `appStore` — Global isLoading
+- `apiCallStore` — Middleware chain
+- `courseStore` — Courses/workouts/exercises/lessons CRUD
+- `dashboardStore` — Dashboard summary va sales
+- `billingStore` — Kuponlar CRUD va foydalanishlar
 
-**How to apply:** Har qanday yangi kod, komponent yoki store yozganda `docs/claude_ruleset.md` dagi barcha qoidalarga rioya qilinadi.
+**Billing route lari:**
+- `/billing/coupons` — kuponlar ro'yxati + tekshirish
+- `/billing/coupons/create` — yangi kupon
+- `/billing/coupons/:couponId/usages` — kupon foydalanishlari
+
+**Testlash qoidalari (CLAUDE.md dan yangilandi):**
+- Har vazifadan keyin UI da testlab ko'riladi — test kodi yozilmaydi
+- Chrome MCP orqali brauzerga ulaniladi
+- Server: avval localhost:7777 tekshiriladi, yo'q bo'lsa `pnpm run dev`
+- Auth: Email `0605AbMu@gmail.com`, OTP `777777` (staging da o'zgarmaydi)
+- Faqat dev muhitda (localhost:7777) ishlanadi
+- Chrome MCP sozlanmagan bo'lsa — uni loyihaga sozlab qo'shish kerak
+- **"UI test qil" deyilganda `curl` ISHLATILMAYDI** — faqat brauzer orqali
+
+**Why:** Foydalanuvchi loyihada izchil arxitektura, kod sifati va UI testlashni xohlaydi.
+
+**How to apply:** Har qanday yangi kod yozganda va bajarilgandan keyin `docs/claude_ruleset.md` dagi barcha qoidalarga rioya qilinadi, Chrome MCP orqali UI tekshiriladi.

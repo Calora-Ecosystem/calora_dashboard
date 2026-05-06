@@ -1,3 +1,4 @@
 {
-  "effortLevel": "xhigh"
+  "effortLevel": "xhigh",
+  "enabledMcpjsonServers": ["playwright"]
 }
