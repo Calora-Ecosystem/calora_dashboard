@@ -212,6 +212,7 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/Team.vue"),
           },
           {
+            name: "billing",
             path: "billing",
             children: [
               {

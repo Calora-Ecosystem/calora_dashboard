@@ -47,10 +47,7 @@ const menuItems = [
   {
     icon: "navbar/calories.svg",
     path: "/calories",
-    children: [
-      { label: "Kategoriyalar", path: "/calories/categories" },
-      { label: "Taomlar", path: "/calories/foods" },
-    ],
+    children: [{ path: "/calories/categories" }, { path: "/calories/foods" }],
   },
   {
     icon: "navbar/user-stat.svg",
@@ -59,9 +56,7 @@ const menuItems = [
   {
     icon: "navbar/notification.svg",
     path: "/notifications",
-    children: [
-      { label: "Xabarlar", path: "/notifications/messages" },
-    ],
+    children: [{ path: "/notifications/messages" }],
   },
   {
     icon: "navbar/preference.svg",
@@ -74,12 +69,10 @@ const menuItems = [
   {
     icon: "navbar/money-bag.svg",
     path: "/billing",
-    children: [
-      { label: "Kuponlar", path: "/billing/coupons" },
-    ],
+    label: "Billing",
+    children: [{ path: "/billing/coupons" }],
   },
 ];
-
 </script>
 
 <template>
@@ -105,12 +98,16 @@ const menuItems = [
             :key="child.path"
             class="cursor-pointer text-sm px-3 py-1.5 rounded-md transition-colors"
             :class="{
-              'bg-[#7CC243] text-white': currentRoute.path.startsWith(child.path),
-              'text-gray-600 hover:bg-gray-100': !currentRoute.path.startsWith(child.path),
+              'bg-[#7CC243] text-white': currentRoute.path.startsWith(
+                child.path,
+              ),
+              'text-gray-600 hover:bg-gray-100': !currentRoute.path.startsWith(
+                child.path,
+              ),
             }"
             @click="() => navigate(child.path)"
           >
-            {{ child.label }}
+            {{ router.resolve(child.path).name ?? "change me" }}
           </div>
         </div>
       </template>
