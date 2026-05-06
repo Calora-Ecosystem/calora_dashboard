@@ -45,7 +45,6 @@ const data = reactive<{
   description: Mlf;
   order: number;
   workoutId: number;
-  duration: string;
   assets: Asset[];
   metrics: { id: number; metric: TMetrics; value: number }[];
   computations: {
@@ -61,7 +60,6 @@ const data = reactive<{
   description: { uz: "", ru: "", eng: "" },
   order: 0,
   workoutId: Number(router.currentRoute.value.params.workoutId),
-  duration: "",
   assets: [
     { type: "Lotte", url: "" },
     { type: "Video", url: "" },
@@ -99,7 +97,6 @@ const rules = reactive<FormRules<typeof data>>({
     { required: true, message: "Order is required" },
     { type: "number", min: 0, message: "Order must be a positive number" },
   ],
-  duration: { required: true, message: "Duration is required" },
   workoutId: { required: true, message: "Workout ID is required" },
 
   assets: {
@@ -317,13 +314,6 @@ onMounted(async () => {
       <div class="flex flex-row gap-x-5">
         <ElFormItem label="Order" required prop="order">
           <ElInputNumber v-model="data.order" :controls="false" />
-        </ElFormItem>
-        <ElFormItem label="Duration" required prop="duration">
-          <ElInput
-            v-model="data.duration"
-            v-maska="'##:##:##'"
-            placeholder="hh:mm:ss"
-          />
         </ElFormItem>
       </div>
       <ElFormItem label="Metrics" required prop="metrics">
