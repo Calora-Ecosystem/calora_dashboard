@@ -61,7 +61,7 @@ const data = reactive<{
   order: 0,
   workoutId: Number(router.currentRoute.value.params.workoutId),
   assets: [
-    { type: "Lotte", url: "" },
+    { type: "Default", url: "" },
     { type: "Video", url: "" },
   ],
   metrics: [],
@@ -221,9 +221,9 @@ onMounted(async () => {
   );
 
   const assets = [
-    ...exercise.assets,
-    exercise.assets.find((a: any) => a.type === "Lotte") ?? {
-      type: "Lotte",
+    // ...exercise.assets,
+    exercise.assets.find((a: any) => a.type === "Default") ?? {
+      type: "Default",
       url: "",
     },
     exercise.assets.find((a: any) => a.type === "Video") ?? {
