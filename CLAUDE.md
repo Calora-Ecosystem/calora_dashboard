@@ -11,6 +11,7 @@ pnpm preview    # Preview production build
 ```
 
 Docker builds are used for deployment:
+
 - `main` branch → production deploy (`MODE=production`, API: `https://calora.uz/api`)
 - `staging` branch → staging deploy (`MODE=staging`, API: `https://staging.calora.uz/api`)
 
@@ -25,6 +26,7 @@ The API base URL is selected automatically in `src/integrations/axios.ts` based 
 ### Routing (`src/views/router.ts`)
 
 Two layout branches:
+
 - **MainLayout** (auth-guarded) — all dashboard pages under `/`
 - **AuthLayout** (redirects away if authenticated) — `/auth/sign-in`
 
@@ -33,6 +35,7 @@ Route hierarchy for courses: `/courses` → `/courses/:courseId` → `/courses/:
 ### State Management (`src/stores/`)
 
 All API calls go through `useApiCallStore` which wraps every call in a `HandlerChain` middleware pipeline (in order):
+
 1. **Access token injection** — sets `Authorization: Bearer` header from persisted token
 2. **Token refresh** — on 401 `token_expired`, calls `authStore.refreshToken()` and retries
 3. **Loading state** — toggles `appStore.isLoading` around every request
@@ -44,14 +47,14 @@ Usage pattern: every store calls `const { execute } = useApiCallStore()` then wr
 
 ### Key Stores
 
-| Store | Purpose |
-|---|---|
-| `tokenStore` | JWT storage (persisted) |
-| `authStore` | Login, OTP, refresh, logout |
-| `appStore` | Global `isLoading` flag |
-| `apiCallStore` | Middleware chain for all API calls |
-| `courseStore` | Courses, workouts, exercises, lessons CRUD |
-| `dashboardStore` | Dashboard summary and sales data |
+| Store            | Purpose                                    |
+| ---------------- | ------------------------------------------ |
+| `tokenStore`     | JWT storage (persisted)                    |
+| `authStore`      | Login, OTP, refresh, logout                |
+| `appStore`       | Global `isLoading` flag                    |
+| `apiCallStore`   | Middleware chain for all API calls         |
+| `courseStore`    | Courses, workouts, exercises, lessons CRUD |
+| `dashboardStore` | Dashboard summary and sales data           |
 
 ### Components (`src/components/`)
 
@@ -62,6 +65,7 @@ Usage pattern: every store calls `const { execute } = useApiCallStore()` then wr
 ### API Integration (`src/integrations/axios.ts`)
 
 Exports:
+
 - `axios` — configured Axios instance with `baseURL`
 - `API_BASE_URL` — the base URL string
 - `makeFileUrl(relative)` — resolves a relative file path to an absolute URL via `{baseURL}/file/`
@@ -74,3 +78,20 @@ Domain enums used across forms and API calls: `METRICS`, `COURSE_TYPES`, `ASSET_
 
 - `formatMoney(value, notation?)` — formats as UZS currency
 - `formatDate(value)` — formats date in Uzbek locale
+
+## Backend API dan foydalanish
+
+- Asosiy Staging API manzili: https://staging.calora.uz/api/
+- Asosiy Staging SWAGGER manzili: https://staging.calora.uz/api/swagger/index.html
+- Auth qilib token olish uchun
+  1. OTP
+     API: https://staging.calora.uz/api/swagger/index.html#/Auth/post_auth_send_otp_email__email_
+     Email: 0605AbMu@gmail.com
+  2. Sign In with Email
+     API: https://staging.calora.uz/api/swagger/index.html#/Auth/post_auth_sign_in_email
+     Email: 0605AbMu@gmail.com
+     Verification code: `verification code of Otp result`
+     Code: 777777 - bu staging API uchun o'zgarmas
+- Authorized API lar uchun token olib keyin ishlatish lozim.
+- Token olgandan keyin vaqti tugagunch ko'p marta ishlatish uchun docs/api_token.md faylga tokenlarni saqlab qo'ysang bo'ladi
+- Agar docs/api_token.md da ishlatsa bo'ladigan token bo'lsa Qayta Auth qilmay o'shani ishlat
