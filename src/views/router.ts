@@ -172,9 +172,34 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/Premium.vue"),
           },
           {
-            name: "notifications",
             path: "notifications",
-            component: () => import("./home/Notifications.vue"),
+            children: [
+              {
+                path: "",
+                name: "notifications",
+                component: () => import("./home/Notifications.vue"),
+              },
+              {
+                path: "messages",
+                children: [
+                  {
+                    path: "",
+                    name: "reminder_messages",
+                    component: () => import("./reminder/ReminderMessages.vue"),
+                  },
+                  {
+                    path: "create",
+                    name: "reminder_message_create",
+                    component: () => import("./reminder/ReminderMessageEdit.vue"),
+                  },
+                  {
+                    path: ":messageId",
+                    name: "reminder_message_edit",
+                    component: () => import("./reminder/ReminderMessageEdit.vue"),
+                  },
+                ],
+              },
+            ],
           },
           {
             name: "references",

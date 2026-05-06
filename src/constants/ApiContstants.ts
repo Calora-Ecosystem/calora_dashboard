@@ -38,3 +38,10 @@ export const MENU = ["Breakfast", "Lunch", "Dinner", "Snack"] as const;
 export const PLANS = ["Free", "Premium", "Pro"] as const;
 
 export const ROLES = ["SuperAdmin", "User"] as const;
+
+export const MOMENT_TYPES = [
+  "Food",
+  "Water",
+  "Sleep",
+  "DailyChallenge",
+] as const;

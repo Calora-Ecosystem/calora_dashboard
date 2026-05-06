@@ -59,6 +59,9 @@ const menuItems = [
   {
     icon: "navbar/notification.svg",
     path: "/notifications",
+    children: [
+      { label: "Xabarlar", path: "/notifications/messages" },
+    ],
   },
   {
     icon: "navbar/preference.svg",
