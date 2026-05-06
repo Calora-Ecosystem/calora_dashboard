@@ -62,7 +62,10 @@ const data = reactive<{
   order: 0,
   workoutId: Number(router.currentRoute.value.params.workoutId),
   duration: "",
-  assets: [{ type: "Default", url: "" }],
+  assets: [
+    { type: "Lotte", url: "" },
+    { type: "Video", url: "" },
+  ],
   metrics: [],
   computations: ACTIVITIES.map((x) => ({
     entityId: 0,
@@ -101,13 +104,11 @@ const rules = reactive<FormRules<typeof data>>({
 
   assets: {
     type: "array",
-    len: 1,
-    fields: {
-      0: {
-        type: "object",
-        fields: {
-          url: { required: true, message: "URL is required" },
-        },
+    len: 2,
+    defaultField: {
+      type: "object",
+      fields: {
+        url: { required: true, message: "URL is required" },
       },
     },
   },
@@ -147,6 +148,7 @@ const rules = reactive<FormRules<typeof data>>({
 
   computations: {
     type: "array",
+    required: false,
     defaultField: {
       type: "object",
       fields: {
@@ -170,7 +172,7 @@ const handleSubmit = async () => {
     await form.value?.validate();
 
     const responseId = await courseStore.modifyExercise(data);
-    
+
     data.id = Number(responseId);
 
     await courseStore.modifyWorkoutComputations(
@@ -204,7 +206,13 @@ const loadComputations = async () => {
     fromType: x?.type,
   }));
 
-  Object.assign(data.computations, computations);
+  computations.forEach((c: any) => {
+    const d = data.computations.find((x) => x.activity === c.activity);
+    if (!!d) Object.assign(d as any, c);
+    else data.computations.push(c);
+  });
+
+  // Object.assign(data.computations, computations);
 };
 
 onMounted(async () => {
@@ -215,7 +223,19 @@ onMounted(async () => {
     Number(router.currentRoute.value.params.exerciseId),
   );
 
-  Object.assign(data, exercise);
+  const assets = [
+    ...exercise.assets,
+    exercise.assets.find((a: any) => a.type === "Lotte") ?? {
+      type: "Lotte",
+      url: "",
+    },
+    exercise.assets.find((a: any) => a.type === "Video") ?? {
+      type: "Video",
+      url: "",
+    },
+  ];
+
+  Object.assign(data, { ...exercise, assets });
   await loadComputations();
 });
 </script>
@@ -277,8 +297,21 @@ onMounted(async () => {
       </ElFormItem>
 
       <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
-        <ElFormItem label="Main Image" required prop="assets.0.url">
+        <ElFormItem label="Lotte/Gif" required prop="assets.0.url">
           <FileUpload v-model="data.assets[0].url" />
+        </ElFormItem>
+        <ElFormItem
+          label="Video Url"
+          required
+          prop="assets.1.url"
+          class="w-full!"
+        >
+          <ElInput
+            class="w-full!"
+            v-model="data.assets[1].url"
+            type="url"
+            placeholder="link"
+          />
         </ElFormItem>
       </div>
       <div class="flex flex-row gap-x-5">

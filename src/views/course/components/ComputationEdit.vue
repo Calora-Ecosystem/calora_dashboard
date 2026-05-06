@@ -4,14 +4,20 @@ import {
   ComputationType,
   EntityType,
 } from "../../../@types/common";
-import { ACTIVITIES, COMPUTATION_TYPE } from "../../../constants/ApiContstants";
 import {
+  ACTIVITIES,
+  COMPUTATION_TYPE,
+  COURSE_TYPES,
+} from "../../../constants/ApiContstants";
+import {
+  ElBadge,
   ElFormItem,
   ElInputNumber,
   ElOption,
   ElSelect,
   ElTable,
   ElTableColumn,
+  ElTag,
 } from "element-plus";
 
 const model = defineModel<
@@ -68,7 +74,16 @@ const props = withDefaults(
     <ElTableColumn label="Value" prop="value">
       <template #default="{ row }">
         <ElFormItem :prop="`computations.${row.id}.value`">
-          <ElInputNumber v-model="row.value" :min="0" :max="9_999" />
+          <el-popover
+            content="Default value from Workout"
+            size="small"
+            placement="top"
+            :disabled="!row.fromType || row.fromType !== COURSE_TYPES[1]"
+          >
+            <template #reference>
+              <ElInputNumber v-model="row.value" :min="0" :max="9_999" />
+            </template>
+          </el-popover>
         </ElFormItem>
       </template>
     </ElTableColumn>

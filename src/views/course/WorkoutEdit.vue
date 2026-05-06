@@ -40,7 +40,6 @@ const data = reactive<{
   order: number;
   courseId: number;
   hasRest: boolean;
-  assets: Asset[];
   computations: {
     id?: number;
     entityId: number;
@@ -55,10 +54,6 @@ const data = reactive<{
   order: 0,
   courseId: Number(router.currentRoute.value.params.courseId),
   hasRest: false,
-  assets: [
-    { type: "MainImage", url: "" },
-    { type: "SubCoverImage", url: "" },
-  ],
   computations: ACTIVITIES.map((x) => ({
     entityId: 0,
     type: "Workout",
@@ -93,24 +88,6 @@ const rules = reactive<FormRules<typeof data>>({
   ],
   courseId: { required: true, message: "Course ID is required" },
   hasRest: { required: true, message: "Has Rest is required" },
-  assets: {
-    type: "array",
-    len: 2,
-    fields: {
-      0: {
-        type: "object",
-        fields: {
-          url: { required: true, message: "URL is required" },
-        },
-      },
-      1: {
-        type: "object",
-        fields: {
-          url: { required: true, message: "URL is required" },
-        },
-      },
-    },
-  },
   computations: {
     type: "array",
     defaultField: {
@@ -248,7 +225,7 @@ onMounted(async () => {
         </div>
       </ElFormItem>
 
-      <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
+<!--      <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
         <ElFormItem label="Main Image" required prop="assets.0.url">
           <FileUpload v-model="data.assets[0].url" />
         </ElFormItem>
@@ -256,6 +233,7 @@ onMounted(async () => {
           <FileUpload v-model="data.assets[1].url" />
         </ElFormItem>
       </div>
+-->
       <div class="flex flex-row gap-x-5">
         <ElFormItem label="Dam olish" required prop="hasRest">
           <ElSwitch v-model="data.hasRest"></ElSwitch>

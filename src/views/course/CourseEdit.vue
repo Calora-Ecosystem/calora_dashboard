@@ -31,12 +31,10 @@ const data = reactive<{
   gender?: Gender;
   info: Mlf;
   assets: Asset[];
-  price: number;
 }>({
   title: { uz: "", ru: "", eng: "" },
   description: { uz: "", ru: "", eng: "" },
   info: { uz: "", ru: "", eng: "" },
-  price: 0,
   gender: undefined,
   order: 0,
   type: null,
@@ -85,14 +83,6 @@ const rules = reactive<FormRules<typeof data>>({
   order: [
     { required: true, message: "Order is required" },
     { type: "number", min: 0, message: "Order must be a positive number" },
-  ],
-  price: [
-    { required: true, message: "Price is required" },
-    {
-      type: "number",
-      min: 1_000,
-      message: "Price must be greater than 1000 UZS",
-    },
   ],
   assets: {
     type: "array",
@@ -238,12 +228,6 @@ onMounted(async () => {
         </ElFormItem>
       </div>
       <div class="flex flex-row gap-x-5">
-        <ElFormItem label="Price" required prop="price">
-          <ElInputNumber v-model="data.price" :controls="false">
-            <template #suffix>UZS</template>
-          </ElInputNumber>
-        </ElFormItem>
-
         <ElFormItem label="Order" required prop="order">
           <ElInputNumber v-model="data.order" :controls="false" />
         </ElFormItem>
@@ -268,7 +252,7 @@ onMounted(async () => {
           type="primary"
           native-type="submit"
           :loading="appStore.isLoading"
-          >{{ data.id && data.id > 0 ? 'Update' : 'Add' }}</ElButton
+          >{{ data.id && data.id > 0 ? "Update" : "Add" }}</ElButton
         >
       </div>
     </ElForm>
