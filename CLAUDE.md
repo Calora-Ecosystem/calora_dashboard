@@ -110,3 +110,16 @@ Auth qilish uchun:
 Faqat dev muhitda ishla va tekshir
 Agar Playwright MCP sozlanmagan bo'lsa loyihaga playwright mcp ni sozla va qo'sh
 Hech qachon UI test qil deganimda CURL dan foydalanib test qilma
+
+
+## PROD DEPLOY
+Agar o'zgarishlar staging branch da qilingan bo'lsa:
+ - O'zgarishlarni stagingga push qil.
+ - main branchga merge qil
+ - Merged o'zgarishlarni mainga push qil.
+ - Oxirida staging branchni checkout qil.
+
+Agar o'zgarishlar main branchda qilingan bo'lsa:
+   - Main ga push qil
+   - Stagingga merge qilib stagingni ham push qil
+   - Oxirida staging branchni checkout qil

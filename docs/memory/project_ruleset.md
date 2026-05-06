@@ -32,13 +32,25 @@ Foydalanuvchi barcha so'rovlarda `docs/claude_ruleset.md` asosida ishlashni tasd
 
 **Testlash qoidalari (CLAUDE.md dan yangilandi):**
 - Har vazifadan keyin UI da testlab ko'riladi — test kodi yozilmaydi
-- Chrome MCP orqali brauzerga ulaniladi
+- Playwright MCP orqali brauzerga ulaniladi
 - Server: avval localhost:7777 tekshiriladi, yo'q bo'lsa `pnpm run dev`
 - Auth: Email `0605AbMu@gmail.com`, OTP `777777` (staging da o'zgarmaydi)
 - Faqat dev muhitda (localhost:7777) ishlanadi
-- Chrome MCP sozlanmagan bo'lsa — uni loyihaga sozlab qo'shish kerak
+- Playwright MCP sozlanmagan bo'lsa — uni loyihaga sozlab qo'shish kerak
 - **"UI test qil" deyilganda `curl` ISHLATILMAYDI** — faqat brauzer orqali
+
+**PROD DEPLOY oqimi (CLAUDE.md dan):**
+- Agar o'zgarishlar `staging` branch da bo'lsa:
+  1. staging ga push
+  2. main ga merge
+  3. main ga push
+  4. Oxirida `staging` ga qaytib checkout
+- Agar o'zgarishlar `main` branch da bo'lsa:
+  1. main ga push
+  2. staging ga merge va push
+  3. Oxirida `staging` ga checkout
+- Push/merge avtomatik qilinmaydi — foydalanuvchi so'raganda bajariladi.
 
 **Why:** Foydalanuvchi loyihada izchil arxitektura, kod sifati va UI testlashni xohlaydi.
 
-**How to apply:** Har qanday yangi kod yozganda va bajarilgandan keyin `docs/claude_ruleset.md` dagi barcha qoidalarga rioya qilinadi, Chrome MCP orqali UI tekshiriladi.
+**How to apply:** Har qanday yangi kod yozganda va bajarilgandan keyin `docs/claude_ruleset.md` dagi barcha qoidalarga rioya qilinadi, Playwright MCP orqali UI tekshiriladi. Deploy so'ralganda yuqoridagi oqimga amal qilinadi.
