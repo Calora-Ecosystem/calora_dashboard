@@ -16,7 +16,7 @@ const emits = defineEmits<{
 const isHovering = ref(false);
 </script>
 <template>
-  <div class="flex flex-row justify-center p-2">
+  <div class="flex flex-row justify-center px-2 py-0.5">
     <div class="flex-1 relative">
       <div
         class="absolute h-full -left-3.25 w-2.5 rounded-sm transition-all"
