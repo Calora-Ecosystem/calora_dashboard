@@ -24,4 +24,3 @@ dist-ssr
 *.sw?
 *.local.json
 .playwright-mcp/
-pnpm-lock.yaml
