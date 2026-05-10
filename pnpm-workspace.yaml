@@ -1,4 +1,1 @@
-ignoredBuiltDependencies:
-  - esbuild
-  - vue-demi
 neverBuiltDependencies: []
