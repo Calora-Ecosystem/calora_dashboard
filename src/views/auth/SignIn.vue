@@ -9,11 +9,13 @@ import {
 import { reactive } from "vue";
 import { useAuthStore } from "../../stores/authStore";
 import { useAppStore } from "../../stores/appStore";
+import { useTokenStore } from "../../stores/tokenStore";
 
 import { useRouter } from "vue-router";
 
 const authStore = useAuthStore();
 const appStore = useAppStore();
+const tokenStore = useTokenStore();
 
 const router = useRouter();
 
@@ -40,7 +42,11 @@ const handleSubmit = async () => {
       code: String(formData.otp ?? ""),
     });
 
-    await router.push({ name: "dashboard" });
+    if (tokenStore.isOperator && !tokenStore.isSuperAdmin) {
+      await router.push("/crm/leads");
+    } else {
+      await router.push("/dashboard");
+    }
 
     state.otpPending = false;
   }
