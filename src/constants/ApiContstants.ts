@@ -37,7 +37,9 @@ export const MENU = ["Breakfast", "Lunch", "Dinner", "Snack"] as const;
 
 export const PLANS = ["Free", "Premium", "Pro"] as const;
 
-export const ROLES = ["SuperAdmin", "User"] as const;
+export const ROLES = ["SuperAdmin", "User", "Operator"] as const;
+
+export const LEAD_PRIORITIES = ["Low", "Medium", "High", "Closed"] as const;
 
 export const MOMENT_TYPES = [
   "Food",

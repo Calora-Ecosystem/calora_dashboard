@@ -1,43 +1,74 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
-import { pa } from "element-plus/es/locale/index.mjs";
+import { useTokenStore } from "../stores/tokenStore";
+
+const adminHome = "/dashboard";
+const operatorHome = "/crm/leads";
+
+const resolveHomeForUser = (): string | null => {
+  const tokenStore = useTokenStore();
+  if (tokenStore.isSuperAdmin) return adminHome;
+  if (tokenStore.isOperator) return operatorHome;
+  return null;
+};
+
+const SUPER_ADMIN: { roles: string[] } = { roles: ["SuperAdmin"] };
+const OPERATOR: { roles: string[] } = { roles: ["Operator"] };
 
 const routes: RouteRecordRaw[] = [
   {
     path: "/",
     beforeEnter: (to, from, next) => {
-      if (to.path === "/") return next({ name: "dashboard" });
-
+      if (to.path === "/") {
+        const home = resolveHomeForUser();
+        return next(home ?? "/auth/sign-in");
+      }
       return next();
     },
     children: [
       {
         path: "",
         component: () => import("./layouts/MainLayout.vue"),
-        beforeEnter: (from, to, next) => {
+        beforeEnter: (to, from, next) => {
           const authStore = useAuthStore();
           if (!authStore.isAuthenticated) return next("/auth/sign-in");
 
-          return next();
+          const tokenStore = useTokenStore();
+          const required = (to.meta?.roles as string[] | undefined) ?? [];
+          if (required.length === 0) return next();
+
+          const allowed = required.some((role) => tokenStore.hasRole(role));
+          if (allowed) return next();
+
+          const home = resolveHomeForUser();
+          if (!home || home === to.path) {
+            tokenStore.clearTokens();
+            return next("/auth/sign-in");
+          }
+          return next(home);
         },
         children: [
           {
             name: "dashboard",
             path: "dashboard",
+            meta: SUPER_ADMIN,
             component: () => import("./home/Dashboard.vue"),
           },
           {
             name: "users",
             path: "users",
+            meta: SUPER_ADMIN,
             component: () => import("./home/Users.vue"),
           },
           {
             name: "sales",
             path: "sales",
+            meta: SUPER_ADMIN,
             component: () => import("./home/Sales.vue"),
           },
           {
             path: "courses",
+            meta: SUPER_ADMIN,
             children: [
               {
                 name: "course",
@@ -118,6 +149,7 @@ const routes: RouteRecordRaw[] = [
           },
           {
             path: "calories",
+            meta: SUPER_ADMIN,
             children: [
               {
                 path: "",
@@ -169,10 +201,12 @@ const routes: RouteRecordRaw[] = [
           {
             name: "premium",
             path: "premium",
+            meta: SUPER_ADMIN,
             component: () => import("./home/Premium.vue"),
           },
           {
             path: "notifications",
+            meta: SUPER_ADMIN,
             children: [
               {
                 path: "",
@@ -204,16 +238,19 @@ const routes: RouteRecordRaw[] = [
           {
             name: "references",
             path: "references",
+            meta: SUPER_ADMIN,
             component: () => import("./home/References.vue"),
           },
           {
             name: "team",
             path: "team",
+            meta: SUPER_ADMIN,
             component: () => import("./home/Team.vue"),
           },
           {
             name: "billing",
             path: "billing",
+            meta: SUPER_ADMIN,
             children: [
               {
                 path: "coupons",
@@ -237,6 +274,22 @@ const routes: RouteRecordRaw[] = [
               },
             ],
           },
+          {
+            path: "crm",
+            meta: OPERATOR,
+            children: [
+              {
+                path: "leads",
+                name: "crm_leads",
+                component: () => import("./crm/Leads.vue"),
+              },
+              {
+                path: "leads/:leadId",
+                name: "crm_lead_detail",
+                component: () => import("./crm/LeadDetail.vue"),
+              },
+            ],
+          },
         ],
       },
       {
@@ -244,7 +297,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import("./layouts/AuthLayout.vue"),
         beforeEnter: (to, from, next) => {
           const authStore = useAuthStore();
-          if (authStore.isAuthenticated) return next({ name: "home" });
+          if (authStore.isAuthenticated) {
+            const home = resolveHomeForUser();
+            if (home) return next(home);
+          }
           if (to.path == "/auth") return next("/auth/sign-in");
           next();
         },
