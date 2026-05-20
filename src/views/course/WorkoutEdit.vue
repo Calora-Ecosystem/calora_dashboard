@@ -47,7 +47,6 @@ const data = reactive<{
     activity: ActivityType;
     computationType: ComputationType;
     value: number;
-    kcal: number;
   }[];
 }>({
   title: { uz: "", ru: "", eng: "" },
@@ -61,7 +60,6 @@ const data = reactive<{
     activity: x,
     computationType: COMPUTATION_TYPE[0],
     value: 0,
-    kcal: 0,
   })) as [],
 });
 
@@ -103,7 +101,6 @@ const rules = reactive<FormRules<typeof data>>({
           enum: COMPUTATION_TYPE as any,
         },
         value: { required: true, type: "number" },
-        kcal: { required: true, type: "number" },
       },
     },
   },
@@ -228,7 +225,7 @@ onMounted(async () => {
         </div>
       </ElFormItem>
 
-      <!--      <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
+<!--      <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
         <ElFormItem label="Main Image" required prop="assets.0.url">
           <FileUpload v-model="data.assets[0].url" />
         </ElFormItem>

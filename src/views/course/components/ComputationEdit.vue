@@ -28,7 +28,6 @@ const model = defineModel<
     activity: ActivityType;
     computationType: ComputationType;
     value: number;
-    kcal: number;
   }[]
 >();
 
@@ -83,22 +82,6 @@ const props = withDefaults(
           >
             <template #reference>
               <ElInputNumber v-model="row.value" :min="0" :max="9_999" />
-            </template>
-          </el-popover>
-        </ElFormItem>
-      </template>
-    </ElTableColumn>
-    <ElTableColumn label="Kcal" prop="kcal">
-      <template #default="{ row }">
-        <ElFormItem :prop="`computations.${row.id}.kcal`">
-          <el-popover
-            content="Default value from Workout"
-            size="small"
-            placement="top"
-            :disabled="!row.fromType || row.fromType !== COURSE_TYPES[1]"
-          >
-            <template #reference>
-              <ElInputNumber v-model="row.kcal" :min="0" :max="9_999" />
             </template>
           </el-popover>
         </ElFormItem>
