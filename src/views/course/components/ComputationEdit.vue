@@ -19,6 +19,9 @@ import {
   ElTableColumn,
   ElTag,
 } from "element-plus";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const model = defineModel<
   {
@@ -44,14 +47,14 @@ const props = withDefaults(
 </script>
 <template>
   <ElTable :data="model">
-    <ElTableColumn label="Activity" prop="activity">
+    <ElTableColumn label="Activity" prop="activity" width="250">
       <template #default="{ row, index }">
         <ElFormItem :prop="`computations.${row.id}.activity`">
-          <ElSelect v-model="row.activity" :disabled="true">
+          <ElSelect v-model="row.activity" :disabled="true" class="w-full">
             <ElOption
               v-for="value in ACTIVITIES"
               :key="value"
-              :label="value"
+              :label="t(`activities.${value}`)"
               :value="value"
             ></ElOption>
           </ElSelect>

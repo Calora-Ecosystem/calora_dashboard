@@ -1,0 +1,9 @@
+{
+  "activities": {
+    "Minimal": "Yengil boshlash",
+    "Less": "Ortiqcha yuklamasiz",
+    "Medium": "Faollikka qaytish",
+    "High": "Faollikni oshirish",
+    "Maximal": "Yuqori darajadagi faollik"
+  }
+}

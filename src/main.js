@@ -17,6 +17,8 @@ import SvgIcon from "./components/shared/SvgIcon.vue";
 
 import Vue3Lottie from "vue3-lottie";
 
+import { i18n } from "./i18n";
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
@@ -26,6 +28,7 @@ app.use(ElementPlus, { locale: uzUz });
 app.use(pinia);
 app.use(router);
 app.use(Vue3Lottie);
+app.use(i18n);
 
 app.directive("maska", vMaska);
 
