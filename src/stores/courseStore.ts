@@ -97,6 +97,12 @@ export const useCourseStore = defineStore("course", () => {
     });
   };
 
+  const deleteWorkoutById = async (workoutId: number) => {
+    await execute(async () => {
+      await axios.delete(`/workouts/${workoutId}`);
+    });
+  };
+
   const loadExercises = async (workoutId: number) => {
     await execute(async () => {
       const response = await axios.get(`/exercises?workoutId=${workoutId}`);
@@ -173,6 +179,7 @@ export const useCourseStore = defineStore("course", () => {
     getWorkoutById,
     modifyWorkout,
     modifyWorkoutComputations,
+    deleteWorkoutById,
     loadExercises,
     getExerciseById,
     getExerciseComputations,

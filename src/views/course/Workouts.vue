@@ -1,18 +1,24 @@
 <script setup lang="ts">
 import Card from "../../components/ui/Card.vue";
 import DataTable from "../../components/shared/DataTable.vue";
-import { ElButton, ElTableColumn } from "element-plus";
+import { ElButton, ElPopconfirm, ElTableColumn } from "element-plus";
 import { useCourseStore } from "../../stores/courseStore";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 
 const courseStore = useCourseStore();
 const route = useRoute();
 
 const courseId = computed(() => Number(route.params.courseId));
+const tableKey = ref(0);
 
 const loader = (skip: number, take: number) =>
   courseStore.loadWorkoutsPaged(courseId.value, skip, take);
+
+const handleDelete = async (workoutId: number) => {
+  await courseStore.deleteWorkoutById(workoutId);
+  tableKey.value++;
+};
 </script>
 <template>
   <Card title="">
@@ -26,7 +32,7 @@ const loader = (skip: number, take: number) =>
         </RouterLink>
       </div>
     </div>
-    <DataTable :loader="loader">
+    <DataTable :key="tableKey" :loader="loader">
       <ElTableColumn label="ID" prop="id" />
       <ElTableColumn label="Title" prop="title.uz" />
       <ElTableColumn label="Calories" />
@@ -41,7 +47,14 @@ const loader = (skip: number, take: number) =>
             >
               <ElButton size="small" type="primary">edit</ElButton>
             </RouterLink>
-            <ElButton size="small" type="danger">delete</ElButton>
+            <ElPopconfirm
+              title="are_you_sure"
+              @confirm="handleDelete(row.id)"
+            >
+              <template #reference>
+                <ElButton size="small" type="danger">delete</ElButton>
+              </template>
+            </ElPopconfirm>
             <RouterLink
               :to="{ name: 'exercises', params: { workoutId: row.id } }"
             >
