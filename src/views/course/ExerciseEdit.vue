@@ -207,13 +207,13 @@ const loadComputations = async () => {
     kcal: x?.kcal || 0,
   }));
 
-  computations.forEach((c: any) => {
-    const d = data.computations.find((x) => x.activity === c.activity);
-    if (!!d) Object.assign(d as any, c);
-    else data.computations.push(c);
-  });
+  // computations.forEach((c: any) => {
+  //   const d = data.computations.find((x) => x.activity === c.activity);
+  //   if (!!d) Object.assign(d as any, c);
+  //   else data.computations.push(c);
+  // });
 
-  // Object.assign(data.computations, computations);
+  Object.assign(data.computations, computations);
 };
 
 onMounted(async () => {
