@@ -4,6 +4,7 @@ import { useApiCallStore } from "./apiCallStore";
 import { axios } from "../integrations/axios";
 import { useRoute } from "vue-router";
 import { de } from "element-plus/es/locale/index.mjs";
+import type { ApiBaseResponse } from "../@types/common";
 
 export const useCourseStore = defineStore("course", () => {
   const { execute } = useApiCallStore();
@@ -14,9 +15,11 @@ export const useCourseStore = defineStore("course", () => {
   const exercises = reactive<{ [workoutId: number]: any[] }>({});
 
   const loadCourses = async (gender: string) => {
-    await execute(async () => {
-      const response = await axios.get(`/course`, { params: { gender } });
-      courses.value = response.data.content;
+    return await execute(async () => {
+      const response = await axios.get(`/course`, {
+        params: { gender, SortDirection: "ascending", SortPropName: "id" },
+      });
+      return response.data.content;
     });
   };
 
@@ -48,6 +51,19 @@ export const useCourseStore = defineStore("course", () => {
       const response = await axios.get(`/workouts?courseId=${courseId}`);
 
       Object.assign(workouts, { [courseId]: response.data.content });
+    });
+  };
+
+  const loadWorkoutsPaged = async (
+    courseId: number,
+    skip: number,
+    take: number,
+  ): Promise<ApiBaseResponse> => {
+    return await execute(async () => {
+      const response = await axios.get(`/workouts`, {
+        params: { courseId, Skip: skip, Take: take },
+      });
+      return response.data;
     });
   };
 
@@ -152,6 +168,7 @@ export const useCourseStore = defineStore("course", () => {
     modifyCourse,
     deleteCourse,
     loadWorkouts,
+    loadWorkoutsPaged,
     getWorkoutComputations,
     getWorkoutById,
     modifyWorkout,

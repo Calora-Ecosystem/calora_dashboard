@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElPagination, ElTable } from "element-plus";
+import { ElPagination, ElSkeleton, ElTable } from "element-plus";
 import { computed, onMounted, ref } from "vue";
 import { ApiBaseResponse } from "../../@types/common";
 import IfEmpty from "./IfEmpty.vue";
@@ -14,6 +14,7 @@ const props = defineProps<{
 
 const data = ref<any[]>(props.data || []);
 const total = ref(0);
+const loading = ref(true);
 const current = ref(
   router.currentRoute.value.query.page
     ? Number(router.currentRoute.value.query.page)
@@ -28,6 +29,7 @@ const take = ref(
 const skip = computed(() => (current.value - 1) * take.value);
 
 const loadData = async () => {
+  loading.value = true;
   const query = {
     ...router.currentRoute.value.query,
     page: current.value,
@@ -35,21 +37,27 @@ const loadData = async () => {
   };
   router.replace({ query });
 
-  const response = await props.loader(skip.value, take.value);
-  data.value = response.content;
-  total.value = response.total;
+  try {
+    const response = await props.loader(skip.value, take.value);
+    data.value = response.content;
+    total.value = response.total;
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(loadData);
 </script>
 <template>
-  <div>
-    <IfEmpty :value="data">
-      <ElTable :fit="true" :data="data">
-        <slot />
-      </ElTable>
-    </IfEmpty>
-  </div>
+  <ElSkeleton :loading="loading" :rows="take" animated>
+    <template #default>
+      <IfEmpty :value="data">
+        <ElTable :fit="true" :data="data">
+          <slot />
+        </ElTable>
+      </IfEmpty>
+    </template>
+  </ElSkeleton>
   <ElPagination
     class="mt-3"
     v-model:page-size="take"

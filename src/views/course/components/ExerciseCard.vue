@@ -46,9 +46,9 @@ const emits = defineEmits<{
         >
           <ElButton type="primary">Edit</ElButton>
         </RouterLink>
-        <RouterLink to="">
+        <!-- <RouterLink to="">
           <ElButton type="default"> Open </ElButton>
-        </RouterLink>
+        </RouterLink> -->
         <el-popconfirm title="are_you_sure" @confirm="emits('delete')">
           <template #reference>
             <ElButton type="danger">Delete</ElButton>

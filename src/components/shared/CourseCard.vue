@@ -3,6 +3,7 @@ import { ElButton, ElImage, ElLink } from "element-plus";
 import { makeFileUrl } from "../../integrations/axios";
 import { useCourseStore } from "../../stores/courseStore";
 import { CourseType } from "../../@types/common";
+import { computed } from "vue";
 
 const courseStore = useCourseStore();
 
@@ -15,10 +16,11 @@ const props = defineProps<{
   type: CourseType;
 }>();
 
-const childLink =
-  props.type === "Workout"
+const childLink = computed(() => {
+  return props.type === "Workout"
     ? `/courses/${props.id}/workouts`
     : `/courses/${props.id}/lessons`;
+});
 </script>
 <template>
   <div
