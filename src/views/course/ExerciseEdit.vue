@@ -54,6 +54,7 @@ const data = reactive<{
     activity: ActivityType;
     computationType: ComputationType;
     value: number;
+    kcal: number;
   }[];
 }>({
   title: { uz: "", ru: "", eng: "" },
@@ -71,6 +72,7 @@ const data = reactive<{
     activity: x,
     computationType: COMPUTATION_TYPE[0],
     value: 0,
+    kcal: 0,
   })) as [],
 });
 
@@ -157,6 +159,7 @@ const rules = reactive<FormRules<typeof data>>({
           enum: COMPUTATION_TYPE as any,
         },
         value: { required: true, type: "number", min: 1 },
+        kcal: { required: true, type: "number", min: 1 },
       },
     },
   },
@@ -201,6 +204,7 @@ const loadComputations = async () => {
     ...x,
     type: ENTITY_TYPES[1],
     fromType: x?.type,
+    kcal: x?.kcal || 0,
   }));
 
   computations.forEach((c: any) => {
