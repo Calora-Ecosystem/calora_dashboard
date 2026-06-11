@@ -277,16 +277,6 @@ const routes: RouteRecordRaw[] = [
                 name: "subscriptions",
                 component: () => import("./billing/Subscriptions.vue"),
               },
-              {
-                path: "plans/create",
-                name: "subscription_create",
-                component: () => import("./billing/SubscriptionCreate.vue"),
-              },
-              {
-                path: "plans/:planId",
-                name: "subscription_edit",
-                component: () => import("./billing/SubscriptionCreate.vue"),
-              },
             ],
           },
           {
