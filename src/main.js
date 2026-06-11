@@ -19,6 +19,8 @@ import Vue3Lottie from "vue3-lottie";
 
 import { i18n } from "./i18n";
 
+import { useThemeStore } from "./stores/themeStore";
+
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
@@ -26,6 +28,9 @@ const app = createApp(App);
 
 app.use(ElementPlus, { locale: uzUz });
 app.use(pinia);
+
+// Apply persisted theme before mount to avoid flash
+useThemeStore(pinia).init();
 app.use(router);
 app.use(Vue3Lottie);
 app.use(i18n);

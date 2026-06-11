@@ -51,11 +51,12 @@ export const useFoodStore = defineStore("food", () => {
   const loadCategoriesPaged = async (
     skip: number,
     take: number,
+    search?: string,
   ): Promise<ApiBaseResponse<FoodCategory[]>> => {
     return await execute(async () => {
-      const response = await axios.get("/food/categories", {
-        params: { Skip: skip, Take: take },
-      });
+      const params: Record<string, unknown> = { Skip: skip, Take: take };
+      if (search?.trim()) params.FilteringExpression = `name$$${search.trim()}`;
+      const response = await axios.get("/food/categories", { params });
       return response.data;
     });
   };
@@ -76,11 +77,12 @@ export const useFoodStore = defineStore("food", () => {
   const loadFoodsPaged = async (
     skip: number,
     take: number,
+    search?: string,
   ): Promise<ApiBaseResponse<GetAllFoodDto[]>> => {
     return await execute(async () => {
-      const response = await axios.get("/food", {
-        params: { Skip: skip, Take: take },
-      });
+      const params: Record<string, unknown> = { Skip: skip, Take: take };
+      if (search?.trim()) params.FilteringExpression = `name$$${search.trim()}`;
+      const response = await axios.get("/food", { params });
       return response.data;
     });
   };

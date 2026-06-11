@@ -1,30 +1,30 @@
 <script setup>
-import { useRouter } from "vue-router";
 import Header from "../../components/ui/Header.vue";
 import Navbar from "../../components/ui/Navbar.vue";
 import ScreenLayout from "./ScreenLayout.vue";
 import { useAppStore } from "../../stores/appStore";
 
-const router = useRouter();
 const appStore = useAppStore();
 </script>
 
 <template>
   <ScreenLayout>
-    <div class="w-full h-full flex overflow-hidden relative">
+    <div class="w-full h-full flex overflow-hidden relative" style="background: var(--bg)">
       <!-- Sidebar (desktop) -->
-      <div class="shrink-0 w-[241px] hidden lg:block">
+      <div class="shrink-0 w-[256px] hidden lg:block">
         <Navbar />
       </div>
 
       <!-- Sidebar (mobile overlay) -->
+      <transition name="fade">
+        <div
+          v-if="appStore.isMobileMenuOpen"
+          class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          @click="appStore.isMobileMenuOpen = false"
+        ></div>
+      </transition>
       <div
-        v-if="appStore.isMobileMenuOpen"
-        class="fixed inset-0 z-40 bg-black/40 lg:hidden"
-        @click="appStore.isMobileMenuOpen = false"
-      ></div>
-      <div
-        class="fixed top-0 left-0 z-50 h-full w-[260px] bg-white shadow-xl transition-transform duration-200 lg:hidden"
+        class="fixed top-0 left-0 z-50 h-full w-[268px] shadow-2xl transition-transform duration-250 lg:hidden"
         :class="appStore.isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'"
       >
         <Navbar />
@@ -32,21 +32,30 @@ const appStore = useAppStore();
 
       <!-- Main -->
       <div class="flex-1 flex flex-col min-h-0 min-w-0">
-        <!-- Header -->
-        <div class="h-[80px] shrink-0">
+        <div class="h-[72px] shrink-0 z-10">
           <Header />
         </div>
 
-        <!-- Scrollable content -->
-        <div
-          class="flex-1 min-h-0 overflow-y-auto bg-[#F5F6FA] border border-gray-200 p-2 px-4 lg:px-10"
+        <main
+          class="flex-1 min-h-0 overflow-y-auto px-4 py-5 lg:px-8 lg:py-7"
+          style="background: var(--bg)"
         >
-          <h1 class="text-[24px] lg:text-[32px] font-semibold mb-5 mt-3">
-            {{ router.currentRoute.value.name?.toUpperCase() }}
-          </h1>
-          <router-view />
-        </div>
+          <div class="max-w-[1500px] mx-auto animate-fade-up">
+            <router-view :key="$route.path" />
+          </div>
+        </main>
       </div>
     </div>
   </ScreenLayout>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

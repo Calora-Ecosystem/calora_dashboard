@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ArrowDownBold, CloseBold } from "@element-plus/icons-vue";
-import { ElAvatar, ElDropdown, ElIcon } from "element-plus";
+import { ArrowDownBold, SwitchButton } from "@element-plus/icons-vue";
+import { ElDropdown, ElIcon } from "element-plus";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../../stores/authStore";
 
@@ -14,29 +14,24 @@ const logOut = async () => {
 </script>
 
 <template>
-  <div class="flex flex-row justify-around gap-x-2 items-center">
-    <div class="flex justify-center items-center">
-      <ElAvatar class="shrink-0" :src="`/images/avatar.png`" size="large" />
+  <ElDropdown size="large" placement="bottom-end" trigger="click">
+    <div class="flex items-center gap-2.5 cursor-pointer outline-none select-none rounded-xl pr-1">
+      <img
+        src="/images/avatar.png"
+        alt="avatar"
+        class="w-9 h-9 rounded-full object-cover ring-2"
+        style="--tw-ring-color: var(--border)"
+      />
+      <div class="hidden sm:block leading-tight text-left">
+        <p class="font-semibold text-[13px]" style="color: var(--text)">Behzodxo'ja</p>
+        <p class="text-[11px]" style="color: var(--text-faint)">Admin</p>
+      </div>
+      <ElIcon class="hidden sm:block" style="color: var(--text-faint)"><ArrowDownBold /></ElIcon>
     </div>
-    <div>
-      <ElDropdown size="large" placement="bottom" class="outline-none">
-        <div class="flex flex-row items-center gap-x-4">
-          <div class="flex flex-col gap-y-2">
-            <h1 class="font-bold text-[14px] text-[#404040]">Behzodxo'ja</h1>
-            <p>Admin</p>
-          </div>
-          <ElIcon>
-            <ArrowDownBold />
-          </ElIcon>
-        </div>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item divided :icon="CloseBold" @click="logOut"
-              >Log out</el-dropdown-item
-            >
-          </el-dropdown-menu>
-        </template>
-      </ElDropdown>
-    </div>
-  </div>
+    <template #dropdown>
+      <el-dropdown-menu>
+        <el-dropdown-item :icon="SwitchButton" @click="logOut">Chiqish</el-dropdown-item>
+      </el-dropdown-menu>
+    </template>
+  </ElDropdown>
 </template>
