@@ -10,10 +10,11 @@ import {
   ElSelect,
   ElTable,
   ElTableColumn,
+  ElMessage,
   FormInstance,
   FormRules,
 } from "element-plus";
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
   Asset,
@@ -24,7 +25,6 @@ import {
   EntityType,
 } from "../../@types/common";
 import FileUpload from "../../components/shared/FileUpload.vue";
-import Card from "../../components/ui/Card.vue";
 import { useCourseStore } from "../../stores/courseStore";
 import { useAppStore } from "../../stores/appStore";
 import {
@@ -166,10 +166,20 @@ const rules = reactive<FormRules<typeof data>>({
 });
 
 const form = ref<FormInstance>();
+const isEdit = computed(() => !!data.id && data.id > 0);
+
+const langs = [
+  { key: "uz", label: "O'zbek" },
+  { key: "ru", label: "Русский" },
+  { key: "eng", label: "English" },
+] as const;
+const lang = ref<"uz" | "ru" | "eng">("uz");
 
 const handleSubmit = async () => {
   try {
     await form.value?.validate();
+
+    const isEdit = !!data.id && data.id > 0;
 
     const responseId = await courseStore.modifyExercise(data);
 
@@ -183,11 +193,8 @@ const handleSubmit = async () => {
       })),
     );
 
-    await router.replace({
-      name: "exercise_edit",
-      params: { exerciseId: data.id },
-    });
-    // router.back();
+    ElMessage.success(isEdit ? "Mashq yangilandi" : "Mashq qo'shildi");
+    router.back();
   } catch (error) {}
 };
 
@@ -241,148 +248,357 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <Card class="flex justify-center">
-    <ElForm
-      ref="form"
-      label-position="top"
-      class="w-min"
-      size="large"
-      @submit.prevent="handleSubmit"
-      :rules="rules"
-      :model="data"
-    >
-      <ElFormItem label="Title" required>
-        <div class="flex flex-row gap-x-2 w-full">
-          <ElFormItem required class="flex-auto" prop="title.uz">
-            <ElInput class="w-auto" placeholder="uz" v-model="data.title.uz" />
-          </ElFormItem>
-          <ElFormItem class="flex-auto" required prop="title.ru">
-            <ElInput class="w-auto" placeholder="ru" v-model="data.title.ru" />
-          </ElFormItem>
-          <ElFormItem required prop="title.eng">
-            <ElInput class="w-auto" placeholder="en" v-model="data.title.eng" />
-          </ElFormItem>
+  <ElForm
+    ref="form"
+    :rules="rules"
+    :model="data"
+    class="edit-form"
+    @submit.prevent="handleSubmit"
+  >
+    <!-- Sticky header -->
+    <div class="form-header">
+      <div class="flex items-center gap-3 min-w-0">
+        <button type="button" class="hbtn-back" @click="router.back()">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <div class="min-w-0">
+          <h1 class="text-[19px] font-bold truncate" style="color: var(--text)">
+            {{ isEdit ? "Mashqni (exercise) tahrirlash" : "Yangi exercise qo'shish" }}
+          </h1>
+          <p class="text-[12.5px]" style="color: var(--text-faint)">Mashq tafsilotlarini to'ldiring</p>
         </div>
-      </ElFormItem>
-
-      <ElFormItem label="Description" required class="w-full">
-        <div class="flex flex-row gap-x-2 w-full">
-          <ElFormItem required prop="description.uz" class="flex-auto">
-            <ElInput
-              style="width: 250px"
-              placeholder="uz"
-              type="textarea"
-              :rows="7"
-              v-model="data.description.uz"
-            />
-          </ElFormItem>
-          <ElFormItem required prop="description.ru" class="flex-auto">
-            <ElInput
-              style="width: 250px"
-              placeholder="ru"
-              type="textarea"
-              :rows="7"
-              v-model="data.description.ru"
-            />
-          </ElFormItem>
-          <ElFormItem required prop="description.eng">
-            <ElInput
-              style="width: 250px"
-              placeholder="en"
-              type="textarea"
-              :rows="7"
-              v-model="data.description.eng"
-            />
-          </ElFormItem>
-        </div>
-      </ElFormItem>
-
-      <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
-        <ElFormItem label="Lotte/Gif" required prop="assets.0.url">
-          <FileUpload v-model="data.assets[0].url" />
-        </ElFormItem>
-        <ElFormItem
-          label="Video Url"
-          required
-          prop="assets.1.url"
-          class="w-full!"
-        >
-          <ElInput
-            class="w-full!"
-            v-model="data.assets[1].url"
-            type="url"
-            placeholder="link"
-          />
-        </ElFormItem>
       </div>
-      <div class="flex flex-row gap-x-5">
-        <ElFormItem label="Order" required prop="order">
-          <ElInputNumber v-model="data.order" :controls="false" />
-        </ElFormItem>
+      <button type="button" class="hbtn-save" :disabled="appStore.isLoading" @click="handleSubmit">
+        <span v-if="appStore.isLoading" class="spinner"></span>
+        <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        {{ isEdit ? "Saqlash" : "Qo'shish" }}
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mt-5">
+      <!-- LEFT -->
+      <div class="xl:col-span-2 space-y-5 min-w-0">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Matnli kontent</h2>
+            <div class="lang-tabs">
+              <button
+                v-for="l in langs"
+                :key="l.key"
+                type="button"
+                class="lang-tab"
+                :class="{ 'lang-active': lang === l.key }"
+                @click="lang = l.key"
+              >{{ l.label }}</button>
+            </div>
+          </div>
+
+          <div class="space-y-4 mt-4">
+            <div>
+              <label class="lbl">Sarlavha</label>
+              <template v-for="l in langs" :key="l.key">
+                <ElFormItem v-show="lang === l.key" :prop="`title.${l.key}`" class="!mb-0">
+                  <ElInput v-model="data.title[l.key]" :placeholder="`Sarlavha (${l.label})`" size="large" />
+                </ElFormItem>
+              </template>
+            </div>
+            <div>
+              <label class="lbl">Tavsif</label>
+              <template v-for="l in langs" :key="l.key">
+                <ElFormItem v-show="lang === l.key" :prop="`description.${l.key}`" class="!mb-0">
+                  <ElInput v-model="data.description[l.key]" type="textarea" :rows="5" :placeholder="`Tavsif (${l.label})`" />
+                </ElFormItem>
+              </template>
+            </div>
+          </div>
+        </section>
+
+        <!-- Metrics -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Metrikalar</h2>
+            <button type="button" class="add-btn" @click="handleAddMetric">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Qo'shish
+            </button>
+          </div>
+          <ElFormItem prop="metrics" class="!mb-0 mt-4">
+            <div v-if="!data.metrics.length" class="empty-box">
+              Hozircha metrika yo'q. "Qo'shish" tugmasini bosing.
+            </div>
+            <ElTable v-else :data="data.metrics" class="w-full">
+              <ElTableColumn label="Metrika" prop="metric">
+                <template #default="{ row }">
+                  <ElFormItem :prop="`metrics.${row.id}.metric`" class="!mb-0">
+                    <ElSelect v-model="row.metric" class="w-full">
+                      <ElOption
+                        v-for="value in METRICS.filter((r) =>
+                          data.metrics.every((x) => x.metric !== r),
+                        )"
+                        :key="value"
+                        :label="value"
+                        :value="value"
+                      ></ElOption>
+                    </ElSelect>
+                  </ElFormItem>
+                </template>
+              </ElTableColumn>
+              <ElTableColumn label="Qiymat" prop="value" width="160">
+                <template #default="{ row }">
+                  <ElFormItem :prop="`metrics.${row.id}.value`" class="!mb-0">
+                    <ElInputNumber v-model="row.value" :min="0" :max="9_999" class="w-full" />
+                  </ElFormItem>
+                </template>
+              </ElTableColumn>
+              <ElTableColumn width="90" align="right">
+                <template #default="{ row }">
+                  <button
+                    type="button"
+                    class="icon-del"
+                    @click="
+                      () =>
+                        data.metrics.splice(
+                          data.metrics.findIndex((m) => m.id === row.id),
+                          1,
+                        )
+                    "
+                  >
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </template>
+              </ElTableColumn>
+            </ElTable>
+          </ElFormItem>
+        </section>
+
+        <!-- Computations -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Hisob-kitoblar (Computations)</h2>
+            <span class="hint-chip">Aktivlik bo'yicha qiymatlar</span>
+          </div>
+          <ElFormItem prop="computations" class="!mb-0 mt-4">
+            <ComputationEdit
+              type="Exercise"
+              :entityId="data.id as number"
+              v-model="data.computations"
+            />
+          </ElFormItem>
+        </section>
       </div>
-      <ElFormItem label="Metrics" required prop="metrics">
-        <ElTable :data="data.metrics">
-          <ElTableColumn label="Metric" prop="metric">
-            <template #default="{ row, index }">
-              <ElFormItem :prop="`metrics.${row.id}.metric`">
-                <ElSelect v-model="row.metric">
-                  <ElOption
-                    v-for="value in METRICS.filter((r) =>
-                      data.metrics.every((x) => x.metric !== r),
-                    )"
-                    :key="value"
-                    :label="value"
-                    :value="value"
-                  ></ElOption>
-                </ElSelect>
+
+      <!-- RIGHT -->
+      <div class="space-y-5 min-w-0">
+        <section class="panel">
+          <h2 class="panel-title">Media fayllar</h2>
+          <div class="space-y-4 mt-4">
+            <div>
+              <label class="lbl">Lottie / Gif</label>
+              <ElFormItem prop="assets.0.url" class="!mb-0">
+                <FileUpload v-model="data.assets[0].url" />
               </ElFormItem>
-            </template>
-          </ElTableColumn>
-          <ElTableColumn label="Value" prop="value">
-            <template #default="{ row }">
-              <ElFormItem :prop="`metrics.${row.id}.value`">
-                <ElInputNumber v-model="row.value" :min="0" :max="9_999" />
+            </div>
+            <div>
+              <label class="lbl">Video havolasi (URL)</label>
+              <ElFormItem prop="assets.1.url" class="!mb-0">
+                <ElInput
+                  v-model="data.assets[1].url"
+                  type="url"
+                  placeholder="https://..."
+                  size="large"
+                />
               </ElFormItem>
-            </template>
-          </ElTableColumn>
-          <ElTableColumn>
-            <template #default="{ row }">
-              <ElButton
-                type="danger"
-                size="default"
-                @click="
-                  () =>
-                    data.metrics.splice(
-                      data.metrics.findIndex((m) => m.id === row.id),
-                      1,
-                    )
-                "
-                >Remove</ElButton
-              >
-            </template>
-          </ElTableColumn>
-        </ElTable>
-        <div>
-          <ElButton type="success" plain @click="handleAddMetric">+</ElButton>
-        </div>
-      </ElFormItem>
+            </div>
+          </div>
+        </section>
 
-      <ElFormItem label="Computations" required prop="computations">
-        <ComputationEdit
-          type="Exercise"
-          :entityId="data.id as number"
-          v-model="data.computations"
-        />
-      </ElFormItem>
-
-      <div class="mt-3 flex justify-center">
-        <ElButton
-          type="primary"
-          native-type="submit"
-          :loading="appStore.isLoading"
-          >{{ data.id && data.id > 0 ? "Update" : "Add" }}</ElButton
-        >
+        <section class="panel">
+          <h2 class="panel-title">Sozlamalar</h2>
+          <div class="space-y-4 mt-4">
+            <div>
+              <label class="lbl">Tartib raqami</label>
+              <ElFormItem prop="order" class="!mb-0">
+                <ElInputNumber v-model="data.order" :min="0" :controls="true" size="large" class="w-full" />
+              </ElFormItem>
+            </div>
+          </div>
+        </section>
       </div>
-    </ElForm>
-  </Card>
+    </div>
+  </ElForm>
 </template>
+
+<style scoped>
+.form-header {
+  position: sticky;
+  top: -28px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.hbtn-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+.hbtn-back:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.hbtn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  box-shadow: 0 6px 16px rgba(var(--brand-rgb), 0.3);
+  transition: all 0.18s ease;
+}
+.hbtn-save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(var(--brand-rgb), 0.42);
+}
+.hbtn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.hint-chip {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brand-strong);
+  background: var(--brand-soft);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+.add-btn:hover {
+  filter: brightness(0.97);
+}
+.icon-del {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--danger, #ef4444);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+.icon-del:hover {
+  color: #fff;
+  background: var(--danger, #ef4444);
+}
+.empty-box {
+  width: 100%;
+  text-align: center;
+  padding: 22px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--text-faint);
+  background: var(--surface-2);
+}
+.lbl {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+.lang-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.lang-tab {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+.lang-tab:hover {
+  color: var(--text);
+}
+.lang-active {
+  background: var(--surface);
+  color: var(--brand-strong);
+  box-shadow: var(--shadow-sm);
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.edit-form :deep(.el-input__wrapper),
+.edit-form :deep(.el-textarea__inner),
+.edit-form :deep(.el-select__wrapper) {
+  border-radius: 11px;
+}
+.edit-form :deep(.el-input-number) {
+  width: 100%;
+}
+</style>

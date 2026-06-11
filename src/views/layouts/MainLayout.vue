@@ -41,7 +41,7 @@ const appStore = useAppStore();
           style="background: var(--bg)"
         >
           <div class="max-w-[1500px] mx-auto animate-fade-up">
-            <router-view />
+            <router-view :key="$route.path" />
           </div>
         </main>
       </div>

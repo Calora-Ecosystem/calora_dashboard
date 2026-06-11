@@ -6,10 +6,11 @@ import {
   ElInput,
   ElInputNumber,
   ElSwitch,
+  ElMessage,
   FormInstance,
   FormRules,
 } from "element-plus";
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import {
   ActivityType,
@@ -19,7 +20,6 @@ import {
   Mlf,
 } from "../../@types/common";
 import FileUpload from "../../components/shared/FileUpload.vue";
-import Card from "../../components/ui/Card.vue";
 import {
   ACTIVITIES,
   COMPUTATION_TYPE,
@@ -110,10 +110,20 @@ const rules = reactive<FormRules<typeof data>>({
 });
 
 const form = ref<FormInstance>();
+const isEdit = computed(() => !!data.id && data.id > 0);
+
+const langs = [
+  { key: "uz", label: "O'zbek" },
+  { key: "ru", label: "Русский" },
+  { key: "eng", label: "English" },
+] as const;
+const lang = ref<"uz" | "ru" | "eng">("uz");
 
 const handleSubmit = async () => {
   try {
     await form.value?.validate();
+
+    const isEdit = !!data.id && data.id > 0;
 
     data.id = await courseStore.modifyWorkout(data);
 
@@ -125,16 +135,8 @@ const handleSubmit = async () => {
       })),
     );
 
-    await router.replace({
-      name: "workout_edit",
-      params: { workoutId: data.id },
-    });
-    // const workout = await courseStore.getWorkoutById(
-    //   Number(data.id!),
-    // );
-    // Object.assign(data, workout);
-
-    // // router.back();
+    ElMessage.success(isEdit ? "Mashq yangilandi" : "Mashq qo'shildi");
+    router.back();
   } catch (error) {}
 };
 
@@ -154,13 +156,13 @@ onMounted(async () => {
     Number(router.currentRoute.value.params.workoutId),
   );
 
+  const existingAssets: any[] = workout.assets ?? [];
   workout.assets = [
-    ...workout.assets,
-    workout.assets.find((a: any) => a.type === "MainImage") ?? {
+    existingAssets.find((a: any) => a.type === "MainImage") ?? {
       type: "MainImage",
       url: "",
     },
-    workout.assets.find((a: any) => a.type === "SubCoverImage") ?? {
+    existingAssets.find((a: any) => a.type === "SubCoverImage") ?? {
       type: "SubCoverImage",
       url: "",
     },
@@ -172,97 +174,244 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <Card class="flex justify-center">
-    <ElForm
-      ref="form"
-      label-position="top"
-      class="w-min"
-      size="large"
-      @submit.prevent="handleSubmit"
-      :rules="rules"
-      :model="data"
-    >
-      <ElFormItem label="Title" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required class="" prop="title.uz">
-            <ElInput placeholder="uz" v-model="data.title.uz" />
-          </ElFormItem>
-          <ElFormItem required prop="title.ru">
-            <ElInput placeholder="ru" v-model="data.title.ru" />
-          </ElFormItem>
-          <ElFormItem required prop="title.eng">
-            <ElInput placeholder="en" v-model="data.title.eng" />
-          </ElFormItem>
+  <ElForm
+    ref="form"
+    :rules="rules"
+    :model="data"
+    class="edit-form"
+    @submit.prevent="handleSubmit"
+  >
+    <!-- Sticky header -->
+    <div class="form-header">
+      <div class="flex items-center gap-3 min-w-0">
+        <button type="button" class="hbtn-back" @click="router.back()">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </button>
+        <div class="min-w-0">
+          <h1 class="text-[19px] font-bold truncate" style="color: var(--text)">
+            {{ isEdit ? "Mashqni tahrirlash" : "Yangi mashq qo'shish" }}
+          </h1>
+          <p class="text-[12.5px]" style="color: var(--text-faint)">Mashq ma'lumotlarini to'ldiring</p>
         </div>
-      </ElFormItem>
+      </div>
+      <button type="button" class="hbtn-save" :disabled="appStore.isLoading" @click="handleSubmit">
+        <span v-if="appStore.isLoading" class="spinner"></span>
+        <svg v-else class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        {{ isEdit ? "Saqlash" : "Qo'shish" }}
+      </button>
+    </div>
 
-      <ElFormItem label="Description" required>
-        <div class="flex flex-row gap-x-2">
-          <ElFormItem required prop="description.uz">
-            <ElInput
-              style="width: 250px"
-              placeholder="uz"
-              type="textarea"
-              :rows="7"
-              v-model="data.description.uz"
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mt-5">
+      <!-- LEFT -->
+      <div class="xl:col-span-2 space-y-5 min-w-0">
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Matnli kontent</h2>
+            <div class="lang-tabs">
+              <button
+                v-for="l in langs"
+                :key="l.key"
+                type="button"
+                class="lang-tab"
+                :class="{ 'lang-active': lang === l.key }"
+                @click="lang = l.key"
+              >{{ l.label }}</button>
+            </div>
+          </div>
+
+          <div class="space-y-4 mt-4">
+            <div>
+              <label class="lbl">Sarlavha</label>
+              <template v-for="l in langs" :key="l.key">
+                <ElFormItem v-show="lang === l.key" :prop="`title.${l.key}`" class="!mb-0">
+                  <ElInput v-model="data.title[l.key]" :placeholder="`Sarlavha (${l.label})`" size="large" />
+                </ElFormItem>
+              </template>
+            </div>
+            <div>
+              <label class="lbl">Tavsif</label>
+              <template v-for="l in langs" :key="l.key">
+                <ElFormItem v-show="lang === l.key" :prop="`description.${l.key}`" class="!mb-0">
+                  <ElInput v-model="data.description[l.key]" type="textarea" :rows="5" :placeholder="`Tavsif (${l.label})`" />
+                </ElFormItem>
+              </template>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Hisob-kitoblar (Computations)</h2>
+            <span class="hint-chip">Aktivlik bo'yicha qiymatlar</span>
+          </div>
+          <ElFormItem prop="computations" class="!mb-0 mt-4">
+            <ComputationEdit
+              type="Workout"
+              :entityId="data.id as number"
+              v-model="data.computations"
             />
           </ElFormItem>
-          <ElFormItem required prop="description.ru">
-            <ElInput
-              style="width: 250px"
-              placeholder="ru"
-              type="textarea"
-              :rows="7"
-              v-model="data.description.ru"
-            />
-          </ElFormItem>
-          <ElFormItem required prop="description.eng">
-            <ElInput
-              style="width: 250px"
-              placeholder="en"
-              type="textarea"
-              :rows="7"
-              v-model="data.description.eng"
-            />
-          </ElFormItem>
-        </div>
-      </ElFormItem>
-
-      <!--      <div class="flex flex-row justify-start gap-x-3 min-w-0 overflow-x-auto">
-        <ElFormItem label="Main Image" required prop="assets.0.url">
-          <FileUpload v-model="data.assets[0].url" />
-        </ElFormItem>
-        <ElFormItem label="Sub Cover Image" required prop="assets.1.url">
-          <FileUpload v-model="data.assets[1].url" />
-        </ElFormItem>
-      </div>
--->
-      <div class="flex flex-row gap-x-5">
-        <ElFormItem label="Dam olish" required prop="hasRest">
-          <ElSwitch v-model="data.hasRest"></ElSwitch>
-        </ElFormItem>
-
-        <ElFormItem label="Order" required prop="order">
-          <ElInputNumber v-model="data.order" :controls="false" />
-        </ElFormItem>
+        </section>
       </div>
 
-      <ElFormItem label="Computations" required prop="computations">
-        <ComputationEdit
-          type="Workout"
-          :entityId="data.id as number"
-          v-model="data.computations"
-        />
-      </ElFormItem>
-
-      <div class="mt-3 flex justify-center">
-        <ElButton
-          type="primary"
-          native-type="submit"
-          :loading="appStore.isLoading"
-          >{{ data.id && data.id > 0 ? "Update" : "Add" }}</ElButton
-        >
+      <!-- RIGHT -->
+      <div class="space-y-5 min-w-0">
+        <section class="panel">
+          <h2 class="panel-title">Sozlamalar</h2>
+          <div class="space-y-4 mt-4">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <label class="lbl !mb-0.5">Dam olish</label>
+                <p class="text-[11.5px]" style="color: var(--text-faint)">Mashqlar orasida dam berish</p>
+              </div>
+              <ElFormItem prop="hasRest" class="!mb-0">
+                <ElSwitch v-model="data.hasRest" />
+              </ElFormItem>
+            </div>
+            <div>
+              <label class="lbl">Tartib raqami</label>
+              <ElFormItem prop="order" class="!mb-0">
+                <ElInputNumber v-model="data.order" :min="0" :controls="true" size="large" class="w-full" />
+              </ElFormItem>
+            </div>
+          </div>
+        </section>
       </div>
-    </ElForm>
-  </Card>
+    </div>
+  </ElForm>
 </template>
+
+<style scoped>
+.form-header {
+  position: sticky;
+  top: -28px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.hbtn-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+.hbtn-back:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.hbtn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  box-shadow: 0 6px 16px rgba(var(--brand-rgb), 0.3);
+  transition: all 0.18s ease;
+}
+.hbtn-save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(var(--brand-rgb), 0.42);
+}
+.hbtn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.hint-chip {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.lbl {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 7px;
+}
+.lang-tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.lang-tab {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+.lang-tab:hover {
+  color: var(--text);
+}
+.lang-active {
+  background: var(--surface);
+  color: var(--brand-strong);
+  box-shadow: var(--shadow-sm);
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.edit-form :deep(.el-input__wrapper),
+.edit-form :deep(.el-textarea__inner),
+.edit-form :deep(.el-select__wrapper) {
+  border-radius: 11px;
+}
+.edit-form :deep(.el-input-number) {
+  width: 100%;
+}
+.edit-form :deep(.el-form-item) {
+  margin-bottom: 0;
+}
+</style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import Profile from "./Profile.vue";
 import { useAppStore } from "../../stores/appStore";
 import { useThemeStore } from "../../stores/themeStore";
@@ -8,6 +8,28 @@ import { useThemeStore } from "../../stores/themeStore";
 const appStore = useAppStore();
 const themeStore = useThemeStore();
 const route = useRoute();
+
+// Pages that consume the global search box
+const searchablePages: Record<string, string> = {
+  foods: "Taom nomidan qidirish...",
+  food_categories: "Kategoriya nomidan qidirish...",
+};
+
+const isSearchable = computed(() =>
+  Boolean(searchablePages[route.name?.toString() ?? ""]),
+);
+
+const searchPlaceholder = computed(
+  () => searchablePages[route.name?.toString() ?? ""] ?? "Qidirish...",
+);
+
+// Reset the query whenever we navigate to another page
+watch(
+  () => route.path,
+  () => {
+    appStore.search = "";
+  },
+);
 
 const titleMap: Record<string, string> = {
   dashboard: "Dashboard",
@@ -28,11 +50,21 @@ const titleMap: Record<string, string> = {
   lesson_edit: "Darslar",
   calories: "Kaloriyalar",
   food_categories: "Kategoriyalar",
+  category_create: "Kategoriyalar",
+  category_edit: "Kategoriyalar",
   foods: "Taomlar",
+  food_create: "Taomlar",
+  food_edit: "Taomlar",
   notifications: "Bildirishnomalar",
+  reminder_messages: "Eslatma xabarlari",
+  reminder_message_create: "Eslatma xabarlari",
+  reminder_message_edit: "Eslatma xabarlari",
   references: "Ma'lumotnomalar",
   team: "Jamoa",
   coupons: "Kuponlar",
+  coupon_create: "Kuponlar",
+  coupon_edit: "Kuponlar",
+  coupon_usages: "Kuponlar",
   crm_leads: "Leadlar",
 };
 
@@ -72,18 +104,32 @@ const pageTitle = computed(() => {
     <!-- Center: search (desktop) -->
     <div class="hidden md:flex flex-1 max-w-md mx-2">
       <div
-        class="flex items-center gap-2 w-full px-3.5 h-10 rounded-xl"
+        class="flex items-center gap-2 w-full px-3.5 h-10 rounded-xl transition-opacity"
+        :class="isSearchable ? '' : 'opacity-55'"
         style="background: var(--surface-2); border: 1px solid var(--border)"
       >
         <svg class="w-4 h-4 shrink-0" style="color: var(--text-faint)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
         <input
+          v-model="appStore.search"
           type="text"
-          placeholder="Qidirish..."
-          class="bg-transparent outline-none text-[14px] w-full"
+          :placeholder="searchPlaceholder"
+          :disabled="!isSearchable"
+          class="bg-transparent outline-none text-[14px] w-full disabled:cursor-not-allowed"
           style="color: var(--text)"
         />
+        <button
+          v-if="appStore.search"
+          class="shrink-0 p-0.5 rounded-md transition-colors"
+          style="color: var(--text-faint)"
+          aria-label="Tozalash"
+          @click="appStore.search = ''"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
     </div>
 
