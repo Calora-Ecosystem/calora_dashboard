@@ -1,15 +1,29 @@
 <script setup lang="ts">
 import { useSlots } from "vue";
 
-const props = withDefaults(defineProps<{ title?: string }>(), { title: "" });
+const props = withDefaults(
+  defineProps<{ title?: string; subtitle?: string }>(),
+  { title: "", subtitle: "" },
+);
 const slots = useSlots();
 </script>
+
 <template>
-  <div class="bg-white rounded-[14px] shadow-lg p-4 overflow-x-auto min-w-0">
+  <section class="app-card p-5 min-w-0 overflow-hidden">
     <template v-if="slots.title">
       <slot name="title" />
     </template>
-    <h2 v-else class="font-semibold text-[24px]">{{ props.title }}</h2>
-    <slot />
-  </div>
+    <div v-else-if="props.title" class="flex items-center justify-between mb-5 gap-3">
+      <div class="min-w-0">
+        <h2 class="font-bold text-[17px] truncate" style="color: var(--text)">{{ props.title }}</h2>
+        <p v-if="props.subtitle" class="text-[12.5px] mt-0.5" style="color: var(--text-faint)">
+          {{ props.subtitle }}
+        </p>
+      </div>
+      <slot name="actions" />
+    </div>
+    <div class="overflow-x-auto">
+      <slot />
+    </div>
+  </section>
 </template>

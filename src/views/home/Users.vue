@@ -8,7 +8,6 @@ import {
   ElInput,
   ElMessage,
   ElTableColumn,
-  ElTag,
 } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
 import { ref } from "vue";
@@ -43,6 +42,8 @@ const onFilterInput = () => {
   }, 350);
 };
 
+const hasFilters = () => !!(nameFilter.value || emailFilter.value || phoneFilter.value);
+
 const clearFilters = () => {
   nameFilter.value = "";
   emailFilter.value = "";
@@ -50,11 +51,27 @@ const clearFilters = () => {
   tableKey.value++;
 };
 
-const roleTagType = (role: string) => {
-  if (role === "SuperAdmin") return "danger";
-  if (role === "Operator") return "warning";
-  return "info";
+const roleStyle = (role: string) => {
+  if (role === "SuperAdmin") return { bg: "var(--danger-soft)", fg: "var(--danger)" };
+  if (role === "Operator") return { bg: "var(--warning-soft)", fg: "var(--warning)" };
+  return { bg: "var(--info-soft)", fg: "var(--info)" };
 };
+
+const planStyle = (plan: string) => {
+  if (plan === "Pro") return { bg: "var(--purple-soft)", fg: "var(--purple)" };
+  if (plan === "Premium") return { bg: "var(--brand-soft)", fg: "var(--brand-strong)" };
+  return { bg: "var(--surface-hover)", fg: "var(--text-muted)" };
+};
+
+const initials = (name: string | null) =>
+  (name ?? "?")
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("") || "?";
+
+const avatarHue = (id: number) => (id * 47) % 360;
 
 const availableRoles = (row: GetAllUsersDto): EnumRole[] => {
   const current = row.roles ?? [];
@@ -81,100 +98,109 @@ const handleRemoveRole = async (row: GetAllUsersDto, role: EnumRole) => {
 </script>
 
 <template>
-  <Card title="Foydalanuvchilar">
-    <div class="flex flex-wrap items-center gap-3 mb-4">
+  <Card title="Foydalanuvchilar" subtitle="Barcha ro'yxatdan o'tgan foydalanuvchilar ro'yxati">
+    <!-- Toolbar -->
+    <div class="flex flex-wrap items-center gap-2.5 mb-5">
       <ElInput
         v-model="nameFilter"
-        placeholder="Ism bo'yicha"
+        placeholder="Ism bo'yicha qidirish"
         clearable
         size="large"
-        style="max-width: 220px"
+        style="max-width: 230px"
         @input="onFilterInput"
         @clear="onFilterInput"
-      />
+      >
+        <template #prefix>
+          <svg class="w-4 h-4" style="color: var(--text-faint)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </template>
+      </ElInput>
       <ElInput
         v-model="emailFilter"
-        placeholder="Email bo'yicha"
+        placeholder="Email"
         clearable
         size="large"
-        style="max-width: 240px"
+        style="max-width: 230px"
         @input="onFilterInput"
         @clear="onFilterInput"
       />
       <ElInput
         v-model="phoneFilter"
-        placeholder="Telefon bo'yicha"
+        placeholder="Telefon"
         clearable
         size="large"
-        style="max-width: 200px"
+        style="max-width: 190px"
         @input="onFilterInput"
         @clear="onFilterInput"
       />
-      <ElButton
-        v-if="nameFilter || emailFilter || phoneFilter"
-        size="large"
-        @click="clearFilters"
-      >
-        Tozalash
-      </ElButton>
+      <ElButton v-if="hasFilters()" size="large" @click="clearFilters">Tozalash</ElButton>
     </div>
-    <DataTable :key="tableKey" :loader="loadUsers">
-      <ElTableColumn label="ID" prop="id" width="80" />
 
-      <ElTableColumn label="Ism">
+    <DataTable :key="tableKey" :loader="loadUsers">
+      <ElTableColumn label="ID" prop="id" width="72" />
+
+      <ElTableColumn label="Foydalanuvchi" min-width="220">
         <template #default="{ row }">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-3 py-1">
             <img
               v-if="row.extra?.photo"
               :src="makeFileUrl(row.extra.photo)"
-              class="w-8 h-8 rounded-full object-cover"
+              class="w-9 h-9 rounded-full object-cover shrink-0"
             />
-            <span>{{ row.name ?? "—" }}</span>
+            <span
+              v-else
+              class="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-[12px] font-bold text-white"
+              :style="{ background: `hsl(${avatarHue(row.id)} 55% 50%)` }"
+            >{{ initials(row.name) }}</span>
+            <div class="min-w-0">
+              <p class="font-semibold text-[13.5px] truncate" style="color: var(--text)">{{ row.name ?? "—" }}</p>
+              <p class="text-[11.5px]" style="color: var(--text-faint)">ID #{{ row.id }}</p>
+            </div>
           </div>
         </template>
       </ElTableColumn>
 
-      <ElTableColumn label="Aloqa">
+      <ElTableColumn label="Aloqa" min-width="200">
         <template #default="{ row }">
-          <div class="flex flex-col text-sm">
+          <div class="flex flex-col text-[13px] gap-0.5">
             <CopyText v-if="row.email" :text="row.email" />
-            <CopyText v-if="row.phone" :text="row.phone" class="text-gray-400" />
-            <span v-if="!row.email && !row.phone">—</span>
+            <CopyText v-if="row.phone" :text="row.phone" style="color: var(--text-faint)" />
+            <span v-if="!row.email && !row.phone" style="color: var(--text-faint)">—</span>
           </div>
         </template>
       </ElTableColumn>
 
-      <ElTableColumn label="Rollar" min-width="220">
+      <ElTableColumn label="Rollar" min-width="200">
         <template #default="{ row }">
-          <div class="flex items-center gap-1 flex-wrap">
-            <ElTag
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span
               v-for="r in row.roles ?? []"
               :key="r"
-              :type="roleTagType(r)"
-              size="small"
-              closable
-              @close="handleRemoveRole(row, r)"
+              class="group inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11.5px] font-semibold"
+              :style="{ background: roleStyle(r).bg, color: roleStyle(r).fg }"
             >
               {{ r }}
-            </ElTag>
-            <span v-if="!row.roles?.length" class="text-gray-400">—</span>
+              <button
+                class="opacity-50 hover:opacity-100 transition-opacity"
+                @click="handleRemoveRole(row, r)"
+              >
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </span>
+            <span v-if="!row.roles?.length" style="color: var(--text-faint)">—</span>
             <ElDropdown
               v-if="availableRoles(row).length > 0"
               trigger="click"
               @command="(role: EnumRole) => handleAddRole(row, role)"
             >
-              <ElButton size="small" circle>
-                <ElIcon><Plus /></ElIcon>
-              </ElButton>
+              <button
+                class="w-6 h-6 rounded-full flex items-center justify-center transition-colors"
+                style="background: var(--surface-hover); color: var(--text-muted)"
+              >
+                <ElIcon :size="12"><Plus /></ElIcon>
+              </button>
               <template #dropdown>
                 <ElDropdownMenu>
-                  <ElDropdownItem
-                    v-for="r in availableRoles(row)"
-                    :key="r"
-                    :command="r"
-                  >
-                    {{ r }}
-                  </ElDropdownItem>
+                  <ElDropdownItem v-for="r in availableRoles(row)" :key="r" :command="r">{{ r }}</ElDropdownItem>
                 </ElDropdownMenu>
               </template>
             </ElDropdown>
@@ -182,36 +208,31 @@ const handleRemoveRole = async (row: GetAllUsersDto, role: EnumRole) => {
         </template>
       </ElTableColumn>
 
-      <ElTableColumn label="Obuna">
+      <ElTableColumn label="Obuna" min-width="160">
         <template #default="{ row }">
-          <template v-if="row.subscription">
-            <div class="flex flex-col gap-1">
-              <div class="flex items-center gap-1">
-                <ElTag
-                  :type="
-                    row.subscription.plan === 'Pro'
-                      ? 'success'
-                      : row.subscription.plan === 'Premium'
-                        ? 'warning'
-                        : 'info'
-                  "
-                  size="small"
-                >
-                  {{ row.subscription.plan }}
-                </ElTag>
-                <ElTag
-                  :type="row.subscription.isActive ? 'success' : 'danger'"
-                  size="small"
-                >
-                  {{ row.subscription.isActive ? "Faol" : "Faol emas" }}
-                </ElTag>
-              </div>
-              <span class="text-xs text-gray-400">{{
-                formatDate(row.subscription.endsAt)
-              }}</span>
+          <div v-if="row.subscription" class="flex flex-col gap-1">
+            <div class="flex items-center gap-1.5">
+              <span
+                class="px-2 py-0.5 rounded-full text-[11.5px] font-semibold"
+                :style="{ background: planStyle(row.subscription.plan).bg, color: planStyle(row.subscription.plan).fg }"
+              >{{ row.subscription.plan }}</span>
+              <span
+                class="w-2 h-2 rounded-full"
+                :style="{ background: row.subscription.isActive ? 'var(--success)' : 'var(--danger)' }"
+                :title="row.subscription.isActive ? 'Faol' : 'Faol emas'"
+              ></span>
             </div>
-          </template>
-          <span v-else>—</span>
+            <span class="text-[11px]" style="color: var(--text-faint)">
+              {{ formatDate(row.subscription.endsAt) }}gacha
+            </span>
+          </div>
+          <span v-else style="color: var(--text-faint)">Bepul</span>
+        </template>
+      </ElTableColumn>
+
+      <ElTableColumn label="Qo'shilgan" min-width="130">
+        <template #default="{ row }">
+          <span class="text-[12.5px]" style="color: var(--text-muted)">{{ formatDate(row.createdAt) }}</span>
         </template>
       </ElTableColumn>
     </DataTable>

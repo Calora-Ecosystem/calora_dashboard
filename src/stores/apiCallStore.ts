@@ -53,7 +53,14 @@ const useApiCallStore = defineStore("api_call", () => {
         }
         return result;
       } catch (error) {
-        if (error instanceof AxiosError && error.response?.status !== 401) {
+        const silent = (error as AxiosError)?.config
+          ? ((error as AxiosError).config as any)?.silent
+          : false;
+        if (
+          error instanceof AxiosError &&
+          error.response?.status !== 401 &&
+          !silent
+        ) {
           ElNotification({
             title: "Xato",
             message: error.response?.data?.error ?? error.message,
