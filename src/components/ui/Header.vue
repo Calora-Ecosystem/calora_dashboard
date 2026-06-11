@@ -65,6 +65,9 @@ const titleMap: Record<string, string> = {
   coupon_create: "Kuponlar",
   coupon_edit: "Kuponlar",
   coupon_usages: "Kuponlar",
+  subscriptions: "Obuna tariflari",
+  subscription_create: "Obuna tariflari",
+  subscription_edit: "Obuna tariflari",
   crm_leads: "Leadlar",
 };
 

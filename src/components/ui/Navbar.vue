@@ -81,7 +81,10 @@ const sections: Section[] = [
         path: "/billing",
         label: "Billing",
         roles: ["SuperAdmin"],
-        children: [{ path: "/billing/coupons", label: "Kuponlar" }],
+        children: [
+          { path: "/billing/coupons", label: "Kuponlar" },
+          { path: "/billing/plans", label: "Obuna tariflari" },
+        ],
       },
       { icon: "navbar/users.svg", path: "/crm/leads", label: "Leadlar", roles: ["Operator"] },
     ],
