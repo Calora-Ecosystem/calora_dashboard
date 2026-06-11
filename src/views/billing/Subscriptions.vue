@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ElPopconfirm } from "element-plus";
-import { onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted, ref } from "vue";
 import Card from "../../components/ui/Card.vue";
 import {
   useBillingStore,
@@ -11,7 +9,6 @@ import {
 import { formatMoney } from "../../utils/FormatHelper";
 
 const billingStore = useBillingStore();
-const router = useRouter();
 
 const plans = ref<PlanExtraDto[]>([]);
 const loading = ref(true);
@@ -37,72 +34,73 @@ const planStyle = (plan: SubscriptionPlan) => {
   }
 };
 
-const handleDelete = async (id: number) => {
-  await billingStore.deletePlan(id);
-  await load();
-};
+// Tariflarni plan turi bo'yicha guruhlash
+const grouped = computed(() => {
+  const order: SubscriptionPlan[] = ["Premium", "Pro", "Free"];
+  const map = new Map<SubscriptionPlan, PlanExtraDto[]>();
+  for (const p of plans.value) {
+    if (!map.has(p.plan)) map.set(p.plan, []);
+    map.get(p.plan)!.push(p);
+  }
+  return order
+    .filter((pl) => map.has(pl))
+    .map((pl) => ({ plan: pl, items: map.get(pl)! }));
+});
 </script>
 
 <template>
-  <Card title="Obuna tariflari" subtitle="Foydalanuvchilar sotib oladigan tarif paketlari">
+  <Card title="Obuna tariflari" subtitle="Ilovadagi obuna paketlari (real ma'lumot)">
     <template #actions>
-      <RouterLink :to="{ name: 'subscription_create' }">
-        <button class="btn-primary">
-          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Yangi tarif
-        </button>
-      </RouterLink>
+      <button class="btn-ghost" :disabled="loading" @click="load">
+        <svg class="w-4 h-4" :class="{ 'animate-spin': loading }" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        Yangilash
+      </button>
     </template>
 
-    <!-- Loading skeleton -->
+    <!-- Loading -->
     <div v-if="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <div v-for="n in 6" :key="n" class="skel-card" />
     </div>
 
     <!-- Empty -->
-    <div v-else-if="!plans.length" class="app-card flex flex-col items-center justify-center py-16 text-center" style="border:1px dashed var(--border); background: var(--surface-2)">
-      <h3 class="text-[15px] font-semibold" style="color: var(--text)">Tarif yo'q</h3>
-      <p class="text-[13px] mt-1" style="color: var(--text-faint)">Birinchi tarifni qo'shing</p>
+    <div v-else-if="!plans.length" class="flex flex-col items-center justify-center py-16 text-center rounded-2xl" style="border:1px dashed var(--border); background: var(--surface-2)">
+      <svg class="w-10 h-10 mb-3" style="color: var(--text-faint)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <h3 class="text-[15px] font-semibold" style="color: var(--text)">Tarif topilmadi</h3>
+      <p class="text-[13px] mt-1" style="color: var(--text-faint)">Hozircha faol obuna paketlari yo'q</p>
     </div>
 
-    <!-- Plan cards -->
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div v-for="p in plans" :key="p.id" class="plan-card" :class="{ 'is-inactive': !p.isActive }">
-        <div class="flex items-center justify-between">
-          <span class="badge" :style="{ background: planStyle(p.plan).bg, color: planStyle(p.plan).color }">{{ p.plan }}</span>
-          <div class="flex items-center gap-1.5">
-            <span v-if="p.isPopular" class="mini-badge" style="background: var(--warning-soft); color: var(--warning)">★ Mashhur</span>
-            <span class="mini-badge" :style="p.isActive
-              ? { background: 'var(--brand-soft)', color: 'var(--brand-strong)' }
-              : { background: 'var(--danger-soft)', color: 'var(--danger)' }">
-              {{ p.isActive ? "Faol" : "Faol emas" }}
-            </span>
+    <!-- Grouped plans -->
+    <div v-else class="space-y-7">
+      <div v-for="group in grouped" :key="group.plan">
+        <div class="flex items-center gap-2.5 mb-3">
+          <span class="badge" :style="{ background: planStyle(group.plan).bg, color: planStyle(group.plan).color }">{{ group.plan }}</span>
+          <span class="text-[12.5px]" style="color: var(--text-faint)">{{ group.items.length }} ta paket</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="p in group.items" :key="p.id" class="plan-card" :class="{ 'is-popular': p.isPopular }">
+            <div class="flex items-center justify-between">
+              <div class="flex items-baseline gap-1">
+                <span class="text-[26px] font-extrabold" style="color: var(--text)">{{ p.duration }}</span>
+                <span class="text-[14px] font-semibold" style="color: var(--text-muted)">oy</span>
+              </div>
+              <span v-if="p.isPopular" class="mini-badge" style="background: var(--warning-soft); color: var(--warning)">★ Mashhur</span>
+            </div>
+
+            <div class="mt-3 flex items-baseline gap-2 flex-wrap">
+              <span class="text-[19px] font-bold" style="color: var(--brand-strong)">{{ formatMoney(p.fee, "standard") }}</span>
+              <span v-if="p.originalFee > p.fee" class="text-[13px] line-through" style="color: var(--text-faint)">{{ formatMoney(p.originalFee, "standard") }}</span>
+            </div>
+
+            <div v-if="p.originalFee > p.fee" class="mt-1">
+              <span class="save-chip">-{{ Math.round((1 - p.fee / p.originalFee) * 100) }}%</span>
+            </div>
+
+            <div class="mt-4 pt-3 flex items-center justify-between text-[12px]" style="border-top: 1px solid var(--border); color: var(--text-faint)">
+              <span>ID: {{ p.id }}</span>
+              <span class="dot" :class="p.isActive ? 'dot-on' : 'dot-off'">{{ p.isActive ? "Faol" : "Faol emas" }}</span>
+            </div>
           </div>
-        </div>
-
-        <div class="mt-3 flex items-baseline gap-1">
-          <span class="text-[26px] font-extrabold" style="color: var(--text)">{{ p.duration }}</span>
-          <span class="text-[14px] font-semibold" style="color: var(--text-muted)">oy</span>
-        </div>
-
-        <div class="mt-1 flex items-baseline gap-2 flex-wrap">
-          <span class="text-[17px] font-bold" style="color: var(--brand-strong)">{{ formatMoney(p.fee, "standard") }}</span>
-          <span v-if="p.originalFee > p.fee" class="text-[13px] line-through" style="color: var(--text-faint)">{{ formatMoney(p.originalFee, "standard") }}</span>
-        </div>
-
-        <div class="mt-4 pt-3 flex items-center gap-2" style="border-top: 1px solid var(--border)">
-          <button class="act-btn" @click="router.push({ name: 'subscription_edit', params: { planId: p.id } })">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
-            Tahrirlash
-          </button>
-          <ElPopconfirm title="Tarifni o'chirasizmi?" confirm-button-text="Ha" cancel-button-text="Yo'q" @confirm="handleDelete(p.id)">
-            <template #reference>
-              <button class="act-btn act-danger">
-                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                O'chirish
-              </button>
-            </template>
-          </ElPopconfirm>
         </div>
       </div>
     </div>
@@ -110,22 +108,27 @@ const handleDelete = async (id: number) => {
 </template>
 
 <style scoped>
-.btn-primary {
+.btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 40px;
-  padding: 0 16px;
+  padding: 0 14px;
   border-radius: 11px;
   font-size: 13.5px;
   font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
-  box-shadow: 0 4px 12px rgba(var(--brand-rgb), 0.3);
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   transition: all 0.15s ease;
 }
-.btn-primary:hover {
-  transform: translateY(-1px);
+.btn-ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+.btn-ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .plan-card {
   border: 1px solid var(--border);
@@ -139,15 +142,15 @@ const handleDelete = async (id: number) => {
   border-color: var(--brand);
   transform: translateY(-2px);
 }
-.plan-card.is-inactive {
-  opacity: 0.65;
+.plan-card.is-popular {
+  border-color: var(--warning);
 }
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 11px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
 }
 .mini-badge {
@@ -158,29 +161,34 @@ const handleDelete = async (id: number) => {
   font-size: 11px;
   font-weight: 600;
 }
-.act-btn {
-  flex: 1;
+.save-chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 5px;
-  height: 34px;
-  border-radius: 9px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--brand-strong);
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
   background: var(--brand-soft);
-  transition: all 0.15s ease;
+  color: var(--brand-strong);
 }
-.act-btn:hover {
-  filter: brightness(0.96);
+.dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
 }
-.act-danger {
-  color: var(--danger);
-  background: var(--danger-soft);
+.dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
 }
+.dot-on { color: var(--brand-strong); }
+.dot-on::before { background: var(--brand); }
+.dot-off { color: var(--danger); }
+.dot-off::before { background: var(--danger); }
 .skel-card {
-  height: 168px;
+  height: 150px;
   border-radius: 16px;
   border: 1px solid var(--border);
   background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-hover) 37%, var(--surface-2) 63%);

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { reactive, ref } from "vue";
+import { ref } from "vue";
 import { axios } from "../integrations/axios";
 import type { ApiBaseResponse } from "../@types/common";
 import { useApiCallStore } from "./apiCallStore";
@@ -55,15 +55,6 @@ export type PlanExtraDto = {
   createdAt: string;
 };
 
-export type SavePlanExtraDto = {
-  id?: number;
-  plan: SubscriptionPlan;
-  duration: number;
-  fee: number;
-  originalFee: number;
-  isActive: boolean;
-  isPopular: boolean;
-};
 
 export const useBillingStore = defineStore("billing", () => {
   const { execute } = useApiCallStore();
@@ -108,63 +99,31 @@ export const useBillingStore = defineStore("billing", () => {
   };
 
   // ───────────────────────────────────────────────────────────────
-  // Obuna tariflari (Plan extras) — HOZIRCHA MOCK (fake) data.
-  // Backend API tayyor bo'lgach, quyidagi metodlar ichidagi mock
-  // logikani axios chaqiruvlariga almashtiring. Taxminiy endpointlar:
-  //   GET    /billing/plans
-  //   GET    /billing/plans/{id}
-  //   POST   /billing/plans         (yaratish)
-  //   PUT    /billing/plans/{id}    (tahrirlash)
-  //   DELETE /billing/plans/{id}
+  // Obuna tariflari (Plan extras) — REAL backend data.
+  // Endpoint: GET /billing/orders/subscription/plans/{plan}
+  // Faqat o'qish (read-only). Bitta plan qaytaradi (IsActive==true),
+  // shuning uchun uchala plan chaqirilib birlashtiriladi.
+  // fee/originalFee backendda allaqachon /100 qilingan (so'mda keladi).
   // ───────────────────────────────────────────────────────────────
-  const mockPlans = reactive<PlanExtraDto[]>([
-    { id: 1, plan: "Premium", duration: 1, fee: 39000, originalFee: 49000, isActive: true, isPopular: false, createdAt: "2026-01-10T10:00:00" },
-    { id: 2, plan: "Premium", duration: 3, fee: 99000, originalFee: 129000, isActive: true, isPopular: true, createdAt: "2026-01-10T10:00:00" },
-    { id: 3, plan: "Premium", duration: 6, fee: 179000, originalFee: 249000, isActive: true, isPopular: false, createdAt: "2026-01-10T10:00:00" },
-    { id: 4, plan: "Premium", duration: 12, fee: 299000, originalFee: 489000, isActive: true, isPopular: false, createdAt: "2026-01-10T10:00:00" },
-    { id: 5, plan: "Pro", duration: 1, fee: 59000, originalFee: 69000, isActive: true, isPopular: false, createdAt: "2026-02-01T10:00:00" },
-    { id: 6, plan: "Pro", duration: 12, fee: 499000, originalFee: 799000, isActive: true, isPopular: true, createdAt: "2026-02-01T10:00:00" },
-    { id: 7, plan: "Pro", duration: 3, fee: 159000, originalFee: 199000, isActive: false, isPopular: false, createdAt: "2026-02-01T10:00:00" },
-  ]);
-  let mockSeq = 100;
+  const ALL_PLANS: SubscriptionPlan[] = ["Premium", "Pro", "Free"];
 
-  const delay = (ms = 250) => new Promise((r) => setTimeout(r, ms));
+  const getPlanExtras = async (
+    plan: SubscriptionPlan,
+  ): Promise<PlanExtraDto[]> => {
+    return await execute(async () => {
+      const response = await axios.get(
+        `/billing/orders/subscription/plans/${plan}`,
+        { params: { Skip: 0, Take: 50 } },
+      );
+      return (response.data.content ?? []) as PlanExtraDto[];
+    });
+  };
 
   const loadPlans = async (): Promise<PlanExtraDto[]> => {
-    await delay();
-    return [...mockPlans].sort(
-      (a, b) => a.plan.localeCompare(b.plan) || a.duration - b.duration,
-    );
-  };
-
-  const getPlanById = async (id: number): Promise<PlanExtraDto | null> => {
-    await delay();
-    const found = mockPlans.find((p) => p.id === id);
-    return found ? { ...found } : null;
-  };
-
-  const savePlan = async (data: SavePlanExtraDto): Promise<PlanExtraDto> => {
-    await delay();
-    if (data.id && data.id > 0) {
-      const idx = mockPlans.findIndex((p) => p.id === data.id);
-      if (idx !== -1) {
-        mockPlans[idx] = { ...mockPlans[idx], ...data } as PlanExtraDto;
-        return { ...mockPlans[idx] };
-      }
-    }
-    const created: PlanExtraDto = {
-      ...data,
-      id: ++mockSeq,
-      createdAt: new Date().toISOString(),
-    };
-    mockPlans.push(created);
-    return { ...created };
-  };
-
-  const deletePlan = async (id: number): Promise<void> => {
-    await delay();
-    const idx = mockPlans.findIndex((p) => p.id === id);
-    if (idx !== -1) mockPlans.splice(idx, 1);
+    const results = await Promise.all(ALL_PLANS.map((p) => getPlanExtras(p)));
+    return results
+      .flat()
+      .sort((a, b) => a.plan.localeCompare(b.plan) || a.duration - b.duration);
   };
 
   return {
@@ -174,9 +133,7 @@ export const useBillingStore = defineStore("billing", () => {
     getCouponById,
     getCouponUsages,
     checkCoupon,
+    getPlanExtras,
     loadPlans,
-    getPlanById,
-    savePlan,
-    deletePlan,
   };
 });
