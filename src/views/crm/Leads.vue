@@ -1,233 +1,334 @@
 <script setup lang="ts">
-import { ElTableColumn } from "element-plus";
-import { ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import Card from "../../components/ui/Card.vue";
-import DataTable from "../../components/shared/DataTable.vue";
-import CopyText from "../../components/shared/CopyText.vue";
-import { useCrmStore, type LeadPriority } from "../../stores/crmStore";
-import { LEAD_PRIORITIES } from "../../constants/ApiContstants";
-import { formatDate } from "../../utils/FormatHelper";
+import { ElMessage, ElMessageBox } from "element-plus";
+import {
+  useCrmStore,
+  type LeadDto,
+  type LeadStatus,
+} from "../../stores/crmStore";
+import {
+  KANBAN_STATUSES,
+  STATUS_META,
+  TEMP_META,
+  initials,
+  avatarHue,
+  dueLabel,
+} from "./crmMeta";
 
 const crmStore = useCrmStore();
 const router = useRouter();
 
-const priorityFilter = ref<LeadPriority | "">("");
-const tableKey = ref(0);
+const columns = reactive<Record<LeadStatus, LeadDto[]>>({
+  New: [], Assigned: [], Contacted: [], Interested: [], FollowUp: [], Won: [], Lost: [],
+});
+const loading = ref(false);
+const search = ref("");
+const dragId = ref<number | null>(null);
+const dragFrom = ref<LeadStatus | null>(null);
+const dragOver = ref<LeadStatus | null>(null);
 
-const loader = (skip: number, take: number) =>
-  crmStore.loadLeads({
-    skip,
-    take,
-    priority: priorityFilter.value || undefined,
-    sortPropName: "lastActivity",
+const loadColumn = async (status: LeadStatus) => {
+  const res = await crmStore.loadLeads({
+    skip: 0,
+    take: 100,
+    status,
+    search: search.value || undefined,
+    sortPropName: "score",
     sortDirection: "Descending",
   });
-
-const setFilter = (p: LeadPriority | "") => {
-  priorityFilter.value = p;
-  tableKey.value++;
+  columns[status] = res.content ?? [];
 };
 
-const priorityStyle = (p: LeadPriority) => {
-  switch (p) {
-    case "High":
-      return { bg: "var(--danger-soft)", color: "var(--danger)" };
-    case "Medium":
-      return { bg: "var(--warning-soft)", color: "var(--warning)" };
-    case "Low":
-      return { bg: "var(--info-soft)", color: "var(--info)" };
-    case "Closed":
-      return { bg: "var(--surface-2)", color: "var(--text-muted)" };
+const loadAll = async () => {
+  loading.value = true;
+  try {
+    await Promise.all(KANBAN_STATUSES.map(loadColumn));
+  } finally {
+    loading.value = false;
   }
 };
 
-const priorityLabel = (p: LeadPriority) => {
-  switch (p) {
-    case "High":
-      return "Yuqori";
-    case "Medium":
-      return "O'rta";
-    case "Low":
-      return "Past";
-    case "Closed":
-      return "Yopilgan";
+onMounted(loadAll);
+
+const onDragStart = (lead: LeadDto, from: LeadStatus) => {
+  dragId.value = lead.id;
+  dragFrom.value = from;
+};
+
+const onDrop = async (to: LeadStatus) => {
+  dragOver.value = null;
+  const id = dragId.value;
+  const from = dragFrom.value;
+  dragId.value = null;
+  dragFrom.value = null;
+  if (id == null || from == null || from === to) return;
+
+  const idx = columns[from].findIndex((l) => l.id === id);
+  if (idx === -1) return;
+  const lead = columns[from][idx];
+
+  let reason: string | undefined;
+  if (to === "Lost") {
+    try {
+      const { value } = await ElMessageBox.prompt(
+        "Yo'qotish sababini kiriting",
+        "Lead yo'qotildi",
+        { confirmButtonText: "Saqlash", cancelButtonText: "Bekor", inputPattern: /.+/, inputErrorMessage: "Sabab majburiy" },
+      );
+      reason = value;
+    } catch {
+      return; // cancelled
+    }
+  }
+
+  // optimistic move
+  columns[from].splice(idx, 1);
+  lead.status = to;
+  columns[to].unshift(lead);
+
+  try {
+    await crmStore.moveStatus(id, to, reason);
+    ElMessage.success(`"${lead.userName ?? "Lead"}" → ${STATUS_META[to].label}`);
+    if (to === "Won" || to === "Lost") await loadColumn(to);
+  } catch {
+    // revert on failure
+    columns[to] = columns[to].filter((l) => l.id !== id);
+    lead.status = from;
+    columns[from].splice(idx, 0, lead);
+    ElMessage.error("Holatni o'zgartirib bo'lmadi");
   }
 };
 
-const initials = (name: string | null) =>
-  (name?.trim()?.[0] ?? "?").toUpperCase();
+const openLead = (id: number) => router.push({ name: "crm_lead_detail", params: { leadId: id } });
 
-const avatarHue = (id: number) => (id * 47) % 360;
-
-const goToDetail = (leadId: number) => {
-  router.push({ name: "crm_lead_detail", params: { leadId } });
-};
-
-const filters: { key: LeadPriority | ""; label: string }[] = [
-  { key: "", label: "Hammasi" },
-  { key: "High", label: "Yuqori" },
-  { key: "Medium", label: "O'rta" },
-  { key: "Low", label: "Past" },
-  { key: "Closed", label: "Yopilgan" },
-];
+const isPremiumHot = (l: LeadDto) =>
+  !l.purchased && l.subscriptionOpenedCount > 0 && l.status !== "Won" && l.status !== "Lost";
 </script>
 
 <template>
-  <Card title="Leadlar" subtitle="Sotuv jamoasi uchun mijozlar oqimi">
-    <template #actions>
-      <div class="seg">
-        <button
-          v-for="f in filters"
-          :key="f.key || 'all'"
-          type="button"
-          class="seg-btn"
-          :class="{ 'seg-active': priorityFilter === f.key }"
-          @click="setFilter(f.key)"
-        >{{ f.label }}</button>
+  <div class="flex flex-col gap-4 min-h-0">
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <div>
+        <h1 class="text-[22px] font-extrabold" style="color: var(--text)">Lead Funnel</h1>
+        <p class="text-[13px]" style="color: var(--text-faint)">Drag &amp; drop orqali leadlarni boshqaring</p>
       </div>
-    </template>
+      <div class="flex items-center gap-2">
+        <input
+          v-model="search"
+          class="search"
+          placeholder="Qidirish (ism, telefon, email)…"
+          @keyup.enter="loadAll"
+        />
+        <button class="refresh" :disabled="loading" @click="loadAll">↻</button>
+      </div>
+    </div>
 
-    <DataTable :key="tableKey" :loader="loader">
-      <ElTableColumn label="Mijoz" min-width="260">
-        <template #default="{ row }">
-          <div class="flex items-center gap-3 cursor-pointer" @click="goToDetail(row.id)">
-            <div class="avatar" :style="{ background: `hsl(${avatarHue(row.id)} 70% 92%)`, color: `hsl(${avatarHue(row.id)} 65% 38%)` }">
-              {{ initials(row.userName) }}
-            </div>
-            <div class="min-w-0">
-              <div class="font-semibold leading-tight truncate" style="color: var(--text)">{{ row.userName ?? "Noma'lum" }}</div>
-              <div class="flex flex-col gap-0.5 mt-0.5">
-                <CopyText v-if="row.userEmail" :text="row.userEmail" class="text-[12px]" style="color: var(--text-faint)" />
-                <CopyText v-if="row.userPhone" :text="row.userPhone" class="text-[12px]" style="color: var(--text-faint)" />
+    <div class="board">
+      <div
+        v-for="status in KANBAN_STATUSES"
+        :key="status"
+        class="col"
+        :class="{ 'col-over': dragOver === status }"
+        @dragover.prevent="dragOver = status"
+        @dragleave="dragOver === status && (dragOver = null)"
+        @drop="onDrop(status)"
+      >
+        <div class="col-head" :style="{ borderColor: STATUS_META[status].color }">
+          <span class="col-dot" :style="{ background: STATUS_META[status].color }" />
+          <span class="col-title">{{ STATUS_META[status].label }}</span>
+          <span class="col-count">{{ columns[status].length }}</span>
+        </div>
+
+        <div class="col-body">
+          <article
+            v-for="lead in columns[status]"
+            :key="lead.id"
+            class="lead"
+            :class="{ hot: isPremiumHot(lead) }"
+            draggable="true"
+            @dragstart="onDragStart(lead, status)"
+            @click="openLead(lead.id)"
+          >
+            <div class="lead-top">
+              <div class="avatar" :style="{ background: `hsl(${avatarHue(lead.id)} 70% 92%)`, color: `hsl(${avatarHue(lead.id)} 65% 38%)` }">
+                {{ initials(lead.userName) }}
               </div>
+              <div class="min-w-0 flex-1">
+                <div class="lead-name">{{ lead.userName ?? "Noma'lum" }}</div>
+                <div class="lead-sub">{{ lead.userPhone ?? lead.userEmail ?? "—" }}</div>
+              </div>
+              <span class="temp" :style="{ background: TEMP_META[lead.temperature].soft, color: TEMP_META[lead.temperature].color }">
+                {{ TEMP_META[lead.temperature].emoji }} {{ lead.score }}
+              </span>
             </div>
-          </div>
-        </template>
-      </ElTableColumn>
 
-      <ElTableColumn label="Prioritet" width="120">
-        <template #default="{ row }">
-          <span class="badge" :style="{ background: priorityStyle(row.priority).bg, color: priorityStyle(row.priority).color }">
-            {{ priorityLabel(row.priority) }}
-          </span>
-        </template>
-      </ElTableColumn>
+            <div class="lead-tags">
+              <span v-if="isPremiumHot(lead)" class="tag tag-hot">👁 {{ lead.subscriptionOpenedCount }} marta ko'rdi</span>
+              <span v-if="lead.followUpOverdue" class="tag tag-od">⏰ Kechikkan</span>
+              <span v-else-if="lead.nextFollowUpAt" class="tag tag-fu">⏰ {{ dueLabel(lead.nextFollowUpAt) }}</span>
+            </div>
+          </article>
 
-      <ElTableColumn label="Holat" min-width="180">
-        <template #default="{ row }">
-          <div class="flex flex-wrap items-center gap-1.5">
-            <span class="pill" :class="row.isRegistered ? 'pill-on' : 'pill-off'">
-              {{ row.isRegistered ? "Ro'yxatdan o'tgan" : "Ro'yxatdan o'tmagan" }}
-            </span>
-            <span v-if="row.purchased" class="pill pill-buy">✓ Sotib olgan</span>
-          </div>
-        </template>
-      </ElTableColumn>
-
-      <ElTableColumn label="Obuna ko'rish" width="130" align="center">
-        <template #default="{ row }">
-          <span class="views-chip">👁 {{ row.subscriptionOpenedCount }}</span>
-        </template>
-      </ElTableColumn>
-
-      <ElTableColumn label="Oxirgi faollik" min-width="160">
-        <template #default="{ row }">
-          <span style="color: var(--text-muted)">{{ formatDate(row.lastActivity) }}</span>
-        </template>
-      </ElTableColumn>
-
-      <ElTableColumn label="" width="90" align="right" fixed="right">
-        <template #default="{ row }">
-          <button class="open-btn" @click="goToDetail(row.id)">
-            Ochish
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-        </template>
-      </ElTableColumn>
-    </DataTable>
-  </Card>
+          <div v-if="!columns[status].length" class="col-empty">Bo'sh</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.seg {
-  display: inline-flex;
-  flex-wrap: wrap;
-  padding: 3px;
-  border-radius: 11px;
+.search {
+  height: 38px;
+  width: 280px;
+  max-width: 60vw;
+  padding: 0 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+}
+.refresh {
+  height: 38px;
+  width: 38px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 16px;
+}
+.board {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  align-items: flex-start;
+}
+.col {
+  flex: 0 0 270px;
+  width: 270px;
   background: var(--surface-2);
   border: 1px solid var(--border);
-  gap: 2px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 200px);
 }
-.seg-btn {
-  padding: 6px 13px;
-  border-radius: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: all 0.15s ease;
+.col-over {
+  outline: 2px dashed var(--brand);
+  outline-offset: -2px;
 }
-.seg-btn:hover {
+.col-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 2px solid;
+}
+.col-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.col-title {
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text);
+  flex: 1;
 }
-.seg-active {
+.col-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
   background: var(--surface);
-  color: var(--brand-strong);
+  border-radius: 999px;
+  padding: 1px 9px;
+}
+.col-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  overflow-y: auto;
+}
+.lead {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 11px;
+  cursor: grab;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.lead:hover {
   box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.lead:active {
+  cursor: grabbing;
+}
+.lead.hot {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger) inset;
+}
+.lead-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 13px;
   flex-shrink: 0;
 }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 11px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 9px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 600;
-}
-.pill-on { background: var(--brand-soft); color: var(--brand-strong); }
-.pill-off { background: var(--surface-2); color: var(--text-faint); }
-.pill-buy { background: var(--info-soft); color: var(--info); }
-.views-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.lead-name {
   font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.open-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 9px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--brand-strong);
-  background: var(--brand-soft);
-  transition: all 0.15s ease;
+.lead-sub {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.open-btn:hover {
-  filter: brightness(0.96);
-  transform: translateX(1px);
+.temp {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.lead-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+}
+.tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.tag-hot { background: var(--danger-soft); color: var(--danger); }
+.tag-od { background: var(--danger-soft); color: var(--danger); }
+.tag-fu { background: var(--surface-2); color: var(--text-muted); }
+.col-empty {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-faint);
+  padding: 16px 0;
 }
 </style>

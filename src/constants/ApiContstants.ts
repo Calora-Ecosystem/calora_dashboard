@@ -37,9 +37,23 @@ export const MENU = ["Breakfast", "Lunch", "Dinner", "Snack"] as const;
 
 export const PLANS = ["Free", "Premium", "Pro"] as const;
 
-export const ROLES = ["SuperAdmin", "User", "Operator"] as const;
+export const ROLES = ["SuperAdmin", "User", "Operator", "HeadOfSales"] as const;
 
 export const LEAD_PRIORITIES = ["Low", "Medium", "High", "Closed"] as const;
+
+export const LEAD_STATUSES = [
+  "New",
+  "Assigned",
+  "Contacted",
+  "Interested",
+  "FollowUp",
+  "Won",
+  "Lost",
+] as const;
+
+export const LEAD_TEMPERATURES = ["Cold", "Warm", "Hot", "VeryHot"] as const;
+
+export const STATS_PERIODS = ["Day", "Week", "Month"] as const;
 
 export const MOMENT_TYPES = [
   "Food",

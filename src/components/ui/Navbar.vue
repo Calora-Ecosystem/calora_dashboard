@@ -86,7 +86,23 @@ const sections: Section[] = [
           { path: "/billing/plans", label: "Obuna tariflari" },
         ],
       },
+    ],
+  },
+  {
+    title: "CRM",
+    items: [
+      { icon: "navbar/home.svg", path: "/crm/dashboard", label: "Boshqaruv paneli", roles: ["Operator"] },
       { icon: "navbar/users.svg", path: "/crm/leads", label: "Leadlar", roles: ["Operator"] },
+      { icon: "navbar/notification.svg", path: "/crm/followups", label: "Follow-uplar", roles: ["Operator"] },
+      { icon: "navbar/money-bag.svg", path: "/crm/my-stats", label: "Statistikam", roles: ["Operator"] },
+    ],
+  },
+  {
+    title: "Sotuv boshqaruvi",
+    items: [
+      { icon: "navbar/home.svg", path: "/crm/sales", label: "Analitika", roles: ["HeadOfSales"] },
+      { icon: "navbar/user-edit.svg", path: "/crm/sales/operators", label: "Operatorlar", roles: ["HeadOfSales"] },
+      { icon: "navbar/money-bag.svg", path: "/crm/sales/leaderboard", label: "Reyting", roles: ["HeadOfSales"] },
     ],
   },
 ];
