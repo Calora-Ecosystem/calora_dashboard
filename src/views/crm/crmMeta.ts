@@ -7,15 +7,15 @@ import type {
 
 export const STATUS_META: Record<
   LeadStatus,
-  { label: string; color: string; soft: string }
+  { label: string; color: string; soft: string; icon: string }
 > = {
-  New: { label: "Yangi", color: "var(--info)", soft: "var(--info-soft)" },
-  Assigned: { label: "Biriktirilgan", color: "var(--text-muted)", soft: "var(--surface-2)" },
-  Contacted: { label: "Bog'lanilgan", color: "var(--brand-strong)", soft: "var(--brand-soft)" },
-  Interested: { label: "Qiziqqan", color: "var(--warning)", soft: "var(--warning-soft)" },
-  FollowUp: { label: "Follow Up", color: "#9333ea", soft: "rgba(147,51,234,0.12)" },
-  Won: { label: "Sotuv", color: "var(--success)", soft: "var(--success-soft)" },
-  Lost: { label: "Yo'qotilgan", color: "var(--danger)", soft: "var(--danger-soft)" },
+  New: { label: "Yangi", color: "var(--info)", soft: "var(--info-soft)", icon: "sparkles" },
+  Assigned: { label: "Biriktirilgan", color: "var(--text-muted)", soft: "var(--surface-2)", icon: "user" },
+  Contacted: { label: "Bog'lanilgan", color: "var(--brand-strong)", soft: "var(--brand-soft)", icon: "phone" },
+  Interested: { label: "Qiziqqan", color: "var(--warning)", soft: "var(--warning-soft)", icon: "zap" },
+  FollowUp: { label: "Follow Up", color: "#9333ea", soft: "rgba(147,51,234,0.12)", icon: "clock" },
+  Won: { label: "Sotuv", color: "var(--success)", soft: "var(--success-soft)", icon: "check-circle" },
+  Lost: { label: "Yo'qotilgan", color: "var(--danger)", soft: "var(--danger-soft)", icon: "x" },
 };
 
 // Kanban column order.
@@ -31,12 +31,12 @@ export const KANBAN_STATUSES: LeadStatus[] = [
 
 export const TEMP_META: Record<
   LeadTemperature,
-  { label: string; color: string; soft: string; emoji: string }
+  { label: string; color: string; soft: string; icon: string }
 > = {
-  Cold: { label: "Sovuq", color: "#2e90fa", soft: "var(--info-soft)", emoji: "❄️" },
-  Warm: { label: "Iliq", color: "var(--warning)", soft: "var(--warning-soft)", emoji: "🌤️" },
-  Hot: { label: "Qaynoq", color: "#f97316", soft: "rgba(249,115,22,0.12)", emoji: "🔥" },
-  VeryHot: { label: "Juda qaynoq", color: "var(--danger)", soft: "var(--danger-soft)", emoji: "🚀" },
+  Cold: { label: "Sovuq", color: "#2e90fa", soft: "var(--info-soft)", icon: "snowflake" },
+  Warm: { label: "Iliq", color: "var(--warning)", soft: "var(--warning-soft)", icon: "thermometer" },
+  Hot: { label: "Qaynoq", color: "#f97316", soft: "rgba(249,115,22,0.12)", icon: "flame" },
+  VeryHot: { label: "Juda qaynoq", color: "var(--danger)", soft: "var(--danger-soft)", icon: "flame" },
 };
 
 export const PAYMENT_META: Record<PaymentProvider, { label: string; kind: "card" | "platform" }> = {

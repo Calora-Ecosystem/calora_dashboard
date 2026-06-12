@@ -208,6 +208,10 @@ export const useCrmStore = defineStore("crm", () => {
         (await axios.get(`/crm/followups`, { params: { scope } })).data,
     );
 
+  const getMe = async (): Promise<
+    ApiBaseResponse<{ id: number; name: string; roles: string[] }>
+  > => execute(async () => (await axios.get(`/crm/me`)).data);
+
   const getMyDashboard = async (): Promise<
     ApiBaseResponse<OperatorDashboardDto>
   > => execute(async () => (await axios.get(`/crm/me/dashboard`)).data);
@@ -232,6 +236,7 @@ export const useCrmStore = defineStore("crm", () => {
     createFollowUp,
     completeFollowUp,
     getFollowUps,
+    getMe,
     getMyDashboard,
     getMyStats,
   };

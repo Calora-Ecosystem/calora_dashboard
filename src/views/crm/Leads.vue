@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox } from "element-plus";
+import Icon from "./components/Icon.vue";
 import {
   useCrmStore,
   type LeadDto,
@@ -78,11 +79,10 @@ const onDrop = async (to: LeadStatus) => {
       );
       reason = value;
     } catch {
-      return; // cancelled
+      return;
     }
   }
 
-  // optimistic move
   columns[from].splice(idx, 1);
   lead.status = to;
   columns[to].unshift(lead);
@@ -92,7 +92,6 @@ const onDrop = async (to: LeadStatus) => {
     ElMessage.success(`"${lead.userName ?? "Lead"}" → ${STATUS_META[to].label}`);
     if (to === "Won" || to === "Lost") await loadColumn(to);
   } catch {
-    // revert on failure
     columns[to] = columns[to].filter((l) => l.id !== id);
     lead.status = from;
     columns[from].splice(idx, 0, lead);
@@ -107,25 +106,25 @@ const isPremiumHot = (l: LeadDto) =>
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 min-h-0">
-    <div class="flex items-center justify-between gap-3 flex-wrap">
+  <div class="page">
+    <header class="page-head">
       <div>
-        <h1 class="text-[22px] font-extrabold" style="color: var(--text)">Lead Funnel</h1>
-        <p class="text-[13px]" style="color: var(--text-faint)">Drag &amp; drop orqali leadlarni boshqaring</p>
+        <h1 class="page-title"><Icon name="columns" :size="22" /> Lead Funnel</h1>
+        <p class="page-sub">Drag &amp; drop orqali leadlarni boshqaring</p>
       </div>
-      <div class="flex items-center gap-2">
-        <input
-          v-model="search"
-          class="search"
-          placeholder="Qidirish (ism, telefon, email)…"
-          @keyup.enter="loadAll"
-        />
-        <button class="refresh" :disabled="loading" @click="loadAll">↻</button>
+      <div class="tools">
+        <div class="search">
+          <Icon name="search" :size="16" />
+          <input v-model="search" placeholder="Ism, telefon yoki email…" @keyup.enter="loadAll" />
+        </div>
+        <button class="icon-btn" :class="{ spin: loading }" title="Yangilash" @click="loadAll">
+          <Icon name="refresh" :size="17" />
+        </button>
       </div>
-    </div>
+    </header>
 
     <div class="board">
-      <div
+      <section
         v-for="status in KANBAN_STATUSES"
         :key="status"
         class="col"
@@ -134,11 +133,14 @@ const isPremiumHot = (l: LeadDto) =>
         @dragleave="dragOver === status && (dragOver = null)"
         @drop="onDrop(status)"
       >
-        <div class="col-head" :style="{ borderColor: STATUS_META[status].color }">
-          <span class="col-dot" :style="{ background: STATUS_META[status].color }" />
+        <div class="col-head">
+          <span class="col-chip" :style="{ background: STATUS_META[status].soft, color: STATUS_META[status].color }">
+            <Icon :name="STATUS_META[status].icon" :size="14" />
+          </span>
           <span class="col-title">{{ STATUS_META[status].label }}</span>
           <span class="col-count">{{ columns[status].length }}</span>
         </div>
+        <div class="col-rule" :style="{ background: STATUS_META[status].color }" />
 
         <div class="col-body">
           <article
@@ -150,185 +152,141 @@ const isPremiumHot = (l: LeadDto) =>
             @dragstart="onDragStart(lead, status)"
             @click="openLead(lead.id)"
           >
+            <span class="grip"><Icon name="grip" :size="16" /></span>
             <div class="lead-top">
               <div class="avatar" :style="{ background: `hsl(${avatarHue(lead.id)} 70% 92%)`, color: `hsl(${avatarHue(lead.id)} 65% 38%)` }">
                 {{ initials(lead.userName) }}
               </div>
-              <div class="min-w-0 flex-1">
+              <div class="min-w-0 grow">
                 <div class="lead-name">{{ lead.userName ?? "Noma'lum" }}</div>
                 <div class="lead-sub">{{ lead.userPhone ?? lead.userEmail ?? "—" }}</div>
               </div>
               <span class="temp" :style="{ background: TEMP_META[lead.temperature].soft, color: TEMP_META[lead.temperature].color }">
-                {{ TEMP_META[lead.temperature].emoji }} {{ lead.score }}
+                <Icon :name="TEMP_META[lead.temperature].icon" :size="12" /> {{ lead.score }}
               </span>
             </div>
 
-            <div class="lead-tags">
-              <span v-if="isPremiumHot(lead)" class="tag tag-hot">👁 {{ lead.subscriptionOpenedCount }} marta ko'rdi</span>
-              <span v-if="lead.followUpOverdue" class="tag tag-od">⏰ Kechikkan</span>
-              <span v-else-if="lead.nextFollowUpAt" class="tag tag-fu">⏰ {{ dueLabel(lead.nextFollowUpAt) }}</span>
+            <div v-if="isPremiumHot(lead) || lead.nextFollowUpAt" class="lead-tags">
+              <span v-if="isPremiumHot(lead)" class="tag tag-hot">
+                <Icon name="eye" :size="11" /> {{ lead.subscriptionOpenedCount }} marta ko'rdi
+              </span>
+              <span v-if="lead.followUpOverdue" class="tag tag-od">
+                <Icon name="alert-triangle" :size="11" /> Kechikkan
+              </span>
+              <span v-else-if="lead.nextFollowUpAt" class="tag tag-fu">
+                <Icon name="clock" :size="11" /> {{ dueLabel(lead.nextFollowUpAt) }}
+              </span>
             </div>
           </article>
 
           <div v-if="!columns[status].length" class="col-empty">Bo'sh</div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
 
 <style scoped>
+.page { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+.page-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; flex-wrap: wrap;
+}
+.page-title {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.4px;
+}
+.page-title :deep(.crm-icon) { color: var(--brand-strong); }
+.page-sub { font-size: 13px; color: var(--text-faint); margin-top: 2px; }
+.tools { display: flex; align-items: center; gap: 9px; }
 .search {
-  height: 38px;
-  width: 280px;
-  max-width: 60vw;
-  padding: 0 14px;
-  border-radius: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-size: 13px;
+  display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 13px; border-radius: 11px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-faint); transition: border-color 0.15s ease;
 }
-.refresh {
-  height: 38px;
-  width: 38px;
-  border-radius: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-size: 16px;
+.search:focus-within { border-color: var(--brand); }
+.search input {
+  width: 230px; max-width: 52vw; background: transparent; border: none; outline: none;
+  font-size: 13px; color: var(--text);
 }
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+.icon-btn:hover { color: var(--brand-strong); border-color: var(--brand); }
+.icon-btn.spin :deep(.crm-icon) { animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .board {
-  display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  align-items: flex-start;
+  display: flex; gap: 14px; overflow-x: auto;
+  padding-bottom: 10px; align-items: flex-start;
+  scrollbar-width: thin;
 }
 .col {
-  flex: 0 0 270px;
-  width: 270px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - 200px);
+  flex: 0 0 272px; width: 272px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 16px; display: flex; flex-direction: column;
+  max-height: calc(100vh - 210px);
 }
-.col-over {
-  outline: 2px dashed var(--brand);
-  outline-offset: -2px;
-}
+.col-over { outline: 2px dashed var(--brand); outline-offset: -2px; background: var(--brand-soft); }
 .col-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px;
-  border-bottom: 2px solid;
+  display: flex; align-items: center; gap: 9px; padding: 13px 14px 9px;
 }
-.col-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+.col-chip {
+  width: 26px; height: 26px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.col-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  flex: 1;
-}
+.col-title { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; }
 .col-count {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-muted);
-  background: var(--surface);
-  border-radius: 999px;
-  padding: 1px 9px;
+  font-size: 12px; font-weight: 700; color: var(--text-muted);
+  background: var(--surface); border-radius: 999px; padding: 1px 9px;
 }
+.col-rule { height: 3px; margin: 0 14px; border-radius: 999px; opacity: 0.85; }
 .col-body {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  overflow-y: auto;
+  padding: 11px; display: flex; flex-direction: column; gap: 9px;
+  overflow-y: auto; scrollbar-width: thin;
 }
 .lead {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  padding: 11px;
-  cursor: grab;
-  transition: box-shadow 0.15s ease, transform 0.1s ease;
+  position: relative;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 13px; padding: 12px 12px 12px 26px;
+  cursor: grab; transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
 }
-.lead:hover {
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
+.lead:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); }
+.lead:active { cursor: grabbing; }
+.lead.hot { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger) inset; }
+.grip {
+  position: absolute; left: 4px; top: 50%; transform: translateY(-50%);
+  color: var(--text-faint); opacity: 0.5;
 }
-.lead:active {
-  cursor: grabbing;
-}
-.lead.hot {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 1px var(--danger) inset;
-}
-.lead-top {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
+.lead:hover .grip { opacity: 0.9; }
+.lead-top { display: flex; align-items: center; gap: 9px; }
 .avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13px;
-  flex-shrink: 0;
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
 }
-.lead-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.lead-sub {
-  font-size: 11.5px;
-  color: var(--text-faint);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.lead-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lead-sub { font-size: 11.5px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .temp {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 7px;
-  border-radius: 999px;
-  white-space: nowrap;
-  flex-shrink: 0;
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 700; padding: 3px 7px;
+  border-radius: 999px; white-space: nowrap; flex-shrink: 0;
 }
-.lead-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 9px;
-}
+.lead-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
 .tag {
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
 }
-.tag-hot { background: var(--danger-soft); color: var(--danger); }
-.tag-od { background: var(--danger-soft); color: var(--danger); }
-.tag-fu { background: var(--surface-2); color: var(--text-muted); }
-.col-empty {
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-faint);
-  padding: 16px 0;
+.tag-hot, .tag-od { background: var(--danger-soft); color: var(--danger); }
+.tag-fu { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
+.col-empty { text-align: center; font-size: 12px; color: var(--text-faint); padding: 18px 0; }
+
+@media (max-width: 600px) {
+  .page-title { font-size: 19px; }
+  .search input { width: 150px; }
+  .col { flex-basis: 248px; width: 248px; }
 }
 </style>

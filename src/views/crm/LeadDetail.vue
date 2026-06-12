@@ -10,6 +10,7 @@ import {
 } from "element-plus";
 import { onMounted, ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import Icon from "./components/Icon.vue";
 import {
   useCrmStore,
   type LeadDetailDto,
@@ -46,6 +47,23 @@ const purposeLabels: Record<string, string> = {
   GainWeight: "Vazn olish",
   KeepFit: "Formani saqlash",
   BuildMuscle: "Mushak yig'ish",
+};
+
+const ACTIVITY_ICON: Record<string, string> = {
+  Registered: "user-plus",
+  SubscriptionOpened: "eye",
+  WorkoutStarted: "zap",
+  WaterTracked: "activity",
+  FoodTracked: "activity",
+  AppOpened: "smartphone",
+  Assigned: "user",
+  Contacted: "phone",
+  StatusChanged: "arrow-right",
+  NoteAdded: "message",
+  FollowUpSet: "clock",
+  FollowUpDue: "alert-triangle",
+  Won: "check-circle",
+  Lost: "x",
 };
 
 const load = async () => {
@@ -130,112 +148,109 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
 </script>
 
 <template>
-  <div v-if="lead" class="flex flex-col gap-5">
-    <button class="back" @click="router.back()">← Orqaga</button>
+  <div v-if="lead" class="page">
+    <button class="back" @click="router.back()"><Icon name="arrow-left" :size="16" /> Orqaga</button>
 
-    <div class="grid gap-5" style="grid-template-columns: minmax(300px, 1.1fr) minmax(280px, 1fr)">
-      <!-- Left: profile + actions -->
-      <div class="flex flex-col gap-5">
-        <section class="app-card p-5">
-          <div class="flex items-center gap-4">
+    <div class="detail-grid">
+      <!-- Left -->
+      <div class="col-left">
+        <section class="app-card profile">
+          <div class="profile-head">
             <div class="avatar-lg" :style="{ background: `hsl(${avatarHue(lead.id)} 70% 92%)`, color: `hsl(${avatarHue(lead.id)} 65% 38%)` }">
               {{ initials(lead.userName) }}
             </div>
-            <div class="min-w-0 flex-1">
-              <h1 class="text-[20px] font-extrabold truncate" style="color: var(--text)">{{ lead.userName ?? "Noma'lum" }}</h1>
-              <div class="text-[13px]" style="color: var(--text-muted)">{{ lead.userPhone ?? "—" }} · {{ lead.userEmail ?? "—" }}</div>
+            <div class="min-w-0 grow">
+              <h1 class="name">{{ lead.userName ?? "Noma'lum" }}</h1>
+              <div class="contacts">
+                <span v-if="lead.userPhone"><Icon name="phone" :size="13" /> {{ lead.userPhone }}</span>
+                <span v-if="lead.userEmail"><Icon name="mail" :size="13" /> {{ lead.userEmail }}</span>
+              </div>
+              <div class="badges">
+                <span class="status-badge" :style="{ background: STATUS_META[lead.status].soft, color: STATUS_META[lead.status].color }">
+                  <Icon :name="STATUS_META[lead.status].icon" :size="12" /> {{ STATUS_META[lead.status].label }}
+                </span>
+              </div>
             </div>
             <span v-if="tempMeta" class="temp-lg" :style="{ background: tempMeta.soft, color: tempMeta.color }">
-              {{ tempMeta.emoji }} {{ lead.score }}
+              <Icon :name="tempMeta.icon" :size="16" /> {{ lead.score }}
             </span>
           </div>
 
-          <div class="info-grid mt-4">
+          <div class="info-grid">
             <div class="info"><span>Yosh</span><b>{{ lead.age ?? "—" }}</b></div>
             <div class="info"><span>Jinsi</span><b>{{ lead.gender ?? "—" }}</b></div>
             <div class="info"><span>Vazn</span><b>{{ lead.weight ? lead.weight + " kg" : "—" }}</b></div>
             <div class="info"><span>Bo'y</span><b>{{ lead.height ? lead.height + " sm" : "—" }}</b></div>
             <div class="info"><span>Maqsad</span><b>{{ lead.purpose ? (purposeLabels[lead.purpose] ?? lead.purpose) : "—" }}</b></div>
-            <div class="info"><span>Obuna ko'rdi</span><b>👁 {{ lead.subscriptionOpenedCount }}</b></div>
+            <div class="info"><span>Obuna ko'rdi</span><b>{{ lead.subscriptionOpenedCount }} marta</b></div>
             <div class="info"><span>Ro'yxatdan</span><b>{{ relativeTime(lead.createdAt) }}</b></div>
             <div class="info"><span>Oxirgi faollik</span><b>{{ relativeTime(lead.lastActivity) }}</b></div>
           </div>
 
-          <div v-if="lead.status === 'Won'" class="won-box mt-4">
-            ✅ Sotuv yakunlandi —
-            <b>{{ formatMoney(lead.wonAmount ?? 0) }}</b>
-            <template v-if="lead.paymentProvider">
-              · {{ PAYMENT_META[lead.paymentProvider].label }}
-              <span class="pay-kind" :class="PAYMENT_META[lead.paymentProvider].kind">
-                {{ PAYMENT_META[lead.paymentProvider].kind === 'card' ? '💳 Karta' : '📱 Platforma' }}
+          <div v-if="lead.status === 'Won'" class="won-box">
+            <Icon name="check-circle" :size="18" />
+            <div>
+              <b>Sotuv yakunlandi — {{ formatMoney(lead.wonAmount ?? 0) }}</b>
+              <span v-if="lead.paymentProvider" class="pay-kind" :class="PAYMENT_META[lead.paymentProvider].kind">
+                <Icon :name="PAYMENT_META[lead.paymentProvider].kind === 'card' ? 'credit-card' : 'smartphone'" :size="12" />
+                {{ PAYMENT_META[lead.paymentProvider].label }}
               </span>
-            </template>
+            </div>
           </div>
         </section>
 
-        <section class="app-card p-5">
-          <h2 class="sec-title">Harakatlar</h2>
-          <div class="flex flex-wrap items-center gap-2 mb-4">
-            <button class="act-btn primary" @click="contact">📞 Bog'lanildi</button>
-            <ElSelect
-              :model-value="lead.status"
-              placeholder="Holat"
-              style="width: 170px"
-              @change="changeStatus"
-            >
+        <section class="app-card block">
+          <h2 class="sec-title"><Icon name="zap" :size="16" /> Harakatlar</h2>
+          <div class="actions-row">
+            <button class="act-btn primary" @click="contact"><Icon name="phone" :size="15" /> Bog'lanildi</button>
+            <ElSelect :model-value="lead.status" placeholder="Holat" class="status-select" @change="changeStatus">
               <ElOption v-for="s in LEAD_STATUSES" :key="s" :value="s" :label="STATUS_META[s].label" />
             </ElSelect>
           </div>
 
           <h3 class="sub-title">Follow-up belgilash</h3>
-          <div class="flex flex-wrap items-center gap-2">
-            <ElDatePicker
-              v-model="fuDate"
-              type="datetime"
-              placeholder="Sana va vaqt"
-              format="DD.MM.YYYY HH:mm"
-              style="width: 200px"
-            />
-            <ElInput v-model="fuNote" placeholder="Izoh (ixtiyoriy)" style="width: 200px" />
-            <button class="act-btn" @click="setFollowUp">⏰ Belgilash</button>
+          <div class="fu-row">
+            <ElDatePicker v-model="fuDate" type="datetime" placeholder="Sana va vaqt" format="DD.MM.YYYY HH:mm" class="fu-date" />
+            <ElInput v-model="fuNote" placeholder="Izoh (ixtiyoriy)" class="fu-note" />
+            <button class="act-btn" @click="setFollowUp"><Icon name="clock" :size="15" /> Belgilash</button>
           </div>
-          <p v-if="lead.nextFollowUpAt" class="text-[12px] mt-2" style="color: var(--text-muted)">
-            Keyingi follow-up: <b>{{ relativeTime(lead.nextFollowUpAt) }}</b>
+          <p v-if="lead.nextFollowUpAt" class="next-fu">
+            <Icon name="clock" :size="13" /> Keyingi follow-up: <b>{{ relativeTime(lead.nextFollowUpAt) }}</b>
           </p>
         </section>
 
-        <section class="app-card p-5">
-          <h2 class="sec-title">Izohlar</h2>
-          <div class="flex gap-2 mb-3">
+        <section class="app-card block">
+          <h2 class="sec-title"><Icon name="message" :size="16" /> Izohlar</h2>
+          <div class="note-input">
             <ElInput v-model="noteText" type="textarea" :rows="2" placeholder="Izoh qo'shish…" />
-            <button class="act-btn primary self-end" @click="addNote">Qo'shish</button>
+            <button class="act-btn primary self-end" @click="addNote"><Icon name="plus" :size="15" /> Qo'shish</button>
           </div>
           <div v-if="!notes.length" class="muted">Hozircha izoh yo'q</div>
-          <ul v-else class="flex flex-col gap-2">
+          <ul v-else class="notes">
             <li v-for="n in notes" :key="n.id" class="note">
-              <div class="flex items-center justify-between">
-                <span class="text-[12px] font-semibold" style="color: var(--text-muted)">{{ n.operatorName ?? "Operator" }}</span>
+              <div class="note-top">
+                <span class="note-author"><Icon name="user" :size="12" /> {{ n.operatorName ?? "Operator" }}</span>
                 <ElPopconfirm title="O'chirilsinmi?" @confirm="removeNote(n.id)">
-                  <template #reference><button class="del">✕</button></template>
+                  <template #reference><button class="del"><Icon name="trash" :size="13" /></button></template>
                 </ElPopconfirm>
               </div>
-              <p class="text-[13px] mt-1" style="color: var(--text)">{{ n.text }}</p>
-              <span class="text-[11px]" style="color: var(--text-faint)">{{ relativeTime(n.createdAt) }}</span>
+              <p class="note-text">{{ n.text }}</p>
+              <span class="note-time">{{ relativeTime(n.createdAt) }}</span>
             </li>
           </ul>
         </section>
       </div>
 
       <!-- Right: timeline -->
-      <section class="app-card p-5 self-start">
-        <h2 class="sec-title">Faollik tarixi</h2>
+      <section class="app-card block timeline-card">
+        <h2 class="sec-title"><Icon name="activity" :size="16" /> Faollik tarixi</h2>
         <div v-if="!timeline.length" class="muted">Tarix bo'sh</div>
         <ul v-else class="timeline">
           <li v-for="a in timeline" :key="a.id" class="tl-item">
-            <span class="tl-dot" />
+            <span class="tl-dot"><Icon :name="ACTIVITY_ICON[a.type] ?? 'activity'" :size="12" /></span>
             <div class="min-w-0">
-              <div class="text-[13px] font-semibold" style="color: var(--text)">{{ a.description }}</div>
-              <div class="text-[11.5px]" style="color: var(--text-faint)">
+              <div class="tl-desc">{{ a.description }}</div>
+              <div class="tl-meta">
                 {{ relativeTime(a.createdAt) }}<template v-if="a.actorName"> · {{ a.actorName }}</template>
               </div>
             </div>
@@ -247,125 +262,112 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
 </template>
 
 <style scoped>
+.page { display: flex; flex-direction: column; gap: 18px; }
 .back {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  padding: 6px 10px; border-radius: 9px; transition: all 0.15s ease;
 }
-.avatar-lg {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-.temp-lg {
-  font-size: 14px;
-  font-weight: 800;
-  padding: 6px 12px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-.info-grid {
+.back:hover { color: var(--text); background: var(--surface-2); }
+.detail-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 9px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 18px;
+  align-items: start;
 }
+.col-left { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.profile { padding: 20px; }
+.profile-head { display: flex; align-items: flex-start; gap: 16px; }
+.avatar-lg {
+  width: 58px; height: 58px; border-radius: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px;
+}
+.name { font-size: 20px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contacts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; }
+.contacts span { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--text-muted); }
+.badges { margin-top: 8px; }
+.status-badge, .temp-lg {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-weight: 700; border-radius: 999px;
+}
+.status-badge { font-size: 12px; padding: 4px 11px; }
+.temp-lg { font-size: 14px; padding: 7px 13px; flex-shrink: 0; }
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-top: 18px; }
 .info {
-  display: flex;
-  justify-content: space-between;
-  background: var(--surface-2);
-  border-radius: 10px;
-  padding: 9px 12px;
-  font-size: 13px;
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface-2); border-radius: 11px; padding: 10px 13px; font-size: 13px;
 }
 .info span { color: var(--text-faint); }
 .info b { color: var(--text); }
 .won-box {
-  background: var(--success-soft);
-  color: var(--success);
-  border-radius: 11px;
-  padding: 11px 14px;
-  font-size: 13.5px;
-  font-weight: 600;
+  display: flex; align-items: center; gap: 10px; margin-top: 16px;
+  background: var(--success-soft); color: var(--success);
+  border-radius: 13px; padding: 13px 15px; font-size: 13.5px;
 }
+.won-box b { font-weight: 700; }
 .pay-kind {
-  margin-left: 6px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 11.5px;
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
 }
 .pay-kind.card { background: var(--info-soft); color: var(--info); }
 .pay-kind.platform { background: var(--warning-soft); color: var(--warning); }
+.block { padding: 20px; }
 .sec-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px;
 }
-.sub-title {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
+.sec-title :deep(.crm-icon) { color: var(--brand-strong); }
+.sub-title { font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin: 4px 0 9px; }
+.actions-row { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 16px; }
+.status-select { width: 180px; }
+.fu-row { display: flex; flex-wrap: wrap; gap: 9px; }
+.fu-date { width: 210px; }
+.fu-note { width: 200px; flex: 1; min-width: 160px; }
 .act-btn {
-  height: 38px;
-  padding: 0 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 40px; padding: 0 16px; border-radius: 11px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border);
+  transition: all 0.15s ease; white-space: nowrap;
 }
-.act-btn.primary {
-  background: var(--brand);
-  color: #fff;
-  border-color: var(--brand);
-}
-.note {
-  background: var(--surface-2);
-  border-radius: 11px;
-  padding: 10px 12px;
-}
-.del { color: var(--text-faint); font-size: 12px; }
+.act-btn:hover { border-color: var(--brand); }
+.act-btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+.act-btn.primary:hover { filter: brightness(0.95); }
+.next-fu { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); margin-top: 10px; }
+.note-input { display: flex; gap: 9px; margin-bottom: 14px; }
+.notes { display: flex; flex-direction: column; gap: 9px; }
+.note { background: var(--surface-2); border-radius: 12px; padding: 11px 13px; }
+.note-top { display: flex; align-items: center; justify-content: space-between; }
+.note-author { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.del { color: var(--text-faint); transition: color 0.15s ease; }
+.del:hover { color: var(--danger); }
+.note-text { font-size: 13px; color: var(--text); margin-top: 5px; }
+.note-time { font-size: 11px; color: var(--text-faint); }
 .muted { color: var(--text-faint); font-size: 13px; padding: 8px 0; }
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  position: relative;
-}
-.tl-item {
-  display: flex;
-  gap: 12px;
-  padding: 0 0 18px 4px;
-  position: relative;
-}
+.timeline-card { position: sticky; top: 16px; }
+.timeline { display: flex; flex-direction: column; }
+.tl-item { display: flex; gap: 12px; padding: 0 0 18px 0; position: relative; }
 .tl-item::before {
-  content: "";
-  position: absolute;
-  left: 8px;
-  top: 16px;
-  bottom: 0;
-  width: 2px;
-  background: var(--border);
+  content: ""; position: absolute; left: 12px; top: 26px; bottom: -2px;
+  width: 2px; background: var(--border);
 }
+.tl-item:last-child { padding-bottom: 0; }
 .tl-item:last-child::before { display: none; }
 .tl-dot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--brand);
-  margin-top: 4px;
-  flex-shrink: 0;
-  z-index: 1;
-  box-shadow: 0 0 0 3px var(--brand-soft);
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; z-index: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-soft); color: var(--brand-strong);
+}
+.tl-desc { font-size: 13px; font-weight: 600; color: var(--text); }
+.tl-meta { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+
+@media (max-width: 920px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .timeline-card { position: static; }
+}
+@media (max-width: 600px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .name { font-size: 18px; }
+  .status-select, .fu-date, .fu-note { width: 100%; }
 }
 </style>

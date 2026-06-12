@@ -69,6 +69,18 @@ export const useSalesStore = defineStore("sales", () => {
     ApiBaseResponse<OperatorLeaderboardRowDto[]>
   > => execute(async () => (await axios.get(`/crm/operators`)).data);
 
+  const createOperator = async (data: {
+    name: string;
+    email: string;
+    phone?: string;
+  }): Promise<ApiBaseResponse<number>> =>
+    execute(async () => (await axios.post(`/crm/operators`, data)).data);
+
+  const deleteOperator = async (
+    operatorId: number,
+  ): Promise<ApiBaseResponse> =>
+    execute(async () => (await axios.delete(`/crm/operators/${operatorId}`)).data);
+
   const getOperatorStats = async (
     operatorId: number,
     period: StatsPeriod,
@@ -89,5 +101,7 @@ export const useSalesStore = defineStore("sales", () => {
     getRevenue,
     getOperators,
     getOperatorStats,
+    createOperator,
+    deleteOperator,
   };
 });
