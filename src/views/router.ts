@@ -16,7 +16,8 @@ const resolveHomeForUser = (): string | null => {
 
 const SUPER_ADMIN: { roles: string[] } = { roles: ["SuperAdmin"] };
 const OPERATOR: { roles: string[] } = { roles: ["Operator"] };
-const HEAD_OF_SALES: { roles: string[] } = { roles: ["HeadOfSales"] };
+// SuperAdmin has full access to the sales-management area alongside HeadOfSales.
+const HEAD_OF_SALES: { roles: string[] } = { roles: ["HeadOfSales", "SuperAdmin"] };
 
 const routes: RouteRecordRaw[] = [
   {

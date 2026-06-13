@@ -100,9 +100,9 @@ const sections: Section[] = [
   {
     title: "Sotuv boshqaruvi",
     items: [
-      { icon: "navbar/home.svg", path: "/crm/sales", label: "Analitika", roles: ["HeadOfSales"] },
-      { icon: "navbar/user-edit.svg", path: "/crm/sales/operators", label: "Operatorlar", roles: ["HeadOfSales"] },
-      { icon: "navbar/money-bag.svg", path: "/crm/sales/leaderboard", label: "Reyting", roles: ["HeadOfSales"] },
+      { icon: "navbar/home.svg", path: "/crm/sales", label: "Analitika", roles: ["HeadOfSales", "SuperAdmin"] },
+      { icon: "navbar/user-edit.svg", path: "/crm/sales/operators", label: "Operatorlar", roles: ["HeadOfSales", "SuperAdmin"] },
+      { icon: "navbar/money-bag.svg", path: "/crm/sales/leaderboard", label: "Reyting", roles: ["HeadOfSales", "SuperAdmin"] },
     ],
   },
 ];

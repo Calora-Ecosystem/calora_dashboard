@@ -17,6 +17,20 @@ const formData = reactive({
   verificationCode: "" as string,
 });
 
+const errorMsg = ref("");
+
+type RoleKey = "Operator" | "HeadOfSales" | "SuperAdmin";
+const roleOptions: { key: RoleKey; label: string; home: string }[] = [
+  { key: "Operator", label: "Operator", home: "/crm/leads" },
+  { key: "HeadOfSales", label: "Sotuv boshlig'i", home: "/crm/sales" },
+  { key: "SuperAdmin", label: "Administrator", home: "/dashboard" },
+];
+const selectedRole = ref<RoleKey>("Operator");
+const selectRole = (r: RoleKey) => {
+  selectedRole.value = r;
+  errorMsg.value = "";
+};
+
 // resend countdown
 const seconds = ref(0);
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -38,35 +52,63 @@ const mmss = computed(() => {
 
 const emailValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email));
 
+const apiError = (e: any, fallback: string) => {
+  const code = e?.response?.data?.error ?? "";
+  const map: Record<string, string> = {
+    invalid_otp: "Tasdiqlash kodi noto'g'ri.",
+    otp_expired: "Tasdiqlash kodi muddati tugagan. Qayta yuboring.",
+    user_not_found: "Bunday email topilmadi.",
+  };
+  return map[code] ?? fallback;
+};
+
 const sendOtp = async () => {
-  const { content } = await authStore.sendOtp({ email: formData.email });
-  formData.verificationCode = content.verificationCode;
-  state.otpPending = true;
-  startCountdown();
+  errorMsg.value = "";
+  try {
+    const { content } = await authStore.sendOtp({ email: formData.email });
+    formData.verificationCode = content.verificationCode;
+    state.otpPending = true;
+    startCountdown();
+  } catch (e) {
+    errorMsg.value = apiError(e, "Kod yuborishda xatolik. Qayta urinib ko'ring.");
+  }
 };
 
 const handleSubmit = async () => {
+  errorMsg.value = "";
   if (!state.otpPending) {
     if (!emailValid.value) return;
     await sendOtp();
-  } else {
+    return;
+  }
+
+  try {
     await authStore.signInViaEmail({
       email: formData.email,
       verificationCode: formData.verificationCode ?? "",
       code: String(formData.otp ?? ""),
     });
-    if (tokenStore.isOperator && !tokenStore.isSuperAdmin) {
-      await router.push("/crm/leads");
-    } else {
-      await router.push("/dashboard");
-    }
-    state.otpPending = false;
+  } catch (e) {
+    errorMsg.value = apiError(e, "Kirishda xatolik. Qayta urinib ko'ring.");
+    return;
   }
+
+  // Validate the chosen role against the account's actual roles.
+  const role = roleOptions.find((r) => r.key === selectedRole.value)!;
+  if (!tokenStore.hasRole(role.key)) {
+    tokenStore.clearTokens();
+    errorMsg.value = `Bu email "${role.label}" roli uchun mos emas. To'g'ri rolni tanlang yoki tegishli email bilan kiring.`;
+    return;
+  }
+
+  state.otpPending = false;
+  await router.push(role.home);
 };
 
 const changeEmail = () => {
   state.otpPending = false;
   formData.otp = "";
+  errorMsg.value = "";
   if (timer) clearInterval(timer);
 };
 </script>
@@ -83,6 +125,30 @@ const changeEmail = () => {
     </p>
 
     <form class="mt-8 space-y-5" @submit.prevent="handleSubmit">
+      <!-- Role selector -->
+      <div>
+        <label class="field-label">Qaysi rol bilan kirmoqchisiz?</label>
+        <div class="role-seg">
+          <button
+            v-for="r in roleOptions"
+            :key="r.key"
+            type="button"
+            class="role-btn"
+            :class="{ 'role-active': selectedRole === r.key }"
+            :disabled="state.otpPending"
+            @click="selectRole(r.key)"
+          >{{ r.label }}</button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <transition name="slide-fade">
+        <div v-if="errorMsg" class="alert-error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>{{ errorMsg }}</span>
+        </div>
+      </transition>
+
       <!-- Email -->
       <div>
         <label class="field-label">Email manzil</label>
@@ -162,6 +228,45 @@ const changeEmail = () => {
   margin-bottom: 7px;
   color: var(--text);
 }
+.role-seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 4px;
+  border-radius: 13px;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+}
+.role-btn {
+  padding: 9px 6px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.role-btn:hover:not(:disabled) { color: var(--text); }
+.role-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.role-active {
+  background: var(--surface);
+  color: var(--brand-strong);
+  box-shadow: var(--shadow-sm);
+}
+.alert-error {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.alert-error svg { width: 17px; height: 17px; flex-shrink: 0; }
 .field {
   display: flex;
   align-items: center;
