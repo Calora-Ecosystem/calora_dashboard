@@ -101,6 +101,8 @@ const handleSubmit = async () => {
     return;
   }
 
+  // Scope the whole session to the role the user signed in as.
+  tokenStore.setActiveRole(role.key);
   state.otpPending = false;
   await router.push(role.home);
 };

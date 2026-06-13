@@ -107,8 +107,7 @@ const sections: Section[] = [
   },
 ];
 
-const canSee = (item: MenuEntry) =>
-  !item.roles?.length || item.roles.some((r) => tokenStore.hasRole(r));
+const canSee = (item: MenuEntry) => tokenStore.canView(item.roles);
 
 const visibleSections = computed(() =>
   sections

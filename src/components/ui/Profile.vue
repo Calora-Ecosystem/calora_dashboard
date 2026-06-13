@@ -25,8 +25,10 @@ const ROLE_LABELS: Record<string, string> = {
 const ROLE_PRIORITY = ["SuperAdmin", "HeadOfSales", "Operator", "User"];
 
 const roleLabel = computed(() => {
-  const role = ROLE_PRIORITY.find((r) => tokenStore.hasRole(r));
-  return role ? ROLE_LABELS[role] : "Foydalanuvchi";
+  // Prefer the role the user signed in as; fall back to their highest owned role.
+  const role =
+    tokenStore.activeRole ?? ROLE_PRIORITY.find((r) => tokenStore.hasRole(r));
+  return role ? ROLE_LABELS[role] ?? "Foydalanuvchi" : "Foydalanuvchi";
 });
 
 const displayName = computed(() => name.value || roleLabel.value);

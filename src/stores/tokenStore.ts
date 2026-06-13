@@ -10,6 +10,9 @@ export const useTokenStore = defineStore(
     const accessToken = ref<string | null>(null);
     const refreshToken = ref<string | null>(null);
     const refreshTokenExpireAt = ref<number | null>(null);
+    // The role the user signed in AS. Scopes which sections of the UI are shown,
+    // even when the account holds several roles.
+    const activeRole = ref<string | null>(null);
 
     const setTokens = (access: string, refresh: string, expireAt: number) => {
       accessToken.value = access;
@@ -21,6 +24,11 @@ export const useTokenStore = defineStore(
       accessToken.value = null;
       refreshToken.value = null;
       refreshTokenExpireAt.value = null;
+      activeRole.value = null;
+    };
+
+    const setActiveRole = (role: string | null) => {
+      activeRole.value = role;
     };
 
     const roles = computed<string[]>(() => {
@@ -40,15 +48,31 @@ export const useTokenStore = defineStore(
     const isOperator = computed(() => hasRole("Operator"));
     const isHeadOfSales = computed(() => hasRole("HeadOfSales"));
 
+    /**
+     * Whether a nav item / route requiring `required` roles is visible for the
+     * current session. Scoped to the role the user signed in as (activeRole);
+     * SuperAdmin sees everything. Falls back to owned-roles for legacy sessions.
+     */
+    const canView = (required?: string[]) => {
+      if (!required?.length) return true;
+      const active = activeRole.value;
+      if (!active) return required.some((r) => hasRole(r));
+      if (active === "SuperAdmin") return true;
+      return required.includes(active) && hasRole(active);
+    };
+
     return {
       accessToken,
       refreshToken,
       refreshTokenExpireAt,
+      activeRole,
       roles,
       isSuperAdmin,
       isOperator,
       isHeadOfSales,
       hasRole,
+      canView,
+      setActiveRole,
       setTokens,
       clearTokens,
     };

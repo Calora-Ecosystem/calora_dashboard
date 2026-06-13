@@ -8,6 +8,15 @@ const salesHome = "/crm/sales";
 
 const resolveHomeForUser = (): string | null => {
   const tokenStore = useTokenStore();
+  // Honour the role the user signed in as first.
+  switch (tokenStore.activeRole) {
+    case "SuperAdmin":
+      return adminHome;
+    case "HeadOfSales":
+      return salesHome;
+    case "Operator":
+      return operatorHome;
+  }
   if (tokenStore.isSuperAdmin) return adminHome;
   if (tokenStore.isHeadOfSales) return salesHome;
   if (tokenStore.isOperator) return operatorHome;
@@ -41,8 +50,8 @@ const routes: RouteRecordRaw[] = [
           const required = (to.meta?.roles as string[] | undefined) ?? [];
           if (required.length === 0) return next();
 
-          const allowed = required.some((role) => tokenStore.hasRole(role));
-          if (allowed) return next();
+          // Scope navigation to the role the user signed in as (not just owned roles).
+          if (tokenStore.canView(required)) return next();
 
           const home = resolveHomeForUser();
           if (!home || home === to.path) {
