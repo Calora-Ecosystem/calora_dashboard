@@ -81,6 +81,15 @@ export const useSalesStore = defineStore("sales", () => {
   ): Promise<ApiBaseResponse> =>
     execute(async () => (await axios.delete(`/crm/operators/${operatorId}`)).data);
 
+  const assignLead = async (
+    leadId: number,
+    operatorId: number,
+  ): Promise<ApiBaseResponse> =>
+    execute(
+      async () =>
+        (await axios.patch(`/crm/leads/${leadId}/assign`, { operatorId })).data,
+    );
+
   const getOperatorStats = async (
     operatorId: number,
     period: StatsPeriod,
@@ -103,5 +112,6 @@ export const useSalesStore = defineStore("sales", () => {
     getOperatorStats,
     createOperator,
     deleteOperator,
+    assignLead,
   };
 });

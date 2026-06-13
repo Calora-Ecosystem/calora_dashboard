@@ -332,6 +332,12 @@ const routes: RouteRecordRaw[] = [
                 component: () => import("./crm/sales/Dashboard.vue"),
               },
               {
+                path: "sales/leads",
+                name: "crm_sales_leads",
+                meta: HEAD_OF_SALES,
+                component: () => import("./crm/sales/Leads.vue"),
+              },
+              {
                 path: "sales/operators",
                 name: "crm_sales_operators",
                 meta: HEAD_OF_SALES,

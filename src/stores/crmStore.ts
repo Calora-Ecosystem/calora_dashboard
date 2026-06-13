@@ -108,6 +108,7 @@ export type LoadLeadsParams = {
   minScore?: number;
   maxScore?: number;
   operatorId?: number;
+  unassigned?: boolean;
   purchased?: boolean;
   search?: string;
   filteringExpression?: string[];
@@ -132,6 +133,7 @@ export const useCrmStore = defineStore("crm", () => {
           MinScore: params.minScore,
           MaxScore: params.maxScore,
           OperatorId: params.operatorId,
+          Unassigned: params.unassigned,
           Purchased: params.purchased,
           Search: params.search,
           FilteringExpression: params.filteringExpression,
