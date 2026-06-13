@@ -37,7 +37,15 @@ const onItemClick = (item: MenuEntry) => {
 const isExpanded = (item: MenuEntry) =>
   expanded[item.path] ?? currentRoute.path.startsWith(item.path);
 
-const isActive = (path: string) => currentRoute.path.startsWith(path);
+// Active only for the most specific (longest) matching item, so e.g. "/crm/sales"
+// is not highlighted while on "/crm/sales/leads".
+const isActive = (path: string) => {
+  const matches = (p: string) =>
+    currentRoute.path === p || currentRoute.path.startsWith(p + "/");
+  if (!matches(path)) return false;
+  const all = sections.flatMap((s) => s.items.map((i) => i.path));
+  return !all.some((p) => p !== path && p.length > path.length && matches(p));
+};
 
 const sections: Section[] = [
   {
@@ -86,13 +94,29 @@ const sections: Section[] = [
           { path: "/billing/plans", label: "Obuna tariflari" },
         ],
       },
+    ],
+  },
+  {
+    title: "CRM",
+    items: [
+      { icon: "navbar/home.svg", path: "/crm/dashboard", label: "Boshqaruv paneli", roles: ["Operator"] },
       { icon: "navbar/users.svg", path: "/crm/leads", label: "Leadlar", roles: ["Operator"] },
+      { icon: "navbar/notification.svg", path: "/crm/followups", label: "Follow-uplar", roles: ["Operator"] },
+      { icon: "navbar/money-bag.svg", path: "/crm/my-stats", label: "Statistikam", roles: ["Operator"] },
+    ],
+  },
+  {
+    title: "Sotuv boshqaruvi",
+    items: [
+      { icon: "navbar/home.svg", path: "/crm/sales", label: "Analitika", roles: ["HeadOfSales", "SuperAdmin"] },
+      { icon: "navbar/users.svg", path: "/crm/sales/leads", label: "Leadlar", roles: ["HeadOfSales", "SuperAdmin"] },
+      { icon: "navbar/user-edit.svg", path: "/crm/sales/operators", label: "Operatorlar", roles: ["HeadOfSales", "SuperAdmin"] },
+      { icon: "navbar/money-bag.svg", path: "/crm/sales/leaderboard", label: "Reyting", roles: ["HeadOfSales", "SuperAdmin"] },
     ],
   },
 ];
 
-const canSee = (item: MenuEntry) =>
-  !item.roles?.length || item.roles.some((r) => tokenStore.hasRole(r));
+const canSee = (item: MenuEntry) => tokenStore.canView(item.roles);
 
 const visibleSections = computed(() =>
   sections

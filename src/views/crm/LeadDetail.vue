@@ -1,254 +1,373 @@
 <script setup lang="ts">
 import {
-  ElButton,
   ElInput,
   ElMessage,
   ElMessageBox,
-  ElTag,
+  ElPopconfirm,
+  ElSelect,
+  ElOption,
+  ElDatePicker,
 } from "element-plus";
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import Card from "../../components/ui/Card.vue";
-import CopyText from "../../components/shared/CopyText.vue";
+import Icon from "./components/Icon.vue";
 import {
   useCrmStore,
   type LeadDetailDto,
-  type LeadPriority,
+  type LeadActivityDto,
+  type LeadStatus,
   type NoteDto,
 } from "../../stores/crmStore";
-import { formatDate } from "../../utils/FormatHelper";
+import { LEAD_STATUSES } from "../../constants/ApiContstants";
+import {
+  STATUS_META,
+  TEMP_META,
+  PAYMENT_META,
+  initials,
+  avatarHue,
+  relativeTime,
+} from "./crmMeta";
+import { formatMoney } from "../../utils/FormatHelper";
 
-const crmStore = useCrmStore();
 const route = useRoute();
 const router = useRouter();
+const crmStore = useCrmStore();
 
-const leadId = computed(() => Number(route.params.leadId));
-
+const leadId = Number(route.params.leadId);
 const lead = ref<LeadDetailDto | null>(null);
+const timeline = ref<LeadActivityDto[]>([]);
 const notes = ref<NoteDto[]>([]);
 
-const editingNoteId = ref<number | null>(null);
 const noteText = ref("");
-const submitting = ref(false);
+const fuDate = ref<string | null>(null);
+const fuNote = ref("");
 
-const priorityTagType = (p: LeadPriority) => {
-  switch (p) {
-    case "High":
-      return "danger";
-    case "Medium":
-      return "warning";
-    case "Low":
-      return "info";
-    case "Closed":
-      return "";
-  }
+const purposeLabels: Record<string, string> = {
+  LoseWeight: "Vazn yo'qotish",
+  GainWeight: "Vazn olish",
+  KeepFit: "Formani saqlash",
+  BuildMuscle: "Mushak yig'ish",
 };
 
-const priorityLabel = (p: LeadPriority) => {
-  switch (p) {
-    case "High":
-      return "Yuqori";
-    case "Medium":
-      return "O'rta";
-    case "Low":
-      return "Past";
-    case "Closed":
-      return "Yopilgan";
-  }
+const ACTIVITY_ICON: Record<string, string> = {
+  Registered: "user-plus",
+  SubscriptionOpened: "eye",
+  WorkoutStarted: "zap",
+  WaterTracked: "activity",
+  FoodTracked: "activity",
+  AppOpened: "smartphone",
+  Assigned: "user",
+  Contacted: "phone",
+  StatusChanged: "arrow-right",
+  NoteAdded: "message",
+  FollowUpSet: "clock",
+  FollowUpDue: "alert-triangle",
+  Won: "check-circle",
+  Lost: "x",
 };
 
-const loadLead = async () => {
-  const res = await crmStore.getLeadById(leadId.value);
-  if (res.code === 200) lead.value = res.content;
+const load = async () => {
+  const [l, t, n] = await Promise.all([
+    crmStore.getLeadById(leadId),
+    crmStore.getLeadTimeline(leadId),
+    crmStore.getLeadNotes(leadId),
+  ]);
+  lead.value = l.content;
+  timeline.value = t.content ?? [];
+  notes.value = n.content ?? [];
 };
 
-const loadNotes = async () => {
-  const res = await crmStore.getLeadNotes(leadId.value);
-  if (res.code === 200) notes.value = res.content ?? [];
+onMounted(load);
+
+const reloadMeta = async () => {
+  const [l, t] = await Promise.all([
+    crmStore.getLeadById(leadId),
+    crmStore.getLeadTimeline(leadId),
+  ]);
+  lead.value = l.content;
+  timeline.value = t.content ?? [];
 };
 
-const reset = () => {
-  editingNoteId.value = null;
-  noteText.value = "";
+const contact = async () => {
+  await crmStore.contactLead(leadId);
+  ElMessage.success("Bog'lanildi deb belgilandi");
+  await reloadMeta();
 };
 
-const startEdit = (note: NoteDto) => {
-  editingNoteId.value = note.id;
-  noteText.value = note.text ?? "";
-};
-
-const handleSubmit = async () => {
-  const text = noteText.value.trim();
-  if (!text) {
-    ElMessage.warning("Matn bo'sh bo'lmasin");
-    return;
-  }
-  if (text.length > 500) {
-    ElMessage.warning("Matn 500 ta belgidan oshmasin");
-    return;
-  }
-  submitting.value = true;
-  try {
-    const res = await crmStore.upsertLeadNote(leadId.value, {
-      id: editingNoteId.value ?? undefined,
-      text,
-    });
-    if (res.code === 200) {
-      ElMessage.success(editingNoteId.value ? "Yangilandi" : "Qo'shildi");
-      reset();
-      await loadNotes();
-    } else {
-      ElMessage.error(res.error ?? "Xatolik");
+const changeStatus = async (status: LeadStatus) => {
+  if (!lead.value || status === lead.value.status) return;
+  let reason: string | undefined;
+  if (status === "Lost") {
+    try {
+      const { value } = await ElMessageBox.prompt("Yo'qotish sababi", "Lead yo'qotildi", {
+        confirmButtonText: "Saqlash",
+        cancelButtonText: "Bekor",
+        inputPattern: /.+/,
+        inputErrorMessage: "Sabab majburiy",
+      });
+      reason = value;
+    } catch {
+      return;
     }
-  } finally {
-    submitting.value = false;
   }
+  await crmStore.moveStatus(leadId, status, reason);
+  ElMessage.success(`Holat: ${STATUS_META[status].label}`);
+  await reloadMeta();
 };
 
-const handleDelete = async (note: NoteDto) => {
-  try {
-    await ElMessageBox.confirm("Izohni o'chirishni xohlaysizmi?", "Tasdiqlash", {
-      confirmButtonText: "Ha",
-      cancelButtonText: "Yo'q",
-      type: "warning",
-    });
-  } catch {
+const addNote = async () => {
+  if (!noteText.value.trim()) return;
+  await crmStore.upsertLeadNote(leadId, { text: noteText.value.trim() });
+  noteText.value = "";
+  const [n, t] = await Promise.all([
+    crmStore.getLeadNotes(leadId),
+    crmStore.getLeadTimeline(leadId),
+  ]);
+  notes.value = n.content ?? [];
+  timeline.value = t.content ?? [];
+};
+
+const removeNote = async (id: number) => {
+  await crmStore.deleteNote(id);
+  notes.value = notes.value.filter((x) => x.id !== id);
+};
+
+const setFollowUp = async () => {
+  if (!fuDate.value) {
+    ElMessage.warning("Sanani tanlang");
     return;
   }
-  const res = await crmStore.deleteNote(note.id);
-  if (res.code === 200) {
-    ElMessage.success("O'chirildi");
-    if (editingNoteId.value === note.id) reset();
-    await loadNotes();
-  } else {
-    ElMessage.error(res.error ?? "Xatolik");
-  }
+  await crmStore.createFollowUp(leadId, new Date(fuDate.value).toISOString(), fuNote.value || undefined);
+  ElMessage.success("Follow-up belgilandi");
+  fuDate.value = null;
+  fuNote.value = "";
+  await reloadMeta();
 };
 
-onMounted(async () => {
-  await Promise.all([loadLead(), loadNotes()]);
-});
+const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] : null));
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <Card>
-      <template #title>
-        <div class="flex justify-between items-center mb-3">
-          <h2 class="font-semibold text-[24px]">Lead #{{ leadId }}</h2>
-          <ElButton @click="router.back()">← Orqaga</ElButton>
-        </div>
-      </template>
+  <div v-if="lead" class="page">
+    <button class="back" @click="router.back()"><Icon name="arrow-left" :size="16" /> Orqaga</button>
 
-      <div v-if="lead" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Foydalanuvchi</span>
-          <span class="font-medium">{{ lead.userName ?? "—" }}</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">User ID</span>
-          <span class="font-medium">{{ lead.userId }}</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Email</span>
-          <CopyText v-if="lead.userEmail" :text="lead.userEmail" />
-          <span v-else>—</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Telefon</span>
-          <CopyText v-if="lead.userPhone" :text="lead.userPhone" />
-          <span v-else>—</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Ro'yxatdan o'tgan</span>
-          <div>
-            <ElTag :type="lead.isRegistered ? 'success' : 'info'" size="small">
-              {{ lead.isRegistered ? "Ha" : "Yo'q" }}
-            </ElTag>
-          </div>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Sotib olgan</span>
-          <div>
-            <ElTag :type="lead.purchased ? 'success' : 'info'" size="small">
-              {{ lead.purchased ? "Ha" : "Yo'q" }}
-            </ElTag>
-          </div>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Obuna ko'rishlar</span>
-          <span class="font-medium">{{ lead.subscriptionOpenedCount }}</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Prioritet</span>
-          <div>
-            <ElTag :type="priorityTagType(lead.priority) as any" size="small">
-              {{ priorityLabel(lead.priority) }}
-            </ElTag>
-          </div>
-        </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-500">Oxirgi faollik</span>
-          <span>{{ formatDate(lead.lastActivity) }}</span>
-        </div>
-      </div>
-    </Card>
-
-    <Card title="Izohlar">
-      <div class="flex flex-col gap-2 mb-4">
-        <ElInput
-          v-model="noteText"
-          type="textarea"
-          :rows="3"
-          maxlength="500"
-          show-word-limit
-          :placeholder="
-            editingNoteId ? 'Izohni tahrirlash...' : 'Yangi izoh...'
-          "
-        />
-        <div class="flex gap-2 self-end">
-          <ElButton v-if="editingNoteId" @click="reset">Bekor qilish</ElButton>
-          <ElButton
-            type="primary"
-            :loading="submitting"
-            :disabled="!noteText.trim()"
-            @click="handleSubmit"
-          >
-            {{ editingNoteId ? "Yangilash" : "Qo'shish" }}
-          </ElButton>
-        </div>
-      </div>
-
-      <div v-if="notes.length === 0" class="text-gray-400 text-sm py-4 text-center">
-        Izohlar yo'q
-      </div>
-
-      <div v-else class="flex flex-col gap-3">
-        <div
-          v-for="note in notes"
-          :key="note.id"
-          class="border border-gray-200 rounded-lg p-3 flex flex-col gap-2"
-          :class="{
-            'border-blue-400 bg-blue-50': editingNoteId === note.id,
-          }"
-        >
-          <div class="flex justify-between items-start gap-3">
-            <div class="text-sm text-gray-500">
-              <span class="font-medium text-gray-700">{{
-                note.operatorName ?? "—"
-              }}</span>
-              <span class="ml-2">{{ formatDate(note.createdAt) }}</span>
+    <div class="detail-grid">
+      <!-- Left -->
+      <div class="col-left">
+        <section class="app-card profile">
+          <div class="profile-head">
+            <div class="avatar-lg" :style="{ background: `hsl(${avatarHue(lead.id)} 70% 92%)`, color: `hsl(${avatarHue(lead.id)} 65% 38%)` }">
+              {{ initials(lead.userName) }}
             </div>
-            <div class="flex gap-1">
-              <ElButton size="small" @click="startEdit(note)">Tahrirlash</ElButton>
-              <ElButton size="small" type="danger" @click="handleDelete(note)">
-                O'chirish
-              </ElButton>
+            <div class="min-w-0 grow">
+              <h1 class="name">{{ lead.userName ?? "Noma'lum" }}</h1>
+              <div class="contacts">
+                <span v-if="lead.userPhone"><Icon name="phone" :size="13" /> {{ lead.userPhone }}</span>
+                <span v-if="lead.userEmail"><Icon name="mail" :size="13" /> {{ lead.userEmail }}</span>
+              </div>
+              <div class="badges">
+                <span class="status-badge" :style="{ background: STATUS_META[lead.status].soft, color: STATUS_META[lead.status].color }">
+                  <Icon :name="STATUS_META[lead.status].icon" :size="12" /> {{ STATUS_META[lead.status].label }}
+                </span>
+              </div>
+            </div>
+            <span v-if="tempMeta" class="temp-lg" :style="{ background: tempMeta.soft, color: tempMeta.color }">
+              <Icon :name="tempMeta.icon" :size="16" /> {{ lead.score }}
+            </span>
+          </div>
+
+          <div class="info-grid">
+            <div class="info"><span>Yosh</span><b>{{ lead.age ?? "—" }}</b></div>
+            <div class="info"><span>Jinsi</span><b>{{ lead.gender ?? "—" }}</b></div>
+            <div class="info"><span>Vazn</span><b>{{ lead.weight ? lead.weight + " kg" : "—" }}</b></div>
+            <div class="info"><span>Bo'y</span><b>{{ lead.height ? lead.height + " sm" : "—" }}</b></div>
+            <div class="info"><span>Maqsad</span><b>{{ lead.purpose ? (purposeLabels[lead.purpose] ?? lead.purpose) : "—" }}</b></div>
+            <div class="info"><span>Obuna ko'rdi</span><b>{{ lead.subscriptionOpenedCount }} marta</b></div>
+            <div class="info"><span>Ro'yxatdan</span><b>{{ relativeTime(lead.createdAt) }}</b></div>
+            <div class="info"><span>Oxirgi faollik</span><b>{{ relativeTime(lead.lastActivity) }}</b></div>
+          </div>
+
+          <div v-if="lead.status === 'Won'" class="won-box">
+            <Icon name="check-circle" :size="18" />
+            <div>
+              <b>Sotuv yakunlandi — {{ formatMoney(lead.wonAmount ?? 0) }}</b>
+              <span v-if="lead.paymentProvider" class="pay-kind" :class="PAYMENT_META[lead.paymentProvider].kind">
+                <Icon :name="PAYMENT_META[lead.paymentProvider].kind === 'card' ? 'credit-card' : 'smartphone'" :size="12" />
+                {{ PAYMENT_META[lead.paymentProvider].label }}
+              </span>
             </div>
           </div>
-          <p class="text-sm whitespace-pre-wrap break-words">{{ note.text }}</p>
-        </div>
+        </section>
+
+        <section class="app-card block">
+          <h2 class="sec-title"><Icon name="zap" :size="16" /> Harakatlar</h2>
+          <div class="actions-row">
+            <button class="act-btn primary" @click="contact"><Icon name="phone" :size="15" /> Bog'lanildi</button>
+            <ElSelect :model-value="lead.status" placeholder="Holat" class="status-select" @change="changeStatus">
+              <ElOption v-for="s in LEAD_STATUSES" :key="s" :value="s" :label="STATUS_META[s].label" />
+            </ElSelect>
+          </div>
+
+          <h3 class="sub-title">Follow-up belgilash</h3>
+          <div class="fu-row">
+            <ElDatePicker v-model="fuDate" type="datetime" placeholder="Sana va vaqt" format="DD.MM.YYYY HH:mm" class="fu-date" />
+            <ElInput v-model="fuNote" placeholder="Izoh (ixtiyoriy)" class="fu-note" />
+            <button class="act-btn" @click="setFollowUp"><Icon name="clock" :size="15" /> Belgilash</button>
+          </div>
+          <p v-if="lead.nextFollowUpAt" class="next-fu">
+            <Icon name="clock" :size="13" /> Keyingi follow-up: <b>{{ relativeTime(lead.nextFollowUpAt) }}</b>
+          </p>
+        </section>
+
+        <section class="app-card block">
+          <h2 class="sec-title"><Icon name="message" :size="16" /> Izohlar</h2>
+          <div class="note-input">
+            <ElInput v-model="noteText" type="textarea" :rows="2" placeholder="Izoh qo'shish…" />
+            <button class="act-btn primary self-end" @click="addNote"><Icon name="plus" :size="15" /> Qo'shish</button>
+          </div>
+          <div v-if="!notes.length" class="muted">Hozircha izoh yo'q</div>
+          <ul v-else class="notes">
+            <li v-for="n in notes" :key="n.id" class="note">
+              <div class="note-top">
+                <span class="note-author"><Icon name="user" :size="12" /> {{ n.operatorName ?? "Operator" }}</span>
+                <ElPopconfirm title="O'chirilsinmi?" @confirm="removeNote(n.id)">
+                  <template #reference><button class="del"><Icon name="trash" :size="13" /></button></template>
+                </ElPopconfirm>
+              </div>
+              <p class="note-text">{{ n.text }}</p>
+              <span class="note-time">{{ relativeTime(n.createdAt) }}</span>
+            </li>
+          </ul>
+        </section>
       </div>
-    </Card>
+
+      <!-- Right: timeline -->
+      <section class="app-card block timeline-card">
+        <h2 class="sec-title"><Icon name="activity" :size="16" /> Faollik tarixi</h2>
+        <div v-if="!timeline.length" class="muted">Tarix bo'sh</div>
+        <ul v-else class="timeline">
+          <li v-for="a in timeline" :key="a.id" class="tl-item">
+            <span class="tl-dot"><Icon :name="ACTIVITY_ICON[a.type] ?? 'activity'" :size="12" /></span>
+            <div class="min-w-0">
+              <div class="tl-desc">{{ a.description }}</div>
+              <div class="tl-meta">
+                {{ relativeTime(a.createdAt) }}<template v-if="a.actorName"> · {{ a.actorName }}</template>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.page { display: flex; flex-direction: column; gap: 18px; }
+.back {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  padding: 6px 10px; border-radius: 9px; transition: all 0.15s ease;
+}
+.back:hover { color: var(--text); background: var(--surface-2); }
+.detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+.col-left { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.profile { padding: 20px; }
+.profile-head { display: flex; align-items: flex-start; gap: 16px; }
+.avatar-lg {
+  width: 58px; height: 58px; border-radius: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px;
+}
+.name { font-size: 20px; font-weight: 800; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.contacts { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; }
+.contacts span { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--text-muted); }
+.badges { margin-top: 8px; }
+.status-badge, .temp-lg {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-weight: 700; border-radius: 999px;
+}
+.status-badge { font-size: 12px; padding: 4px 11px; }
+.temp-lg { font-size: 14px; padding: 7px 13px; flex-shrink: 0; }
+.info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-top: 18px; }
+.info {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface-2); border-radius: 11px; padding: 10px 13px; font-size: 13px;
+}
+.info span { color: var(--text-faint); }
+.info b { color: var(--text); }
+.won-box {
+  display: flex; align-items: center; gap: 10px; margin-top: 16px;
+  background: var(--success-soft); color: var(--success);
+  border-radius: 13px; padding: 13px 15px; font-size: 13.5px;
+}
+.won-box b { font-weight: 700; }
+.pay-kind {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: 8px; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600;
+}
+.pay-kind.card { background: var(--info-soft); color: var(--info); }
+.pay-kind.platform { background: var(--warning-soft); color: var(--warning); }
+.block { padding: 20px; }
+.sec-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px;
+}
+.sec-title :deep(.crm-icon) { color: var(--brand-strong); }
+.sub-title { font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin: 4px 0 9px; }
+.actions-row { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 16px; }
+.status-select { width: 180px; }
+.fu-row { display: flex; flex-wrap: wrap; gap: 9px; }
+.fu-date { width: 210px; }
+.fu-note { width: 200px; flex: 1; min-width: 160px; }
+.act-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 40px; padding: 0 16px; border-radius: 11px;
+  font-size: 13px; font-weight: 600; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--border);
+  transition: all 0.15s ease; white-space: nowrap;
+}
+.act-btn:hover { border-color: var(--brand); }
+.act-btn.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+.act-btn.primary:hover { filter: brightness(0.95); }
+.next-fu { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-muted); margin-top: 10px; }
+.note-input { display: flex; gap: 9px; margin-bottom: 14px; }
+.notes { display: flex; flex-direction: column; gap: 9px; }
+.note { background: var(--surface-2); border-radius: 12px; padding: 11px 13px; }
+.note-top { display: flex; align-items: center; justify-content: space-between; }
+.note-author { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.del { color: var(--text-faint); transition: color 0.15s ease; }
+.del:hover { color: var(--danger); }
+.note-text { font-size: 13px; color: var(--text); margin-top: 5px; }
+.note-time { font-size: 11px; color: var(--text-faint); }
+.muted { color: var(--text-faint); font-size: 13px; padding: 8px 0; }
+.timeline-card { position: sticky; top: 16px; }
+.timeline { display: flex; flex-direction: column; }
+.tl-item { display: flex; gap: 12px; padding: 0 0 18px 0; position: relative; }
+.tl-item::before {
+  content: ""; position: absolute; left: 12px; top: 26px; bottom: -2px;
+  width: 2px; background: var(--border);
+}
+.tl-item:last-child { padding-bottom: 0; }
+.tl-item:last-child::before { display: none; }
+.tl-dot {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; z-index: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-soft); color: var(--brand-strong);
+}
+.tl-desc { font-size: 13px; font-weight: 600; color: var(--text); }
+.tl-meta { font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+
+@media (max-width: 920px) {
+  .detail-grid { grid-template-columns: 1fr; }
+  .timeline-card { position: static; }
+}
+@media (max-width: 600px) {
+  .info-grid { grid-template-columns: 1fr; }
+  .name { font-size: 18px; }
+  .status-select, .fu-date, .fu-note { width: 100%; }
+}
+</style>

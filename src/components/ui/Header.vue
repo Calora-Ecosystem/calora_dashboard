@@ -67,6 +67,7 @@ const titleMap: Record<string, string> = {
   coupon_usages: "Kuponlar",
   subscriptions: "Obuna tariflari",
   crm_leads: "Leadlar",
+  crm_lead_detail: "Lead kartasi",
 };
 
 const pageTitle = computed(() => {
