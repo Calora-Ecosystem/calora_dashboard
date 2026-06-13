@@ -38,6 +38,7 @@ export const useTokenStore = defineStore(
     const hasRole = (role: string) => roles.value.includes(role);
     const isSuperAdmin = computed(() => hasRole("SuperAdmin"));
     const isOperator = computed(() => hasRole("Operator"));
+    const isHeadOfSales = computed(() => hasRole("HeadOfSales"));
 
     return {
       accessToken,
@@ -46,6 +47,7 @@ export const useTokenStore = defineStore(
       roles,
       isSuperAdmin,
       isOperator,
+      isHeadOfSales,
       hasRole,
       setTokens,
       clearTokens,

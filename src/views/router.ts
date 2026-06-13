@@ -4,16 +4,19 @@ import { useTokenStore } from "../stores/tokenStore";
 
 const adminHome = "/dashboard";
 const operatorHome = "/crm/leads";
+const salesHome = "/crm/sales";
 
 const resolveHomeForUser = (): string | null => {
   const tokenStore = useTokenStore();
   if (tokenStore.isSuperAdmin) return adminHome;
+  if (tokenStore.isHeadOfSales) return salesHome;
   if (tokenStore.isOperator) return operatorHome;
   return null;
 };
 
 const SUPER_ADMIN: { roles: string[] } = { roles: ["SuperAdmin"] };
 const OPERATOR: { roles: string[] } = { roles: ["Operator"] };
+const HEAD_OF_SALES: { roles: string[] } = { roles: ["HeadOfSales"] };
 
 const routes: RouteRecordRaw[] = [
   {
@@ -281,17 +284,60 @@ const routes: RouteRecordRaw[] = [
           },
           {
             path: "crm",
-            meta: OPERATOR,
             children: [
+              {
+                path: "dashboard",
+                name: "crm_dashboard",
+                meta: OPERATOR,
+                component: () => import("./crm/Dashboard.vue"),
+              },
               {
                 path: "leads",
                 name: "crm_leads",
+                meta: OPERATOR,
                 component: () => import("./crm/Leads.vue"),
               },
               {
                 path: "leads/:leadId",
                 name: "crm_lead_detail",
+                meta: OPERATOR,
                 component: () => import("./crm/LeadDetail.vue"),
+              },
+              {
+                path: "followups",
+                name: "crm_followups",
+                meta: OPERATOR,
+                component: () => import("./crm/FollowUps.vue"),
+              },
+              {
+                path: "my-stats",
+                name: "crm_my_stats",
+                meta: OPERATOR,
+                component: () => import("./crm/MyStats.vue"),
+              },
+              {
+                path: "sales",
+                name: "crm_sales",
+                meta: HEAD_OF_SALES,
+                component: () => import("./crm/sales/Dashboard.vue"),
+              },
+              {
+                path: "sales/operators",
+                name: "crm_sales_operators",
+                meta: HEAD_OF_SALES,
+                component: () => import("./crm/sales/Operators.vue"),
+              },
+              {
+                path: "sales/operators/:operatorId",
+                name: "crm_sales_operator_board",
+                meta: HEAD_OF_SALES,
+                component: () => import("./crm/sales/OperatorBoard.vue"),
+              },
+              {
+                path: "sales/leaderboard",
+                name: "crm_sales_leaderboard",
+                meta: HEAD_OF_SALES,
+                component: () => import("./crm/sales/Leaderboard.vue"),
               },
             ],
           },
