@@ -72,7 +72,8 @@ const premiumChart = computed(() => ({
 const premiumChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
-  plugins: { legend: { position: "bottom" as const, labels: { boxWidth: 12, padding: 14 } } },
+  // Legend is redundant — the breakdown list beside the chart already shows colours.
+  plugins: { legend: { display: false } },
   cutout: "62%",
 };
 
