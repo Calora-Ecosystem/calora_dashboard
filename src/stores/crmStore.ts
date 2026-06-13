@@ -41,6 +41,7 @@ export type LeadDetailDto = LeadDto & {
   paymentProvider: PaymentProvider | null;
   wonAmount: number | null;
   wonAt: string | null;
+  promoCode: string | null;
   age: number | null;
   gender: string | null;
   weight: number | null;
@@ -97,6 +98,7 @@ export type OperatorStatsDto = {
   conversionRate: number;
   cardSales: number;
   platformSales: number;
+  promoSales: number;
 };
 
 export type LoadLeadsParams = {

@@ -130,6 +130,12 @@ const useApiCallStore = defineStore("api_call", () => {
         axios.defaults.headers.common.Authorization =
           "Bearer " + tokenStore.accessToken;
 
+      // Tell the API which role the user is acting as, so a multi-role
+      // account is scoped to that role (e.g. operator sees only own leads).
+      if (tokenStore.activeRole)
+        axios.defaults.headers.common["X-Active-Role"] = tokenStore.activeRole;
+      else delete axios.defaults.headers.common["X-Active-Role"];
+
       return await action();
     });
   //language

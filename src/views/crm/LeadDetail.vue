@@ -191,7 +191,10 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
             <Icon name="check-circle" :size="18" />
             <div>
               <b>Sotuv yakunlandi — {{ formatMoney(lead.wonAmount ?? 0) }}</b>
-              <span v-if="lead.paymentProvider" class="pay-kind" :class="PAYMENT_META[lead.paymentProvider].kind">
+              <span v-if="lead.promoCode" class="pay-kind promo">
+                <Icon name="sparkles" :size="12" /> Promo-code: {{ lead.promoCode }}
+              </span>
+              <span v-else-if="lead.paymentProvider" class="pay-kind" :class="PAYMENT_META[lead.paymentProvider].kind">
                 <Icon :name="PAYMENT_META[lead.paymentProvider].kind === 'card' ? 'credit-card' : 'smartphone'" :size="12" />
                 {{ PAYMENT_META[lead.paymentProvider].label }}
               </span>
@@ -311,6 +314,7 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
 }
 .pay-kind.card { background: var(--info-soft); color: var(--info); }
 .pay-kind.platform { background: var(--warning-soft); color: var(--warning); }
+.pay-kind.promo { background: rgba(147,51,234,0.12); color: #9333ea; }
 .block { padding: 20px; }
 .sec-title {
   display: flex; align-items: center; gap: 8px;

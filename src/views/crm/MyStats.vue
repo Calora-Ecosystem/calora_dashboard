@@ -43,11 +43,15 @@ const setPeriod = (p: StatsPeriod) => {
 const hasSales = computed(() => (stats.value?.sales ?? 0) > 0);
 
 const paymentData = computed(() => ({
-  labels: ["Karta (Click/Payme)", "Platforma (IAP)"],
+  labels: ["Karta (Click/Payme)", "Platforma (IAP)", "Promo-code"],
   datasets: [
     {
-      data: [stats.value?.cardSales ?? 0, stats.value?.platformSales ?? 0],
-      backgroundColor: ["#2e90fa", "#f79009"],
+      data: [
+        stats.value?.cardSales ?? 0,
+        stats.value?.platformSales ?? 0,
+        stats.value?.promoSales ?? 0,
+      ],
+      backgroundColor: ["#2e90fa", "#f79009", "#9333ea"],
       borderWidth: 0,
     },
   ],
@@ -95,6 +99,7 @@ const paymentOptions = {
         <ul class="summary">
           <li><span><Icon name="credit-card" :size="14" /> Karta orqali sotuvlar</span><b>{{ stats?.cardSales ?? 0 }}</b></li>
           <li><span><Icon name="smartphone" :size="14" /> Platforma orqali sotuvlar</span><b>{{ stats?.platformSales ?? 0 }}</b></li>
+          <li><span><Icon name="sparkles" :size="14" /> Promo-code orqali sotuvlar</span><b>{{ stats?.promoSales ?? 0 }}</b></li>
           <li><span><Icon name="trending-up" :size="14" /> O'rtacha conversion</span><b>{{ stats?.conversionRate ?? 0 }}%</b></li>
           <li><span><Icon name="wallet" :size="14" /> Jami tushum</span><b>{{ formatMoney(stats?.revenue ?? 0) }}</b></li>
         </ul>

@@ -39,6 +39,26 @@ export type RevenuePointDto = {
   sales: number;
 };
 
+export type PremiumBreakdownDto = {
+  total: number;
+  viaPurchase: number;
+  viaPromoCode: number;
+  card: number;
+  platform: number;
+  purchaseRevenue: number;
+  promoRevenue: number;
+};
+
+export type PromoRedemptionDto = {
+  leadId: number;
+  userName: string | null;
+  userPhone: string | null;
+  promoCode: string | null;
+  amount: number | null;
+  operatorName: string | null;
+  wonAt: string | null;
+};
+
 export const useSalesStore = defineStore("sales", () => {
   const { execute } = useApiCallStore();
 
@@ -90,6 +110,21 @@ export const useSalesStore = defineStore("sales", () => {
         (await axios.patch(`/crm/leads/${leadId}/assign`, { operatorId })).data,
     );
 
+  const getPremiumBreakdown = async (
+    period?: StatsPeriod,
+  ): Promise<ApiBaseResponse<PremiumBreakdownDto>> =>
+    execute(
+      async () =>
+        (await axios.get(`/crm/analytics/premium`, { params: { period } })).data,
+    );
+
+  const getPromoRedemptions = async (): Promise<
+    ApiBaseResponse<PromoRedemptionDto[]>
+  > =>
+    execute(
+      async () => (await axios.get(`/crm/analytics/promo-redemptions`)).data,
+    );
+
   const getOperatorStats = async (
     operatorId: number,
     period: StatsPeriod,
@@ -113,5 +148,7 @@ export const useSalesStore = defineStore("sales", () => {
     createOperator,
     deleteOperator,
     assignLead,
+    getPremiumBreakdown,
+    getPromoRedemptions,
   };
 });
