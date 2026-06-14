@@ -112,38 +112,38 @@ const rules = reactive<FormRules<typeof data>>({
     },
   },
 
-  metrics: {
-    type: "array",
-    required: true,
-    min: 1,
-    defaultField: {
-      type: "object",
-      required: true,
-      fields: {
-        id: {
-          required: true,
-          message: "ID is required",
-          type: "number",
-          min: 0,
-        },
-        metric: {
-          required: true,
-          message: "Metric is required",
-          enum: METRICS as any,
-          type: "enum",
-        },
-        value: [
-          {
-            required: true,
-            message: "Value is required",
-            min: 1,
-            max: 9_999,
-            type: "number",
-          },
-        ],
-      },
-    },
-  },
+  // metrics: {
+  //   type: "array",
+  //   required: true,
+  //   min: 1,
+  //   defaultField: {
+  //     type: "object",
+  //     required: true,
+  //     fields: {
+  //       id: {
+  //         required: true,
+  //         message: "ID is required",
+  //         type: "number",
+  //         min: 0,
+  //       },
+  //       metric: {
+  //         required: true,
+  //         message: "Metric is required",
+  //         enum: METRICS as any,
+  //         type: "enum",
+  //       },
+  //       value: [
+  //         {
+  //           required: true,
+  //           message: "Value is required",
+  //           min: 1,
+  //           max: 9_999,
+  //           type: "number",
+  //         },
+  //       ],
+  //     },
+  //   },
+  // },
 
   computations: {
     type: "array",
@@ -159,7 +159,6 @@ const rules = reactive<FormRules<typeof data>>({
           enum: COMPUTATION_TYPE as any,
         },
         value: { required: true, type: "number", min: 1 },
-        kcal: { required: true, type: "number", min: 1 },
       },
     },
   },
@@ -314,7 +313,7 @@ onMounted(async () => {
         </section>
 
         <!-- Metrics -->
-        <section class="panel">
+        <!-- <section class="panel">
           <div class="panel-head">
             <h2 class="panel-title">Metrikalar</h2>
             <button type="button" class="add-btn" @click="handleAddMetric">
@@ -369,7 +368,7 @@ onMounted(async () => {
               </ElTableColumn>
             </ElTable>
           </ElFormItem>
-        </section>
+        </section> -->
 
         <!-- Computations -->
         <section class="panel">

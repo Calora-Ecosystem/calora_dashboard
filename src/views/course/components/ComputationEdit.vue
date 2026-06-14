@@ -8,6 +8,7 @@ import {
   ACTIVITIES,
   COMPUTATION_TYPE,
   COURSE_TYPES,
+  ENTITY_TYPES,
 } from "../../../constants/ApiContstants";
 import {
   ElBadge,
@@ -17,7 +18,6 @@ import {
   ElSelect,
   ElTable,
   ElTableColumn,
-  ElTag,
 } from "element-plus";
 import { useI18n } from "vue-i18n";
 
@@ -91,7 +91,7 @@ const props = withDefaults(
         </ElFormItem>
       </template>
     </ElTableColumn>
-    <ElTableColumn label="Kcal" prop="kcal">
+    <ElTableColumn label="Total Kcal" prop="kcal" v-if="props.type === ENTITY_TYPES[2]">
       <template #default="{ row }">
         <ElFormItem :prop="`computations.${row.id}.kcal`">
           <el-popover
