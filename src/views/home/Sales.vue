@@ -102,10 +102,10 @@ const inRange = (o: Order, r: { start: Date; end: Date }) => {
 const completedOrderStatus = ["Confirmed"];
 
 const periodOrders = computed(() =>
-  allOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus) && inRange(o, activeRange.value)),
+  allOrders.value.filter((o) => inRange(o, activeRange.value)),
 );
 const prevOrders = computed(() =>
-  allOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus) && inRange(o, prevRange.value)),
+  allOrders.value.filter((o) => inRange(o, prevRange.value)),
 );
 
 const setPeriod = (p: typeof period.value) => {
@@ -119,8 +119,8 @@ const growth = (cur: number, prev: number) =>
   prev ? Math.round(((cur - prev) / prev) * 100) : cur ? 100 : 0;
 
 const kpis = computed(() => {
-  const cur = periodOrders.value;
-  const prev = prevOrders.value;
+  const cur = periodOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus));
+  const prev = prevOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus));
   const revenue = sum(cur);
   const prevRevenue = sum(prev);
   const avg = cur.length ? revenue / cur.length : 0;
