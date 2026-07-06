@@ -1,21 +1,29 @@
 <script setup lang="ts">
 import {
   ElButton,
+  ElDatePicker,
+  ElDialog,
   ElDropdown,
   ElDropdownItem,
   ElDropdownMenu,
+  ElForm,
+  ElFormItem,
   ElIcon,
   ElInput,
   ElMessage,
+  ElMessageBox,
+  ElOption,
+  ElSelect,
+  ElSwitch,
   ElTableColumn,
 } from "element-plus";
 import { Plus } from "@element-plus/icons-vue";
-import { ref } from "vue";
+import { reactive, ref } from "vue";
 import { useUserStore } from "../../stores/userStore";
 import { makeFileUrl } from "../../integrations/axios";
 import { formatDate } from "../../utils/FormatHelper";
-import { ROLES } from "../../constants/ApiContstants";
-import type { EnumRole, GetAllUsersDto } from "../../@types/user";
+import { PLANS, ROLES } from "../../constants/ApiContstants";
+import type { EnumRole, EnumSPlans, GetAllUsersDto } from "../../@types/user";
 import Card from "../../components/ui/Card.vue";
 import DataTable from "../../components/shared/DataTable.vue";
 import CopyText from "../../components/shared/CopyText.vue";
@@ -93,6 +101,87 @@ const handleRemoveRole = async (row: GetAllUsersDto, role: EnumRole) => {
   if (fresh?.roles) {
     row.roles = fresh.roles;
     ElMessage.success(`"${role}" roli olib tashlandi`);
+  }
+};
+
+// ── Obunani tahrirlash / yaratish ────────────────────────────────
+const subDialog = ref(false);
+const subSaving = ref(false);
+const subRow = ref<GetAllUsersDto | null>(null);
+const subForm = reactive<{
+  plan: EnumSPlans;
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+}>({
+  plan: "Premium",
+  startsAt: "",
+  endsAt: "",
+  isActive: true,
+});
+
+const toIso = (d: Date) => d.toISOString();
+
+const openSubDialog = (row: GetAllUsersDto) => {
+  subRow.value = row;
+  const now = new Date();
+  const inMonth = new Date();
+  inMonth.setMonth(inMonth.getMonth() + 1);
+  subForm.plan = (row.subscription?.plan as EnumSPlans) ?? "Premium";
+  subForm.startsAt = row.subscription?.startsAt ?? toIso(now);
+  subForm.endsAt = row.subscription?.endsAt ?? toIso(inMonth);
+  subForm.isActive = row.subscription?.isActive ?? true;
+  subDialog.value = true;
+};
+
+const saveSubscription = async () => {
+  if (!subRow.value) return;
+  if (!subForm.startsAt || !subForm.endsAt) {
+    ElMessage.warning("Boshlanish va tugash sanasini tanlang");
+    return;
+  }
+  if (new Date(subForm.endsAt) <= new Date(subForm.startsAt)) {
+    ElMessage.warning("Tugash sanasi boshlanishdan keyin bo'lishi kerak");
+    return;
+  }
+  subSaving.value = true;
+  try {
+    const result = await userStore.upsertSubscription({
+      userId: subRow.value.id,
+      plan: subForm.plan,
+      startsAt: subForm.startsAt,
+      endsAt: subForm.endsAt,
+      isActive: subForm.isActive,
+    });
+    if (result) {
+      subRow.value.subscription = result;
+      ElMessage.success("Obuna saqlandi");
+      subDialog.value = false;
+    }
+  } finally {
+    subSaving.value = false;
+  }
+};
+
+const removeSubscription = async () => {
+  if (!subRow.value?.subscription) return;
+  try {
+    await ElMessageBox.confirm(
+      "Foydalanuvchining obunasini o'chirishni tasdiqlaysizmi?",
+      "Tasdiqlash",
+      { type: "warning", confirmButtonText: "O'chirish", cancelButtonText: "Bekor" },
+    );
+  } catch {
+    return;
+  }
+  subSaving.value = true;
+  try {
+    await userStore.deleteSubscription(subRow.value.id);
+    subRow.value.subscription = null;
+    ElMessage.success("Obuna o'chirildi");
+    subDialog.value = false;
+  } finally {
+    subSaving.value = false;
   }
 };
 </script>
@@ -235,6 +324,69 @@ const handleRemoveRole = async (row: GetAllUsersDto, role: EnumRole) => {
           <span class="text-[12.5px]" style="color: var(--text-muted)">{{ formatDate(row.createdAt) }}</span>
         </template>
       </ElTableColumn>
+
+      <ElTableColumn label="Amallar" min-width="120" align="right">
+        <template #default="{ row }">
+          <ElButton size="small" @click="openSubDialog(row)">
+            {{ row.subscription ? "Obunani tahrirlash" : "Obuna berish" }}
+          </ElButton>
+        </template>
+      </ElTableColumn>
     </DataTable>
   </Card>
+
+  <!-- Obunani yaratish / tahrirlash dialogi -->
+  <ElDialog
+    v-model="subDialog"
+    :title="subRow?.subscription ? 'Obunani tahrirlash' : 'Obuna berish'"
+    width="440px"
+  >
+    <p v-if="subRow" class="text-[13px] mb-4" style="color: var(--text-muted)">
+      Foydalanuvchi: <b>{{ subRow.name ?? "—" }}</b> (ID #{{ subRow.id }})
+    </p>
+    <ElForm label-position="top">
+      <ElFormItem label="Tarif">
+        <ElSelect v-model="subForm.plan" style="width: 100%">
+          <ElOption v-for="p in PLANS" :key="p" :label="p" :value="p" />
+        </ElSelect>
+      </ElFormItem>
+      <ElFormItem label="Boshlanish sanasi">
+        <ElDatePicker
+          v-model="subForm.startsAt"
+          type="datetime"
+          value-format="YYYY-MM-DDTHH:mm:ss[Z]"
+          style="width: 100%"
+          placeholder="Sanani tanlang"
+        />
+      </ElFormItem>
+      <ElFormItem label="Tugash sanasi">
+        <ElDatePicker
+          v-model="subForm.endsAt"
+          type="datetime"
+          value-format="YYYY-MM-DDTHH:mm:ss[Z]"
+          style="width: 100%"
+          placeholder="Sanani tanlang"
+        />
+      </ElFormItem>
+      <ElFormItem label="Faol">
+        <ElSwitch v-model="subForm.isActive" />
+      </ElFormItem>
+    </ElForm>
+    <template #footer>
+      <div class="flex items-center justify-between w-full">
+        <ElButton
+          v-if="subRow?.subscription"
+          type="danger"
+          plain
+          :loading="subSaving"
+          @click="removeSubscription"
+        >O'chirish</ElButton>
+        <span v-else></span>
+        <div class="flex gap-2">
+          <ElButton @click="subDialog = false">Bekor</ElButton>
+          <ElButton type="primary" :loading="subSaving" @click="saveSubscription">Saqlash</ElButton>
+        </div>
+      </div>
+    </template>
+  </ElDialog>
 </template>

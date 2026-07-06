@@ -2,8 +2,21 @@ import { defineStore } from "pinia";
 import { AxiosError } from "axios";
 import { axios } from "../integrations/axios";
 import type { ApiBaseResponse } from "../@types/common";
-import type { EnumRole, GetAllUsersDto } from "../@types/user";
+import type {
+  EnumRole,
+  EnumSPlans,
+  GetAllUsersDto,
+  SubscriptionDto,
+} from "../@types/user";
 import { useApiCallStore } from "./apiCallStore";
+
+export type UpsertSubscriptionDto = {
+  userId: number;
+  plan: EnumSPlans;
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+};
 
 export const useUserStore = defineStore("user", () => {
   const { execute } = useApiCallStore();
@@ -74,5 +87,29 @@ export const useUserStore = defineStore("user", () => {
     });
   };
 
-  return { loadUsersPaged, getUserById, updateRoles };
+  // ── Subscriptions (admin-managed) ───────────────────────────────
+  // Obunani to'lov oqimisiz to'g'ridan-to'g'ri admin tomonidan
+  // yaratish/tahrirlash. Bitta foydalanuvchiga bitta obuna (upsert).
+  const upsertSubscription = async (
+    dto: UpsertSubscriptionDto,
+  ): Promise<SubscriptionDto | null> => {
+    return await execute(async () => {
+      const response = await axios.post("/dashboard/subscriptions", dto);
+      return response.data?.content ?? null;
+    });
+  };
+
+  const deleteSubscription = async (userId: number): Promise<void> => {
+    await execute(async () => {
+      await axios.delete(`/dashboard/subscriptions/${userId}`);
+    });
+  };
+
+  return {
+    loadUsersPaged,
+    getUserById,
+    updateRoles,
+    upsertSubscription,
+    deleteSubscription,
+  };
 });
