@@ -34,6 +34,11 @@ type Order = {
   amount: number;
   createdAt: string;
   orderStatus: string;
+  paymentProvider: string;
+  coupon?: {
+    id: number;
+    code: string;
+  }
 };
 
 const allOrders = ref<Order[]>([]);
@@ -392,6 +397,8 @@ const resetPage = () => (page.value = 1);
               <th class="th">ID</th>
               <th class="th">Mijoz</th>
               <th class="th">Tarif</th>
+              <th class="th">Provider</th>
+              <th class="th">Coupon</th>
               <th class="th text-right">Summa</th>
               <th class="th">Sana</th>
               <th class="th">Holat</th>
@@ -402,7 +409,12 @@ const resetPage = () => (page.value = 1);
               <td class="td" style="color: var(--text-faint)">#{{ o.id }}</td>
               <td class="td font-medium" style="color: var(--text)">{{ o.userName }}</td>
               <td class="td" style="color: var(--text-muted)">{{ o.plan }}</td>
-              <td class="td text-right font-semibold" style="color: var(--text)">{{ formatMoney(o.amount, 'standard') }}</td>
+              <td class="td" style="color: var(--text-muted)">{{ o.paymentProvider }}</td>
+              <td class="td" style="color: var(--text-muted)">{{ o.coupon?.code || '-' }}</td>
+              <td class="td text-right font-semibold" style="color: var(--text)">
+                {{ formatMoney(o.amount, 'standard') }}
+
+                </td>
               <td class="td" style="color: var(--text-muted)">{{ formatDate(o.createdAt) }}</td>
               <td class="td">
                 <span class="inline-flex px-2.5 py-1 rounded-full text-[11.5px] font-semibold capitalize"
