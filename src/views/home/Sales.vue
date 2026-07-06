@@ -159,7 +159,7 @@ const buckets = computed(() => {
       map.set(keyOf(new Date(t)), 0);
     }
   }
-  for (const o of periodOrders.value) {
+  for (const o of periodOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus))) {
     const k = keyOf(new Date(o.createdAt));
     map.set(k, (map.get(k) ?? 0) + (Number(o.amount) || 0));
   }
