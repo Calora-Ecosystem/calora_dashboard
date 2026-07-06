@@ -99,11 +99,13 @@ const inRange = (o: Order, r: { start: Date; end: Date }) => {
   return t >= r.start.getTime() && t <= r.end.getTime();
 };
 
+const completedOrderStatus = ["Confirmed"];
+
 const periodOrders = computed(() =>
-  allOrders.value.filter((o) => o.orderStatus == "Confirmed" && inRange(o, activeRange.value)),
+  allOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus) && inRange(o, activeRange.value)),
 );
 const prevOrders = computed(() =>
-  allOrders.value.filter((o) => o.orderStatus == "Confirmed" && inRange(o, prevRange.value)),
+  allOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus) && inRange(o, prevRange.value)),
 );
 
 const setPeriod = (p: typeof period.value) => {
