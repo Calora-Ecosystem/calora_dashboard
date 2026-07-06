@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElButton, ElImage, ElUpload, ElIcon } from "element-plus";
+import { ElButton, ElImage, ElUpload, ElIcon, ElProgress, ElMessage } from "element-plus";
 import { DeleteFilled } from "@element-plus/icons-vue";
 import { makeFileUrl } from "../../integrations/axios";
 import { useAppStore } from "../../stores/appStore";
@@ -33,6 +33,10 @@ const model = defineModel<ModelType>({ required: false, default: null });
 
 const uploadedUrls = ref<string[]>([]);
 
+// Upload progress state
+const uploading = ref(false);
+const progress = ref(0);
+
 // helpers
 const normalizeAccept = computed(() =>
   Array.isArray(props.accept) ? props.accept.join(",") : props.accept,
@@ -57,8 +61,13 @@ const toAbsoluteUrl = (path: string) =>
     : makeFileUrl(path);
 
 const handleChoose = (file: any, fileList: any[]) => {
-  // Element Plus triggers onChange for each status change. We only act on success.
-  if (file.status === "success") {
+  // Element Plus triggers onChange for each status change.
+  if (file.status === "ready") {
+    uploading.value = true;
+    progress.value = 0;
+  } else if (file.status === "success") {
+    uploading.value = false;
+    progress.value = 100;
     const url = file.response?.content;
     if (url) {
       if (props.multiple) {
@@ -68,7 +77,17 @@ const handleChoose = (file: any, fileList: any[]) => {
       }
       updateModelFromUrls();
     }
+  } else if (file.status === "fail") {
+    uploading.value = false;
+    progress.value = 0;
+    ElMessage.error("Fayl yuklashda xatolik yuz berdi");
   }
+};
+
+// Fired continuously while the file is being uploaded.
+const handleProgress = (evt: any) => {
+  uploading.value = true;
+  progress.value = Math.round(evt.percent ?? 0);
 };
 
 const removeItem = (rawUrl: string) => {
@@ -115,9 +134,16 @@ const previewItems = computed(() =>
     :multiple="props.multiple"
     :accept="normalizeAccept"
     @change="handleChoose"
+    @progress="handleProgress"
   >
     <div class="w-full flex flex-col items-stretch justify-start gap-2 p-2">
-      <template v-if="previewItems.length === 0">
+      <!-- Upload progress -->
+      <div v-if="uploading" class="w-full py-2" @click.stop>
+        <ElProgress :percentage="progress" :stroke-width="8" :text-inside="true" status="success" />
+        <p class="text-[11px] text-gray-500 mt-1 text-center">Yuklanmoqda... {{ progress }}%</p>
+      </div>
+
+      <template v-if="previewItems.length === 0 && !uploading">
         <SvgIcon icon="upload-image.svg" />
       </template>
 
@@ -158,7 +184,7 @@ const previewItems = computed(() =>
     </div>
     <template #trigger>
       <div>
-        <ElButton type="success" plain :loading="appStore.isLoading">
+        <ElButton type="success" plain :loading="appStore.isLoading || uploading">
           <span class="mr-2">Choose File</span>
           <SvgIcon icon="icons/arrow-right.svg" />
         </ElButton>
