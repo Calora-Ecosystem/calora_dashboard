@@ -12,7 +12,6 @@ import {
   Filler,
 } from "chart.js";
 import { Line } from "vue-chartjs";
-import { ElSelect, ElOption } from "element-plus";
 import Card from "./Card.vue";
 import { useThemeStore } from "../../stores/themeStore";
 import { useDashboardStore } from "../../stores/dashboardStore";
@@ -24,25 +23,16 @@ ChartJS.register(
 const themeStore = useThemeStore();
 const dashboardStore = useDashboardStore();
 
-const years = [2023, 2024, 2025];
-const selectedYear = ref(2025);
-
 const monthlyLabels = ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg", "Sen", "Okt", "Noy", "Dek"];
 
-const salesDataByYear = {
-  2023: [30, 40, 35, 50, 45, 60, 55, 65, 70, 60, 75, 80],
-  2024: [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 100],
-  2025: [40, 52, 48, 61, 55, 72, 68, 80, 76, 90, 88, 98],
-};
-
+// Backend oy raqami (1-12) → summa dict qaytaradi. Har bir yorliqqa
+// mos oyni indeks bo'yicha joylashtiramiz (bo'sh oylar 0).
 const seriesData = computed(() => {
-  const real = dashboardStore.salesMonthlySummary;
-  if (real && typeof real === "object") {
-    const vals = Object.values(real);
-    if (vals.length) return vals;
-  }
-  return salesDataByYear[selectedYear.value];
+  const real = dashboardStore.salesMonthlySummary ?? {};
+  return monthlyLabels.map((_, i) => Number(real[String(i + 1)] ?? 0));
 });
+
+const hasData = computed(() => seriesData.value.some((v) => v > 0));
 
 const cssVar = (name) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -115,11 +105,7 @@ const chartOptions = computed(() => ({
 
 onMounted(async () => {
   refreshThemeColors();
-  try {
-    await dashboardStore.loadSalesMonthlySummary();
-  } catch {
-    // Endpoint may fail; fall back to demo series silently
-  }
+  await dashboardStore.loadSalesMonthlySummary();
 });
 
 watch(() => themeStore.mode, () => setTimeout(refreshThemeColors, 50));
@@ -131,15 +117,18 @@ watch(() => themeStore.mode, () => setTimeout(refreshThemeColors, 50));
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
           <h2 class="font-bold text-[17px]" style="color: var(--text)">Savdolar dinamikasi</h2>
-          <p class="text-[12.5px] mt-0.5" style="color: var(--text-faint)">Oylik tushum ko'rsatkichlari</p>
+          <p class="text-[12.5px] mt-0.5" style="color: var(--text-faint)">{{ new Date().getFullYear() }}-yil oylik tushum (so'm)</p>
         </div>
-        <el-select v-model="selectedYear" class="!w-32">
-          <el-option v-for="year in years" :key="year" :label="year" :value="year" />
-        </el-select>
+        <span class="text-[11px] font-medium px-2 py-0.5 rounded-md self-start" style="background: var(--success-soft); color: var(--success)">
+          real ma'lumot
+        </span>
       </div>
     </template>
-    <div class="h-[300px] sm:h-[340px]">
+    <div class="h-[300px] sm:h-[340px] relative">
       <Line :data="chartData" :options="chartOptions" />
+      <div v-if="!hasData" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span class="text-[13px]" style="color: var(--text-faint)">Bu yil uchun savdo ma'lumoti yo'q</span>
+      </div>
     </div>
   </Card>
 </template>
