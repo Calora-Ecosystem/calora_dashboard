@@ -10,9 +10,14 @@ import {
   LinearScale,
 } from "chart.js";
 import { Bar } from "vue-chartjs";
+import { ElDatePicker, ElRadioGroup, ElRadioButton, ElButton } from "element-plus";
 import Card from "./Card.vue";
-import { useDashboardStore } from "../../stores/dashboardStore";
+import {
+  useDashboardStore,
+  type UserStatisticsRange,
+} from "../../stores/dashboardStore";
 import { useThemeStore } from "../../stores/themeStore";
+import { formatDate } from "../../utils/FormatHelper";
 
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
 
@@ -126,10 +131,121 @@ const chartOptions = computed(() => ({
 }));
 
 const hasTrend = computed(() => trend.value.some((d) => d.count > 0));
+
+// ── Sana bo'yicha filtr (bitta kun / A→B oralig'i) ────────────────
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const filterMode = ref<"day" | "range">("day");
+const singleDay = ref<string>(toDateStr(new Date()));
+const dateRange = ref<[string, string] | null>(null);
+const rangeStats = ref<UserStatisticsRange>();
+const rangeLoading = ref(false);
+
+const canApply = computed(() =>
+  filterMode.value === "day"
+    ? !!singleDay.value
+    : !!(dateRange.value && dateRange.value[0] && dateRange.value[1]),
+);
+
+const applyFilter = async () => {
+  if (!canApply.value) return;
+  const [from, to] =
+    filterMode.value === "day"
+      ? [singleDay.value, singleDay.value]
+      : [dateRange.value![0], dateRange.value![1]];
+  rangeLoading.value = true;
+  try {
+    rangeStats.value = await dashboardStore.loadUserStatisticsRange(from, to);
+  } finally {
+    rangeLoading.value = false;
+  }
+};
+
+const clearFilter = () => {
+  rangeStats.value = undefined;
+  dateRange.value = null;
+  singleDay.value = toDateStr(new Date());
+};
+
+const rangeCards = computed(() => {
+  const r = rangeStats.value;
+  if (!r) return [];
+  return [
+    { label: "Ro'yxatdan o'tgan", value: r.registered, color: "var(--brand-strong)" },
+    { label: "Ilovaga kirgan", value: r.activeUsers, color: "var(--info)" },
+    { label: "Yangi premium", value: r.newPremium, color: "var(--success)" },
+    { label: "Jami kirishlar", value: r.signInCount, color: "var(--purple)" },
+  ];
+});
+
+const rangeLabel = computed(() => {
+  const r = rangeStats.value;
+  if (!r) return "";
+  const f = formatDate(r.from);
+  const t = formatDate(r.to);
+  return f === t ? f : `${f} — ${t}`;
+});
 </script>
 
 <template>
   <div class="space-y-5">
+    <!-- Sana bo'yicha filtr -->
+    <Card title="Sana bo'yicha statistika" subtitle="Bitta kun yoki oraliq tanlab ko'rib chiqing">
+      <div class="flex flex-wrap items-end gap-3">
+        <ElRadioGroup v-model="filterMode" size="large">
+          <ElRadioButton label="day">Bitta kun</ElRadioButton>
+          <ElRadioButton label="range">Oraliq (A → B)</ElRadioButton>
+        </ElRadioGroup>
+
+        <ElDatePicker
+          v-if="filterMode === 'day'"
+          v-model="singleDay"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="Kunni tanlang"
+          size="large"
+          style="width: 200px"
+        />
+        <ElDatePicker
+          v-else
+          v-model="dateRange"
+          type="daterange"
+          value-format="YYYY-MM-DD"
+          range-separator="→"
+          start-placeholder="Boshi"
+          end-placeholder="Oxiri"
+          size="large"
+          unlink-panels
+        />
+
+        <ElButton type="primary" size="large" :loading="rangeLoading" :disabled="!canApply" @click="applyFilter">
+          Ko'rsatish
+        </ElButton>
+        <ElButton v-if="rangeStats" size="large" @click="clearFilter">Tozalash</ElButton>
+      </div>
+
+      <!-- Filtr natijalari -->
+      <div v-if="rangeStats" class="mt-5">
+        <p class="text-[13px] font-semibold mb-3" style="color: var(--text-muted)">
+          {{ rangeLabel }}
+        </p>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div
+            v-for="c in rangeCards"
+            :key="c.label"
+            class="p-4 rounded-2xl"
+            style="background: var(--surface-2); border: 1px solid var(--border)"
+          >
+            <p class="text-[12.5px] font-medium" style="color: var(--text-muted)">{{ c.label }}</p>
+            <p class="text-[26px] font-bold mt-1.5 leading-none tracking-tight" :style="{ color: c.color }">
+              {{ c.value.toLocaleString() }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Card>
+
     <!-- Yangi foydalanuvchi kartochkalari -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
       <div v-for="c in cards" :key="c.label" class="app-card p-5">
