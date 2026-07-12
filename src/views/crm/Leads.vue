@@ -29,16 +29,30 @@ const dragId = ref<number | null>(null);
 const dragFrom = ref<LeadStatus | null>(null);
 const dragOver = ref<LeadStatus | null>(null);
 
+// Ustuvorlik tartibi: High > Medium > Low > Closed.
+const PRIORITY_RANK: Record<string, number> = { High: 3, Medium: 2, Low: 1, Closed: 0 };
+
+// priority → qiziqish (obuna sahifasini ochishlar soni) → ball → oxirgi faollik.
+const sortLeads = (leads: LeadDto[]): LeadDto[] =>
+  [...leads].sort((a, b) => {
+    const p = (PRIORITY_RANK[b.priority] ?? 0) - (PRIORITY_RANK[a.priority] ?? 0);
+    if (p !== 0) return p;
+    const v = (b.subscriptionOpenedCount ?? 0) - (a.subscriptionOpenedCount ?? 0);
+    if (v !== 0) return v;
+    const s = (b.score ?? 0) - (a.score ?? 0);
+    if (s !== 0) return s;
+    return +new Date(b.lastActivity) - +new Date(a.lastActivity);
+  });
+
 const loadColumn = async (status: LeadStatus) => {
   const res = await crmStore.loadLeads({
     skip: 0,
     take: 100,
     status,
     search: search.value || undefined,
-    sortPropName: "score",
-    sortDirection: "Descending",
+    // Tartib backendda: priority → qiziqish (obuna ochishlar) → ball.
   });
-  columns[status] = res.content ?? [];
+  columns[status] = sortLeads(res.content ?? []);
 };
 
 const loadAll = async () => {

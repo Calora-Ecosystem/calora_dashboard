@@ -25,6 +25,18 @@ export type UserStatistics = {
   monthlyRegistrations: Record<string, number>;
 };
 
+export type UserStatisticsRange = {
+  from: string;
+  to: string;
+  registered: number;
+  activeUsers: number;
+  signInCount: number;
+  newPremium: number;
+  dailyRegistrations: DailyCount[];
+  dailyActiveUsers: DailyCount[];
+  dailyPremium: DailyCount[];
+};
+
 export const useDashboardStore = defineStore("dashboard", () => {
   const { execute } = useApiCallStore();
 
@@ -51,6 +63,18 @@ export const useDashboardStore = defineStore("dashboard", () => {
     await execute(async () => {
       const response = await axios.get("/dashboard/users/statistics");
       userStatistics.value = response.data.content;
+    });
+  };
+
+  const loadUserStatisticsRange = async (
+    from: string,
+    to: string,
+  ): Promise<UserStatisticsRange | undefined> => {
+    return await execute(async () => {
+      const response = await axios.get("/dashboard/users/statistics/range", {
+        params: { from, to },
+      });
+      return response.data.content as UserStatisticsRange;
     });
   };
 
@@ -104,6 +128,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     loadOverallSummary,
     loadSalesMonthlySummary,
     loadUserStatistics,
+    loadUserStatisticsRange,
     loadSubscriptionOrders,
     loadRevenueByPlan,
   };
