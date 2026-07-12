@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -15,19 +15,26 @@ ChartJS.register(ArcElement, Tooltip, Legend, DoughnutController);
 
 const dashboardStore = useDashboardStore();
 
-const total = computed(() => dashboardStore.overallSummary?.totalUsers ?? 0);
+onMounted(async () => {
+  await dashboardStore.loadUserStatistics();
+});
 
-// Proportional breakdown of the user base
+const stats = computed(() => dashboardStore.userStatistics);
+const total = computed(() => stats.value?.totalUsers ?? 0);
+
+// Obuna kesimi: real backend ma'lumoti (premium/pro faol obunalar va bepul).
+const planNames: Record<number, string> = { 1: "Bepul", 2: "Premium", 3: "Pro" };
+const planColors: Record<number, string> = { 1: "#94a3b8", 2: "#7cc243", 3: "#7a5af8" };
+
 const segments = computed(() => {
-  const t = total.value || 0;
-  const premium = Math.round(t * 0.22);
-  const active = Math.round(t * 0.51);
-  const inactive = Math.max(t - premium - active, 0);
-  return [
-    { label: "Premium", value: premium, color: "#7cc243" },
-    { label: "Faol", value: active, color: "#2e90fa" },
-    { label: "Nofaol", value: inactive, color: "#94a3b8" },
-  ];
+  const breakdown = stats.value?.planBreakdown ?? [];
+  return breakdown
+    .map((b) => ({
+      label: planNames[b.plan] ?? "Boshqa",
+      value: b.count,
+      color: planColors[b.plan] ?? "#2e90fa",
+    }))
+    .filter((s) => s.value > 0);
 });
 
 const chartData = computed(() => ({
@@ -56,7 +63,12 @@ const pct = (v: number) => (total.value ? Math.round((v / total.value) * 100) : 
 </script>
 
 <template>
-  <Card title="Foydalanuvchilar holati" subtitle="Bazaning taqsimoti">
+  <Card title="Foydalanuvchilar holati" subtitle="Obuna bo'yicha taqsimot">
+    <template #actions>
+      <span class="text-[11px] font-medium px-2 py-0.5 rounded-md" style="background: var(--success-soft); color: var(--success)">
+        real ma'lumot
+      </span>
+    </template>
     <div class="relative h-[200px] mt-2">
       <Doughnut :data="chartData" :options="chartOptions" />
       <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">

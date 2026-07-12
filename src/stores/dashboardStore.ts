@@ -3,12 +3,35 @@ import { useApiCallStore } from "./apiCallStore";
 import { axios } from "../integrations/axios";
 import { ref } from "vue";
 
+export type PlanBreakdown = { plan: number; count: number };
+export type DailyCount = { date: string; count: number };
+
+export type UserStatistics = {
+  totalUsers: number;
+  newToday: number;
+  newThisWeek: number;
+  newThisMonth: number;
+  newTodayGrows: number;
+  newThisWeekGrows: number;
+  newThisMonthGrows: number;
+  activeToday: number;
+  activeThisWeek: number;
+  activeThisMonth: number;
+  premiumUsers: number;
+  freeUsers: number;
+  planBreakdown: PlanBreakdown[];
+  dailyRegistrations: DailyCount[];
+  dailyActiveUsers: DailyCount[];
+  monthlyRegistrations: Record<string, number>;
+};
+
 export const useDashboardStore = defineStore("dashboard", () => {
   const { execute } = useApiCallStore();
 
   const overallSummary = ref();
-  const salesMonthlySummary = ref<{ ["string"]: number }>();
+  const salesMonthlySummary = ref<Record<string, number>>();
   const subscriptionOrders = ref();
+  const userStatistics = ref<UserStatistics>();
 
   const loadOverallSummary = async () => {
     await execute(async () => {
@@ -19,12 +42,15 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
   const loadSalesMonthlySummary = async () => {
     await execute(async () => {
-      // Backend may return 500 for this endpoint; keep it silent and let the
-      // chart fall back to its demo series without surfacing a toast.
-      const response = await axios.get("/dashboard/sales/summary", {
-        silent: true,
-      } as any);
+      const response = await axios.get("/dashboard/sales/summary");
       salesMonthlySummary.value = response.data.content;
+    });
+  };
+
+  const loadUserStatistics = async () => {
+    await execute(async () => {
+      const response = await axios.get("/dashboard/users/statistics");
+      userStatistics.value = response.data.content;
     });
   };
 
@@ -73,9 +99,11 @@ export const useDashboardStore = defineStore("dashboard", () => {
     overallSummary,
     salesMonthlySummary,
     subscriptionOrders,
+    userStatistics,
     revenueByPlan,
     loadOverallSummary,
     loadSalesMonthlySummary,
+    loadUserStatistics,
     loadSubscriptionOrders,
     loadRevenueByPlan,
   };

@@ -27,6 +27,7 @@ import type { EnumRole, EnumSPlans, GetAllUsersDto } from "../../@types/user";
 import Card from "../../components/ui/Card.vue";
 import DataTable from "../../components/shared/DataTable.vue";
 import CopyText from "../../components/shared/CopyText.vue";
+import UserStatsPanel from "../../components/ui/UserStatsPanel.vue";
 
 const userStore = useUserStore();
 
@@ -187,6 +188,10 @@ const removeSubscription = async () => {
 </script>
 
 <template>
+  <div class="mb-6">
+    <UserStatsPanel />
+  </div>
+
   <Card title="Foydalanuvchilar" subtitle="Barcha ro'yxatdan o'tgan foydalanuvchilar ro'yxati">
     <!-- Toolbar -->
     <div class="flex flex-wrap items-center gap-2.5 mb-5">
