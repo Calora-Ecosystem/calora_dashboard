@@ -20,9 +20,9 @@ import {
 const crmStore = useCrmStore();
 const router = useRouter();
 
-const columns = reactive<Record<LeadStatus, LeadDto[]>>({
-  New: [], Assigned: [], Contacted: [], Interested: [], FollowUp: [], Won: [], Lost: [],
-});
+const columns = reactive<Record<LeadStatus, LeadDto[]>>(
+  Object.fromEntries(KANBAN_STATUSES.map((s) => [s, []])) as Record<LeadStatus, LeadDto[]>,
+);
 const loading = ref(false);
 const search = ref("");
 const dragId = ref<number | null>(null);
