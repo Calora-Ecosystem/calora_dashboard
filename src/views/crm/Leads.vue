@@ -12,6 +12,7 @@ import {
   KANBAN_STATUSES,
   STATUS_META,
   TEMP_META,
+  canMoveLead,
   initials,
   avatarHue,
   dueLabel,
@@ -79,6 +80,12 @@ const onDrop = async (to: LeadStatus) => {
   dragFrom.value = null;
   if (id == null || from == null || from === to) return;
 
+  // Pipeline gate: "Yangi" leadni faqat "Bog'lanish"ga o'tkazish mumkin.
+  if (!canMoveLead(from, to)) {
+    ElMessage.warning(`Avval leadni "${STATUS_META.Contacted.label}"ga o'tkazing`);
+    return;
+  }
+
   const idx = columns[from].findIndex((l) => l.id === id);
   if (idx === -1) return;
   const lead = columns[from][idx];
@@ -106,10 +113,10 @@ const onDrop = async (to: LeadStatus) => {
     ElMessage.success(`"${lead.userName ?? "Lead"}" → ${STATUS_META[to].label}`);
     if (to === "Won" || to === "Lost") await loadColumn(to);
   } catch {
+    // Revert; the API layer already shows the reason (e.g. "user hasn't purchased").
     columns[to] = columns[to].filter((l) => l.id !== id);
     lead.status = from;
     columns[from].splice(idx, 0, lead);
-    ElMessage.error("Holatni o'zgartirib bo'lmadi");
   }
 };
 

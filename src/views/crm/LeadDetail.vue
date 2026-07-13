@@ -23,6 +23,7 @@ import {
   STATUS_META,
   TEMP_META,
   PAYMENT_META,
+  canMoveLead,
   initials,
   avatarHue,
   relativeTime,
@@ -145,6 +146,13 @@ const setFollowUp = async () => {
 };
 
 const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] : null));
+
+// Faqat ruxsat etilgan holatlar (Yangi → faqat Bog'lanish) + joriy holat.
+const statusOptions = computed(() =>
+  lead.value
+    ? LEAD_STATUSES.filter((s) => s === lead.value!.status || canMoveLead(lead.value!.status, s))
+    : [],
+);
 </script>
 
 <template>
@@ -227,7 +235,7 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
           <div class="actions-row">
             <button class="act-btn primary" @click="contact"><Icon name="phone" :size="15" /> Bog'lanildi</button>
             <ElSelect :model-value="lead.status" placeholder="Holat" class="status-select" @change="changeStatus">
-              <ElOption v-for="s in LEAD_STATUSES" :key="s" :value="s" :label="STATUS_META[s].label" />
+              <ElOption v-for="s in statusOptions" :key="s" :value="s" :label="STATUS_META[s].label" />
             </ElSelect>
           </div>
 
