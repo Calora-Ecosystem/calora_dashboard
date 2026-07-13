@@ -10,7 +10,8 @@ export const STATUS_META: Record<
   { label: string; color: string; soft: string; icon: string }
 > = {
   New: { label: "Yangi", color: "var(--info)", soft: "var(--info-soft)", icon: "sparkles" },
-  FollowUp: { label: "Qayta aloqa", color: "var(--brand-strong)", soft: "var(--brand-soft)", icon: "phone" },
+  Contacted: { label: "Bog'lanish", color: "var(--brand-strong)", soft: "var(--brand-soft)", icon: "phone" },
+  FollowUp: { label: "Qayta aloqa", color: "#0ea5e9", soft: "rgba(14,165,233,0.12)", icon: "refresh" },
   Interested: { label: "O'ylab ko'radi", color: "var(--warning)", soft: "var(--warning-soft)", icon: "zap" },
   PaymentInProgress: { label: "To'lov jarayonda", color: "#9333ea", soft: "rgba(147,51,234,0.12)", icon: "credit-card" },
   Won: { label: "Sotuv", color: "var(--success)", soft: "var(--success-soft)", icon: "check-circle" },
@@ -20,12 +21,23 @@ export const STATUS_META: Record<
 // Kanban column order (chapdan o'ngga pipeline).
 export const KANBAN_STATUSES: LeadStatus[] = [
   "New",
+  "Contacted",
   "FollowUp",
   "Interested",
   "PaymentInProgress",
   "Won",
   "Lost",
 ];
+
+/**
+ * Pipeline gate: a "Yangi" (New) lead can only move to "Bog'lanish" (Contacted) first;
+ * only then can it progress. Nothing moves back to New.
+ */
+export const canMoveLead = (from: LeadStatus, to: LeadStatus): boolean => {
+  if (to === "New") return false;
+  if (from === "New") return to === "Contacted";
+  return true;
+};
 
 export const TEMP_META: Record<
   LeadTemperature,
