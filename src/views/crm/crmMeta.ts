@@ -10,21 +10,19 @@ export const STATUS_META: Record<
   { label: string; color: string; soft: string; icon: string }
 > = {
   New: { label: "Yangi", color: "var(--info)", soft: "var(--info-soft)", icon: "sparkles" },
-  Assigned: { label: "Biriktirilgan", color: "var(--text-muted)", soft: "var(--surface-2)", icon: "user" },
-  Contacted: { label: "Bog'lanilgan", color: "var(--brand-strong)", soft: "var(--brand-soft)", icon: "phone" },
-  Interested: { label: "Qiziqqan", color: "var(--warning)", soft: "var(--warning-soft)", icon: "zap" },
-  FollowUp: { label: "Follow Up", color: "#9333ea", soft: "rgba(147,51,234,0.12)", icon: "clock" },
+  FollowUp: { label: "Qayta aloqa", color: "var(--brand-strong)", soft: "var(--brand-soft)", icon: "phone" },
+  Interested: { label: "O'ylab ko'radi", color: "var(--warning)", soft: "var(--warning-soft)", icon: "zap" },
+  PaymentInProgress: { label: "To'lov jarayonda", color: "#9333ea", soft: "rgba(147,51,234,0.12)", icon: "credit-card" },
   Won: { label: "Sotuv", color: "var(--success)", soft: "var(--success-soft)", icon: "check-circle" },
   Lost: { label: "Yo'qotilgan", color: "var(--danger)", soft: "var(--danger-soft)", icon: "x" },
 };
 
-// Kanban column order.
+// Kanban column order (chapdan o'ngga pipeline).
 export const KANBAN_STATUSES: LeadStatus[] = [
   "New",
-  "Assigned",
-  "Contacted",
-  "Interested",
   "FollowUp",
+  "Interested",
+  "PaymentInProgress",
   "Won",
   "Lost",
 ];

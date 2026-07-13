@@ -43,10 +43,9 @@ export const LEAD_PRIORITIES = ["Low", "Medium", "High", "Closed"] as const;
 
 export const LEAD_STATUSES = [
   "New",
-  "Assigned",
-  "Contacted",
-  "Interested",
   "FollowUp",
+  "Interested",
+  "PaymentInProgress",
   "Won",
   "Lost",
 ] as const;
