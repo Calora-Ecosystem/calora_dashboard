@@ -38,6 +38,10 @@ export type LeadDto = {
 };
 
 export type LeadDetailDto = LeadDto & {
+  workoutStartedCount: number;
+  waterTrackedCount: number;
+  foodTrackedCount: number;
+  appOpenCount: number;
   paymentProvider: PaymentProvider | null;
   wonAmount: number | null;
   wonAt: string | null;
