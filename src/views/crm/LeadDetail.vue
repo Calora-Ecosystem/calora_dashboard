@@ -182,7 +182,6 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
             <div class="info"><span>Vazn</span><b>{{ lead.weight ? lead.weight + " kg" : "—" }}</b></div>
             <div class="info"><span>Bo'y</span><b>{{ lead.height ? lead.height + " sm" : "—" }}</b></div>
             <div class="info"><span>Maqsad</span><b>{{ lead.purpose ? (purposeLabels[lead.purpose] ?? lead.purpose) : "—" }}</b></div>
-            <div class="info"><span>Obuna ko'rdi</span><b>{{ lead.subscriptionOpenedCount }} marta</b></div>
             <div class="info"><span>Ro'yxatdan</span><b>{{ relativeTime(lead.createdAt) }}</b></div>
             <div class="info"><span>Oxirgi faollik</span><b>{{ relativeTime(lead.lastActivity) }}</b></div>
           </div>
@@ -199,6 +198,27 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
                 {{ PAYMENT_META[lead.paymentProvider].label }}
               </span>
             </div>
+          </div>
+        </section>
+
+        <section class="app-card block">
+          <h2 class="sec-title"><Icon name="activity" :size="16" /> Faollik ko'rsatkichlari</h2>
+          <div class="hl-metric" :class="{ won: lead.purchased }">
+            <span class="hl-icon"><Icon name="eye" :size="20" /></span>
+            <div class="min-w-0 grow">
+              <div class="hl-label">Premium sahifasini ochgan</div>
+              <div class="hl-value">{{ lead.subscriptionOpenedCount }} marta</div>
+            </div>
+            <span v-if="lead.purchased" class="hl-tag">
+              <Icon name="check-circle" :size="13" />
+              {{ lead.subscriptionOpenedCount || 1 }} urinishda sotib oldi
+            </span>
+          </div>
+          <div class="eng-grid">
+            <div class="eng"><span class="eng-ic"><Icon name="smartphone" :size="15" /></span><b>{{ lead.appOpenCount ?? 0 }}</b><small>Ilovaga kirdi</small></div>
+            <div class="eng"><span class="eng-ic"><Icon name="zap" :size="15" /></span><b>{{ lead.workoutStartedCount ?? 0 }}</b><small>Mashg'ulot</small></div>
+            <div class="eng"><span class="eng-ic"><Icon name="activity" :size="15" /></span><b>{{ lead.waterTrackedCount ?? 0 }}</b><small>Suv tracking</small></div>
+            <div class="eng"><span class="eng-ic"><Icon name="activity" :size="15" /></span><b>{{ lead.foodTrackedCount ?? 0 }}</b><small>Ovqat tracking</small></div>
           </div>
         </section>
 
@@ -316,6 +336,33 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
 .pay-kind.platform { background: var(--warning-soft); color: var(--warning); }
 .pay-kind.promo { background: rgba(147,51,234,0.12); color: #9333ea; }
 .block { padding: 20px; }
+.hl-metric {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--brand-soft); border: 1px solid var(--brand);
+  border-radius: 13px; padding: 13px 15px; margin-bottom: 12px;
+}
+.hl-metric.won { background: var(--success-soft); border-color: var(--success); }
+.hl-icon {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface); color: var(--brand-strong);
+}
+.hl-metric.won .hl-icon { color: var(--success); }
+.hl-label { font-size: 12px; color: var(--text-muted); }
+.hl-value { font-size: 20px; font-weight: 800; color: var(--text); letter-spacing: -0.4px; }
+.hl-tag {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  font-size: 11.5px; font-weight: 700; color: var(--success);
+  background: var(--surface); border-radius: 999px; padding: 5px 10px;
+}
+.eng-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
+.eng {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: var(--surface-2); border-radius: 11px; padding: 12px 8px; text-align: center;
+}
+.eng-ic { color: var(--brand-strong); margin-bottom: 2px; }
+.eng b { font-size: 18px; font-weight: 800; color: var(--text); line-height: 1; }
+.eng small { font-size: 11px; color: var(--text-faint); }
 .sec-title {
   display: flex; align-items: center; gap: 8px;
   font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px;
@@ -371,6 +418,8 @@ const tempMeta = computed(() => (lead.value ? TEMP_META[lead.value.temperature] 
 }
 @media (max-width: 600px) {
   .info-grid { grid-template-columns: 1fr; }
+  .eng-grid { grid-template-columns: repeat(2, 1fr); }
+  .hl-tag { display: none; }
   .name { font-size: 18px; }
   .status-select, .fu-date, .fu-note { width: 100%; }
 }
