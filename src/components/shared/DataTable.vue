@@ -12,6 +12,10 @@ const props = defineProps<{
   data?: any[];
 }>();
 
+const emit = defineEmits<{
+  (e: "selection-change", rows: any[]): void;
+}>();
+
 const data = ref<any[]>(props.data || []);
 const total = ref(0);
 const loading = ref(true);
@@ -52,7 +56,7 @@ onMounted(loadData);
   <ElSkeleton :loading="loading" :rows="take" animated>
     <template #default>
       <IfEmpty :value="data">
-        <ElTable :fit="true" :data="data">
+        <ElTable :fit="true" :data="data" @selection-change="emit('selection-change', $event)">
           <slot />
         </ElTable>
       </IfEmpty>

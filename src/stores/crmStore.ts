@@ -132,6 +132,7 @@ export type LoadLeadsParams = {
   purchased?: boolean;
   agenda?: boolean;
   workedOn?: string;
+  sortByActivity?: boolean;
   search?: string;
   filteringExpression?: string[];
   sortPropName?: string;
@@ -159,6 +160,7 @@ export const useCrmStore = defineStore("crm", () => {
           Purchased: params.purchased,
           Agenda: params.agenda,
           WorkedOn: params.workedOn,
+          SortByActivity: params.sortByActivity,
           Search: params.search,
           FilteringExpression: params.filteringExpression,
           SortPropName: params.sortPropName,
