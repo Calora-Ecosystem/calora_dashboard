@@ -26,6 +26,7 @@ export type OperatorLeaderboardRowDto = {
   operatorId: number;
   operatorName: string;
   leads: number;
+  activeLeads: number;
   calls: number;
   sales: number;
   revenue: number;
@@ -110,6 +111,21 @@ export const useSalesStore = defineStore("sales", () => {
         (await axios.patch(`/crm/leads/${leadId}/assign`, { operatorId })).data,
     );
 
+  const assignLeadsBulk = async (
+    leadIds: number[],
+    operatorId: number,
+  ): Promise<ApiBaseResponse<number>> =>
+    execute(
+      async () =>
+        (await axios.patch(`/crm/leads/assign-bulk`, { leadIds, operatorId }))
+          .data,
+    );
+
+  const unassignLead = async (leadId: number): Promise<ApiBaseResponse> =>
+    execute(
+      async () => (await axios.patch(`/crm/leads/${leadId}/unassign`)).data,
+    );
+
   const getPremiumBreakdown = async (
     period?: StatsPeriod,
   ): Promise<ApiBaseResponse<PremiumBreakdownDto>> =>
@@ -148,6 +164,8 @@ export const useSalesStore = defineStore("sales", () => {
     createOperator,
     deleteOperator,
     assignLead,
+    assignLeadsBulk,
+    unassignLead,
     getPremiumBreakdown,
     getPromoRedemptions,
   };
