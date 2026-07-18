@@ -61,6 +61,24 @@ export const PERIOD_LABEL: Record<StatsPeriod, string> = {
   Month: "Oy",
 };
 
+/**
+ * Operator action types (from the lead activity log) → short label + icon.
+ * Used on kanban cards to show the last thing the operator did with a lead.
+ */
+export const ACTION_META: Record<string, { label: string; icon: string }> = {
+  Contacted: { label: "Bog'lanildi", icon: "phone" },
+  StatusChanged: { label: "Bosqich o'zgardi", icon: "refresh" },
+  NoteAdded: { label: "Izoh yozildi", icon: "message" },
+  FollowUpSet: { label: "Qayta aloqa belgilandi", icon: "clock" },
+  FollowUpDue: { label: "Qayta aloqa vaqti keldi", icon: "alert-triangle" },
+  Won: { label: "Sotildi", icon: "check-circle" },
+  Lost: { label: "Yo'qotildi", icon: "x" },
+  Assigned: { label: "Biriktirildi", icon: "user-plus" },
+};
+
+export const actionMeta = (type: string | null | undefined) =>
+  (type && ACTION_META[type]) || null;
+
 export const initials = (name: string | null) =>
   (name?.trim()?.[0] ?? "?").toUpperCase();
 

@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox, ElDatePicker } from "element-plus";
 import Icon from "./components/Icon.vue";
 import {
   useCrmStore,
   type LeadDto,
   type LeadStatus,
+  type OperatorDayLogDto,
 } from "../../stores/crmStore";
 import {
   KANBAN_STATUSES,
   STATUS_META,
   TEMP_META,
   canMoveLead,
+  actionMeta,
   initials,
   avatarHue,
   dueLabel,
+  relativeTime,
 } from "./crmMeta";
 
 const crmStore = useCrmStore();
@@ -29,6 +32,36 @@ const search = ref("");
 const dragId = ref<number | null>(null);
 const dragFrom = ref<LeadStatus | null>(null);
 const dragOver = ref<LeadStatus | null>(null);
+
+// Kunlik ish rejimi:
+//  today – bugun ishlash kerak bo'lgan leadlar (agenda)
+//  all   – butun pipeline (barcha leadlar)
+//  date  – tanlangan kundagi faollik (o'sha kuni ishlangan leadlar)
+type WorkMode = "today" | "all" | "date";
+const mode = ref<WorkMode>("today");
+
+const toDateStr = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const pickedDate = ref<string>(toDateStr(new Date()));
+const dayLog = ref<OperatorDayLogDto | null>(null);
+
+// Kunlik yig'indi va WorkedOn filtri uchun amaldagi sana.
+const activeDate = computed(() =>
+  mode.value === "date" ? pickedDate.value : toDateStr(new Date()),
+);
+
+const dayStats = computed(() => {
+  const d = dayLog.value;
+  return [
+    { key: "leadsTouched", label: "Ishlangan", icon: "users", value: d?.leadsTouched ?? 0 },
+    { key: "contacted", label: "Bog'lanish", icon: "phone", value: d?.contacted ?? 0 },
+    { key: "followUpsSet", label: "Qayta aloqa", icon: "clock", value: d?.followUpsSet ?? 0 },
+    { key: "followUpsDone", label: "Bajarilgan", icon: "check", value: d?.followUpsDone ?? 0 },
+    { key: "notesAdded", label: "Izoh", icon: "message", value: d?.notesAdded ?? 0 },
+    { key: "won", label: "Sotuv", icon: "check-circle", value: d?.won ?? 0 },
+  ];
+});
 
 // Ustuvorlik tartibi: High > Medium > Low > Closed.
 const PRIORITY_RANK: Record<string, number> = { High: 3, Medium: 2, Low: 1, Closed: 0 };
@@ -51,21 +84,49 @@ const loadColumn = async (status: LeadStatus) => {
     take: 100,
     status,
     search: search.value || undefined,
+    // Kunlik ish rejimi bo'yicha filtr:
+    agenda: mode.value === "today" ? true : undefined,
+    workedOn: mode.value === "date" ? pickedDate.value : undefined,
     // Tartib backendda: priority → qiziqish (obuna ochishlar) → ball.
   });
   columns[status] = sortLeads(res.content ?? []);
 };
 
+const loadDayLog = async () => {
+  if (mode.value === "all") {
+    dayLog.value = null;
+    return;
+  }
+  try {
+    const res = await crmStore.getDayLog(activeDate.value);
+    dayLog.value = res.content;
+  } catch {
+    // Kunlik yig'indi ixtiyoriy — u yuklanmasa ham kanban ishlashda davom etadi.
+    dayLog.value = null;
+  }
+};
+
 const loadAll = async () => {
   loading.value = true;
   try {
-    await Promise.all(KANBAN_STATUSES.map(loadColumn));
+    await Promise.all([...KANBAN_STATUSES.map(loadColumn), loadDayLog()]);
   } finally {
     loading.value = false;
   }
 };
 
 onMounted(loadAll);
+
+const setMode = (m: WorkMode) => {
+  mode.value = m;
+  loadAll();
+};
+
+const onPickDate = () => {
+  if (!pickedDate.value) return;
+  mode.value = "date";
+  loadAll();
+};
 
 const onDragStart = (lead: LeadDto, from: LeadStatus) => {
   dragId.value = lead.id;
@@ -112,6 +173,8 @@ const onDrop = async (to: LeadStatus) => {
     await crmStore.moveStatus(id, to, reason);
     ElMessage.success(`"${lead.userName ?? "Lead"}" → ${STATUS_META[to].label}`);
     if (to === "Won" || to === "Lost") await loadColumn(to);
+    // Bosqich o'zgarishi kunlik faollikka kiradi — yig'indini yangilaymiz.
+    loadDayLog();
   } catch {
     // Revert; the API layer already shows the reason (e.g. "user hasn't purchased").
     columns[to] = columns[to].filter((l) => l.id !== id);
@@ -143,6 +206,45 @@ const isPremiumHot = (l: LeadDto) =>
         </button>
       </div>
     </header>
+
+    <!-- Kunlik ish paneli: rejim tanlash + tanlangan kun uchun yig'indi -->
+    <div class="workbar">
+      <div class="seg">
+        <button class="seg-btn" :class="{ 'seg-active': mode === 'today' }" @click="setMode('today')">
+          <Icon name="target" :size="14" /> Bugun
+        </button>
+        <button class="seg-btn" :class="{ 'seg-active': mode === 'all' }" @click="setMode('all')">
+          <Icon name="columns" :size="14" /> Hammasi
+        </button>
+      </div>
+      <div class="pick" :class="{ 'pick-active': mode === 'date' }">
+        <Icon name="calendar" :size="15" />
+        <ElDatePicker
+          v-model="pickedDate"
+          type="date"
+          value-format="YYYY-MM-DD"
+          :clearable="false"
+          placeholder="Kun tanlang"
+          size="default"
+          style="width: 150px"
+          @change="onPickDate"
+        />
+      </div>
+      <p v-if="mode === 'today'" class="hint">
+        <Icon name="activity" :size="13" /> Bugun ishlash kerak bo'lgan leadlar: yangi hamda qayta aloqasi bugungi / kechikkanlar
+      </p>
+      <p v-else-if="mode === 'date'" class="hint">
+        <Icon name="activity" :size="13" /> {{ pickedDate }} kuni siz ishlagan leadlar
+      </p>
+    </div>
+
+    <section v-if="mode !== 'all' && dayLog" class="daylog">
+      <div v-for="s in dayStats" :key="s.key" class="dl">
+        <span class="dl-ic"><Icon :name="s.icon" :size="14" /></span>
+        <b class="dl-val">{{ s.value }}</b>
+        <span class="dl-lbl">{{ s.label }}</span>
+      </div>
+    </section>
 
     <div class="board">
       <section
@@ -185,6 +287,15 @@ const isPremiumHot = (l: LeadDto) =>
               <span class="temp" :style="{ background: TEMP_META[lead.temperature].soft, color: TEMP_META[lead.temperature].color }">
                 <Icon :name="TEMP_META[lead.temperature].icon" :size="12" /> {{ lead.score }}
               </span>
+            </div>
+
+            <div v-if="actionMeta(lead.lastActionType)" class="lead-act">
+              <Icon :name="actionMeta(lead.lastActionType)!.icon" :size="11" />
+              <span class="lead-act-lbl">{{ actionMeta(lead.lastActionType)!.label }}</span>
+              <span class="lead-act-time">· {{ relativeTime(lead.lastActionAt) }}</span>
+            </div>
+            <div v-else-if="lead.status === 'New'" class="lead-act lead-act-none">
+              <Icon name="alert-triangle" :size="11" /> <span>Hali bog'lanilmagan</span>
             </div>
 
             <div v-if="isPremiumHot(lead) || lead.nextFollowUpAt" class="lead-tags">
@@ -240,6 +351,44 @@ const isPremiumHot = (l: LeadDto) =>
 .icon-btn:hover { color: var(--brand-strong); border-color: var(--brand); }
 .icon-btn.spin :deep(.crm-icon) { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Kunlik ish paneli */
+.workbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.seg { display: inline-flex; padding: 4px; border-radius: 11px; background: var(--surface-2); border: 1px solid var(--border); gap: 3px; }
+.seg-btn { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-muted); transition: all 0.15s ease; }
+.seg-active { background: var(--surface); color: var(--brand-strong); box-shadow: var(--shadow-sm); }
+.pick {
+  display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 12px;
+  border-radius: 11px; background: var(--surface); border: 1px solid var(--border); color: var(--text-faint);
+}
+.pick-active { border-color: var(--brand); color: var(--brand-strong); }
+.hint { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-faint); }
+.hint :deep(.crm-icon) { color: var(--brand-strong); }
+
+/* Kunlik yig'indi chiplari */
+.daylog { display: flex; flex-wrap: wrap; gap: 10px; }
+.dl {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 9px 14px;
+}
+.dl-ic {
+  width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-soft); color: var(--brand-strong);
+}
+.dl-val { font-size: 16px; font-weight: 800; color: var(--text); }
+.dl-lbl { font-size: 12px; color: var(--text-faint); }
+
+/* Kartadagi oxirgi amal */
+.lead-act {
+  display: flex; align-items: center; gap: 5px; margin-top: 8px;
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+}
+.lead-act :deep(.crm-icon) { color: var(--brand-strong); flex-shrink: 0; }
+.lead-act-lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lead-act-time { color: var(--text-faint); font-weight: 500; white-space: nowrap; flex-shrink: 0; }
+.lead-act-none { color: var(--warning); }
+.lead-act-none :deep(.crm-icon) { color: var(--warning); }
 
 .board {
   display: flex; gap: 14px; overflow-x: auto;
