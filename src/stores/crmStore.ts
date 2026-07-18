@@ -35,6 +35,8 @@ export type LeadDto = {
   nextFollowUpAt: string | null;
   followUpOverdue: boolean;
   createdAt: string;
+  lastActionType: string | null;
+  lastActionAt: string | null;
 };
 
 export type LeadDetailDto = LeadDto & {
@@ -105,6 +107,18 @@ export type OperatorStatsDto = {
   promoSales: number;
 };
 
+export type OperatorDayLogDto = {
+  date: string;
+  leadsTouched: number;
+  contacted: number;
+  notesAdded: number;
+  followUpsSet: number;
+  followUpsDone: number;
+  statusMoves: number;
+  won: number;
+  lost: number;
+};
+
 export type LoadLeadsParams = {
   skip: number;
   take: number;
@@ -116,6 +130,8 @@ export type LoadLeadsParams = {
   operatorId?: number;
   unassigned?: boolean;
   purchased?: boolean;
+  agenda?: boolean;
+  workedOn?: string;
   search?: string;
   filteringExpression?: string[];
   sortPropName?: string;
@@ -141,6 +157,8 @@ export const useCrmStore = defineStore("crm", () => {
           OperatorId: params.operatorId,
           Unassigned: params.unassigned,
           Purchased: params.purchased,
+          Agenda: params.agenda,
+          WorkedOn: params.workedOn,
           Search: params.search,
           FilteringExpression: params.filteringExpression,
           SortPropName: params.sortPropName,
@@ -232,6 +250,13 @@ export const useCrmStore = defineStore("crm", () => {
         (await axios.get(`/crm/me/stats`, { params: { period } })).data,
     );
 
+  const getDayLog = async (
+    date?: string,
+  ): Promise<ApiBaseResponse<OperatorDayLogDto>> =>
+    execute(
+      async () => (await axios.get(`/crm/me/day-log`, { params: { date } })).data,
+    );
+
   return {
     loadLeads,
     getLeadById,
@@ -247,5 +272,6 @@ export const useCrmStore = defineStore("crm", () => {
     getMe,
     getMyDashboard,
     getMyStats,
+    getDayLog,
   };
 });
