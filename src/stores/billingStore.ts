@@ -51,8 +51,19 @@ export type PlanExtraDto = {
   fee: number; // joriy narx (UZS)
   originalFee: number; // chegirmadan oldingi narx (UZS)
   isActive: boolean;
-  isPopular: boolean;
+  isPopular: boolean; // "Eng yaxshi taklif" — admin tomonidan belgilanadi
   createdAt: string;
+};
+
+// Tarif yaratish/tahrirlash uchun payload. Narxlar so'mda yuboriladi.
+export type CreateOrUpdatePlanExtraDto = {
+  id?: number;
+  plan: SubscriptionPlan;
+  duration: number;
+  fee: number;
+  originalFee: number;
+  isActive: boolean;
+  isPopular: boolean;
 };
 
 
@@ -99,13 +110,12 @@ export const useBillingStore = defineStore("billing", () => {
   };
 
   // ───────────────────────────────────────────────────────────────
-  // Obuna tariflari (Plan extras) — REAL backend data.
-  // Endpoint: GET /billing/orders/subscription/plans/{plan}
-  // Faqat o'qish (read-only). Bitta plan qaytaradi (IsActive==true),
-  // shuning uchun uchala plan chaqirilib birlashtiriladi.
-  // fee/originalFee backendda allaqachon /100 qilingan (so'mda keladi).
+  // Obuna tariflari (Plan extras) — admin CRUD.
+  // GET/POST/DELETE /billing/plans — SuperAdmin, faol bo'lmaganlarni ham
+  // qaytaradi. fee/originalFee API'da so'mda (backend tiyinga o'giradi).
+  // GET /billing/orders/subscription/plans/{plan} — ilova (User) uchun,
+  // faqat faol tariflar. Dashboard uni ishlatmaydi.
   // ───────────────────────────────────────────────────────────────
-  const ALL_PLANS: SubscriptionPlan[] = ["Premium", "Pro", "Free"];
 
   const getPlanExtras = async (
     plan: SubscriptionPlan,
@@ -120,10 +130,28 @@ export const useBillingStore = defineStore("billing", () => {
   };
 
   const loadPlans = async (): Promise<PlanExtraDto[]> => {
-    const results = await Promise.all(ALL_PLANS.map((p) => getPlanExtras(p)));
-    return results
-      .flat()
-      .sort((a, b) => a.plan.localeCompare(b.plan) || a.duration - b.duration);
+    return await execute(async () => {
+      const response = await axios.get("/billing/plans", {
+        params: { Skip: 0, Take: 200 },
+      });
+      return (response.data.content ?? []) as PlanExtraDto[];
+    });
+  };
+
+  const modifyPlan = async (
+    data: CreateOrUpdatePlanExtraDto,
+  ): Promise<ApiBaseResponse<PlanExtraDto>> => {
+    return await execute(async () => {
+      const response = await axios.post("/billing/plans", data);
+      return response.data;
+    });
+  };
+
+  const deletePlan = async (id: number): Promise<ApiBaseResponse> => {
+    return await execute(async () => {
+      const response = await axios.delete(`/billing/plans/${id}`);
+      return response.data;
+    });
   };
 
   return {
@@ -135,5 +163,7 @@ export const useBillingStore = defineStore("billing", () => {
     checkCoupon,
     getPlanExtras,
     loadPlans,
+    modifyPlan,
+    deletePlan,
   };
 });
