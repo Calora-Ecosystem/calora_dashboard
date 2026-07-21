@@ -43,6 +43,18 @@ export const useTokenStore = defineStore(
       }
     });
 
+    /** Id of the signed-in user, read from the `user-id` JWT claim. */
+    const userId = computed<number | null>(() => {
+      if (!accessToken.value) return null;
+      try {
+        const raw = jwtDecode<Record<string, any>>(accessToken.value)?.["user-id"];
+        const id = Number(raw);
+        return Number.isFinite(id) ? id : null;
+      } catch {
+        return null;
+      }
+    });
+
     const hasRole = (role: string) => roles.value.includes(role);
     const isSuperAdmin = computed(() => hasRole("SuperAdmin"));
     const isOperator = computed(() => hasRole("Operator"));
@@ -67,6 +79,7 @@ export const useTokenStore = defineStore(
       refreshTokenExpireAt,
       activeRole,
       roles,
+      userId,
       isSuperAdmin,
       isOperator,
       isHeadOfSales,
