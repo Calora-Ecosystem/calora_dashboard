@@ -73,6 +73,21 @@ const typeStyle = (type: string): { bg: string; color: string } => {
           <span style="color: var(--text-muted)">{{ row.description ?? "—" }}</span>
         </template>
       </ElTableColumn>
+      <ElTableColumn label="Vaqt" width="100" align="center">
+        <template #default="{ row }">
+          <span v-if="row.time" class="font-semibold" style="color: var(--text)">{{ row.time.slice(0, 5) }}</span>
+          <span v-else style="color: var(--text-faint)">—</span>
+        </template>
+      </ElTableColumn>
+      <ElTableColumn label="Faol" width="90" align="center">
+        <template #default="{ row }">
+          <span class="badge" :style="row.isActive
+            ? { background: 'var(--success-soft)', color: 'var(--success)' }
+            : { background: 'var(--surface-2)', color: 'var(--text-faint)' }">
+            {{ row.isActive ? "Ha" : "Yo'q" }}
+          </span>
+        </template>
+      </ElTableColumn>
       <ElTableColumn label="Amallar" width="120" align="right">
         <template #default="{ row }">
           <div class="flex items-center justify-end gap-1.5">

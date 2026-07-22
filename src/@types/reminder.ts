@@ -9,6 +9,8 @@ export type ReminderMessageDto = {
   menu: MenuType | null;
   title: string | null;
   description: string | null;
+  time: string | null;
+  isActive: boolean;
 };
 
 export type CreateOrUpdateReminderMessageDto = {
@@ -17,4 +19,6 @@ export type CreateOrUpdateReminderMessageDto = {
   menu: MenuType | null;
   title: string;
   description: string;
+  time: string | null;
+  isActive: boolean;
 };
