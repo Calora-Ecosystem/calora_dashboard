@@ -6,6 +6,8 @@ import {
   ElMessage,
   ElOption,
   ElSelect,
+  ElSwitch,
+  ElTimePicker,
   FormInstance,
   FormRules,
 } from "element-plus";
@@ -30,6 +32,8 @@ const data = reactive<CreateOrUpdateReminderMessageDto>({
   menu: "Breakfast",
   title: "",
   description: "",
+  time: null,
+  isActive: false,
 });
 
 const rules = reactive<FormRules<CreateOrUpdateReminderMessageDto>>({
@@ -75,6 +79,8 @@ onMounted(async () => {
     data.menu = cached.menu;
     data.title = cached.title ?? "";
     data.description = cached.description ?? "";
+    data.time = cached.time ?? null;
+    data.isActive = cached.isActive ?? false;
     return;
   }
   const res = await reminderStore.getMessageById(messageId!);
@@ -83,6 +89,8 @@ onMounted(async () => {
     data.menu = res.content.menu;
     data.title = res.content.title ?? "";
     data.description = res.content.description ?? "";
+    data.time = res.content.time ?? null;
+    data.isActive = res.content.isActive ?? false;
   }
 });
 
@@ -164,6 +172,27 @@ const handleSubmit = async () => {
                 </ElSelect>
               </ElFormItem>
             </div>
+            <div>
+              <label class="lbl">Eslatma vaqti</label>
+              <ElFormItem prop="time" class="!mb-0">
+                <ElTimePicker
+                  v-model="data.time"
+                  format="HH:mm"
+                  value-format="HH:mm:ss"
+                  placeholder="Vaqtni tanlang"
+                  size="large"
+                  class="w-full"
+                />
+              </ElFormItem>
+              <p class="hint">Belgilangan vaqtda ovqat kiritmagan userlarga push yuboriladi.</p>
+            </div>
+            <div class="switch-row">
+              <div class="min-w-0">
+                <label class="lbl !mb-0">Faol</label>
+                <p class="hint !mt-0.5">Global eslatmani yoqish / o'chirish</p>
+              </div>
+              <ElSwitch v-model="data.isActive" />
+            </div>
           </div>
         </section>
       </div>
@@ -242,6 +271,18 @@ const handleSubmit = async () => {
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 7px;
+}
+.hint {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-faint);
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 .spinner {
   width: 16px;
