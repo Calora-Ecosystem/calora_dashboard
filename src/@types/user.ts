@@ -26,3 +26,38 @@ export type GetAllUsersDto = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type UserDetailExtraDto = {
+  weight: number;
+  entryWeight: number;
+  height: number;
+  bmi: number;
+  gender: number;
+  birthDate: string;
+  age: number;
+  purpose: number;
+  physicalActivity: number | null;
+  activityLevel: number;
+  language: number;
+  photo: string | null;
+};
+
+export type UserNormValueDto = {
+  metric: string;
+  value: number;
+};
+
+export type UserDetailDto = {
+  id: number;
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  roles: string[];
+  createdAt: string;
+  updatedAt: string;
+  subscription: SubscriptionDto | null;
+  extra: UserDetailExtraDto | null;
+  signInCount: number;
+  lastSignInAt: string | null;
+  norms: UserNormValueDto[];
+};

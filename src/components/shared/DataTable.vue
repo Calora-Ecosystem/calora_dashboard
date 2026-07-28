@@ -10,10 +10,14 @@ const router = useRouter();
 const props = defineProps<{
   loader: (skip: number, take: number) => Promise<ApiBaseResponse>;
   data?: any[];
+  defaultSort?: { prop: string; order: "ascending" | "descending" };
+  rowClickable?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "selection-change", rows: any[]): void;
+  (e: "row-click", row: any): void;
+  (e: "sort-change", payload: { prop: string; order: string | null }): void;
 }>();
 
 const data = ref<any[]>(props.data || []);
@@ -56,7 +60,15 @@ onMounted(loadData);
   <ElSkeleton :loading="loading" :rows="take" animated>
     <template #default>
       <IfEmpty :value="data">
-        <ElTable :fit="true" :data="data" @selection-change="emit('selection-change', $event)">
+        <ElTable
+          :fit="true"
+          :data="data"
+          :default-sort="defaultSort"
+          :class="{ 'row-clickable': rowClickable }"
+          @selection-change="emit('selection-change', $event)"
+          @row-click="emit('row-click', $event)"
+          @sort-change="emit('sort-change', { prop: $event.prop, order: $event.order })"
+        >
           <slot />
         </ElTable>
       </IfEmpty>
@@ -74,3 +86,9 @@ onMounted(loadData);
     layout="prev, pager, next, total"
   ></ElPagination>
 </template>
+
+<style scoped>
+.row-clickable :deep(.el-table__row) {
+  cursor: pointer;
+}
+</style>

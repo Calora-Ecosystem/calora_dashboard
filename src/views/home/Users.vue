@@ -28,6 +28,8 @@ import Card from "../../components/ui/Card.vue";
 import DataTable from "../../components/shared/DataTable.vue";
 import CopyText from "../../components/shared/CopyText.vue";
 import UserStatsPanel from "../../components/ui/UserStatsPanel.vue";
+import AudienceAnalytics from "../../components/ui/AudienceAnalytics.vue";
+import UserDetailDrawer from "../../components/ui/UserDetailDrawer.vue";
 
 const userStore = useUserStore();
 
@@ -36,12 +38,42 @@ const emailFilter = ref("");
 const phoneFilter = ref("");
 const tableKey = ref(0);
 
+// ── Saralash (server tomonida) ────────────────────────────────────
+const sortProp = ref("id");
+const sortOrder = ref<"ascending" | "descending">("descending");
+const defaultSort = ref<{ prop: string; order: "ascending" | "descending" }>({
+  prop: "id",
+  order: "descending",
+});
+
+const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
+  if (!order) {
+    sortProp.value = "id";
+    sortOrder.value = "descending";
+  } else {
+    sortProp.value = prop;
+    sortOrder.value = order as "ascending" | "descending";
+  }
+  defaultSort.value = { prop: sortProp.value, order: sortOrder.value };
+  tableKey.value++;
+};
+
 const loadUsers = (skip: number, take: number) =>
   userStore.loadUsersPaged(skip, take, {
     name: nameFilter.value,
     email: emailFilter.value,
     phone: phoneFilter.value,
+    sortPropName: sortProp.value,
+    sortDirection: sortOrder.value === "ascending" ? "Ascending" : "Descending",
   });
+
+// ── Tafsilotlar oynasi ────────────────────────────────────────────
+const detailOpen = ref(false);
+const detailUserId = ref<number | null>(null);
+const openDetail = (row: GetAllUsersDto) => {
+  detailUserId.value = row.id;
+  detailOpen.value = true;
+};
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null;
 const onFilterInput = () => {
@@ -192,7 +224,11 @@ const removeSubscription = async () => {
     <UserStatsPanel />
   </div>
 
-  <Card title="Foydalanuvchilar" subtitle="Barcha ro'yxatdan o'tgan foydalanuvchilar ro'yxati">
+  <div class="mb-6">
+    <AudienceAnalytics />
+  </div>
+
+  <Card title="Foydalanuvchilar" subtitle="Ro'yxatdan bir foydalanuvchini bosing — barcha ma'lumotlari ochiladi">
     <!-- Toolbar -->
     <div class="flex flex-wrap items-center gap-2.5 mb-5">
       <ElInput
@@ -229,10 +265,17 @@ const removeSubscription = async () => {
       <ElButton v-if="hasFilters()" size="large" @click="clearFilters">Tozalash</ElButton>
     </div>
 
-    <DataTable :key="tableKey" :loader="loadUsers">
-      <ElTableColumn label="ID" prop="id" width="72" />
+    <DataTable
+      :key="tableKey"
+      :loader="loadUsers"
+      :default-sort="defaultSort"
+      row-clickable
+      @sort-change="handleSortChange"
+      @row-click="openDetail"
+    >
+      <ElTableColumn label="ID" prop="id" width="80" sortable="custom" />
 
-      <ElTableColumn label="Foydalanuvchi" min-width="220">
+      <ElTableColumn label="Foydalanuvchi" prop="name" min-width="220" sortable="custom">
         <template #default="{ row }">
           <div class="flex items-center gap-3 py-1">
             <img
@@ -253,7 +296,7 @@ const removeSubscription = async () => {
         </template>
       </ElTableColumn>
 
-      <ElTableColumn label="Aloqa" min-width="200">
+      <ElTableColumn label="Aloqa" prop="email" min-width="200" sortable="custom">
         <template #default="{ row }">
           <div class="flex flex-col text-[13px] gap-0.5">
             <CopyText v-if="row.email" :text="row.email" />
@@ -275,7 +318,7 @@ const removeSubscription = async () => {
               {{ r }}
               <button
                 class="opacity-50 hover:opacity-100 transition-opacity"
-                @click="handleRemoveRole(row, r)"
+                @click.stop="handleRemoveRole(row, r)"
               >
                 <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -289,6 +332,7 @@ const removeSubscription = async () => {
               <button
                 class="w-6 h-6 rounded-full flex items-center justify-center transition-colors"
                 style="background: var(--surface-hover); color: var(--text-muted)"
+                @click.stop
               >
                 <ElIcon :size="12"><Plus /></ElIcon>
               </button>
@@ -324,15 +368,15 @@ const removeSubscription = async () => {
         </template>
       </ElTableColumn>
 
-      <ElTableColumn label="Qo'shilgan" min-width="130">
+      <ElTableColumn label="Qo'shilgan" prop="createdAt" min-width="140" sortable="custom">
         <template #default="{ row }">
           <span class="text-[12.5px]" style="color: var(--text-muted)">{{ formatDate(row.createdAt) }}</span>
         </template>
       </ElTableColumn>
 
-      <ElTableColumn label="Amallar" min-width="120" align="right">
+      <ElTableColumn label="Amallar" min-width="140" align="right">
         <template #default="{ row }">
-          <ElButton size="small" @click="openSubDialog(row)">
+          <ElButton size="small" @click.stop="openSubDialog(row)">
             {{ row.subscription ? "Obunani tahrirlash" : "Obuna berish" }}
           </ElButton>
         </template>
@@ -394,4 +438,7 @@ const removeSubscription = async () => {
       </div>
     </template>
   </ElDialog>
+
+  <!-- Foydalanuvchi tafsilotlari oynasi -->
+  <UserDetailDrawer v-model="detailOpen" :user-id="detailUserId" />
 </template>
