@@ -38,26 +38,26 @@ watch(
 );
 
 // ── Yorliq xaritalari ─────────────────────────────────────────────
-const GENDER_LABELS: Record<number, string> = { 1: "Erkak", 2: "Ayol" };
-const PURPOSE_LABELS: Record<number, string> = {
-  1: "Vazn kamaytirish",
-  2: "Saqlab qolish",
-  3: "Mushak yig'ish",
+const GENDER_LABELS: Record<string, string> = { Male: "Erkak", Female: "Ayol" };
+const PURPOSE_LABELS: Record<string, string> = {
+  WeightLoss: "Vazn kamaytirish",
+  SaveCurrent: "Saqlab qolish",
+  MuscleDevelopment: "Mushak yig'ish",
 };
-const ACTIVITY_LABELS: Record<number, string> = {
-  1: "Minimal",
-  2: "Kam",
-  3: "O'rta",
-  4: "Yuqori",
-  5: "Maksimal",
+const ACTIVITY_LABELS: Record<string, string> = {
+  Minimal: "Minimal",
+  Less: "Kam",
+  Medium: "O'rta",
+  High: "Yuqori",
+  Maximal: "Maksimal",
 };
-const LANGUAGE_LABELS: Record<number, string> = {
-  1: "O'zbek",
-  2: "Kirill",
-  3: "Rus",
-  4: "Ingliz",
+const LANGUAGE_LABELS: Record<string, string> = {
+  Uzbek: "O'zbek",
+  Cyrillic: "Kirill",
+  Russian: "Rus",
+  English: "Ingliz",
 };
-const PHYSICAL_LABELS: Record<number, string> = { 1: "Sog'lom", 2: "Nosog'lom" };
+const PHYSICAL_LABELS: Record<string, string> = { Healthy: "Sog'lom", Unhealthy: "Nosog'lom" };
 const METRIC_UNITS: Record<string, string> = {
   Protein: "g",
   Fat: "g",

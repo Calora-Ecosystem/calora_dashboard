@@ -32,7 +32,7 @@ onMounted(async () => {
 const a = computed(() => dashboardStore.audienceAnalytics);
 
 // ── Yorliq xaritalari ─────────────────────────────────────────────
-const GENDER_LABELS: Record<number, string> = { 1: "Erkak", 2: "Ayol" };
+const GENDER_LABELS: Record<string, string> = { Male: "Erkak", Female: "Ayol" };
 const PURPOSE_LABELS: Record<number, string> = {
   1: "Vazn kamaytirish",
   2: "Saqlab qolish",

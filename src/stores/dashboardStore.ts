@@ -27,7 +27,7 @@ export type UserStatistics = {
 
 export type HourCount = { hour: number; count: number };
 export type WeekdayCount = { weekday: number; count: number };
-export type GenderCount = { gender: number; count: number };
+export type GenderCount = { gender: string; count: number };
 export type AgeGroupCount = { group: string; count: number };
 export type EnumCount = { value: number; name: string; count: number };
 

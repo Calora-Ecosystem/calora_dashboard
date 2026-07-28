@@ -32,13 +32,13 @@ export type UserDetailExtraDto = {
   entryWeight: number;
   height: number;
   bmi: number;
-  gender: number;
+  gender: string;
   birthDate: string;
   age: number;
-  purpose: number;
-  physicalActivity: number | null;
-  activityLevel: number;
-  language: number;
+  purpose: string;
+  physicalActivity: string | null;
+  activityLevel: string;
+  language: string;
   photo: string | null;
 };
 
