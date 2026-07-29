@@ -46,8 +46,9 @@ const loading = ref(true);
 
 onMounted(async () => {
   try {
-    const { content } = await dashboardStore.loadSubscriptionOrders(0, 300);
-    allOrders.value = content ?? [];
+    // Barcha buyurtmalarni to'liq (eng yangisidan) olib kelamiz — sobit 300 ta
+    // bilan cheklanganda so'nggi kunlardagi sotuvlar tushib qolayotgan edi.
+    allOrders.value = (await dashboardStore.loadAllSubscriptionOrders()) ?? [];
   } finally {
     loading.value = false;
   }
@@ -106,9 +107,11 @@ const prevOrders = computed(() =>
   allOrders.value.filter((o) => inRange(o, prevRange.value)),
 );
 
-// Faqat tasdiqlangan (to'langan) buyurtmalar daromad hisoblanadi — bekor
-// qilingan/kutilayotganlar tushumga kirmasligi kerak.
-const isRevenue = (o: Order) => o.orderStatus === "Confirmed";
+// Faqat haqiqatda to'langan sotuvlar daromad hisoblanadi: tasdiqlangan va
+// summasi > 0. Bekor/kutilayotgan yoki 100% promokod bilan bepul olingan
+// premiumlar tushumga kirmaydi; qisman promokod bo'lsa to'langan qismi ko'rinadi.
+const isRevenue = (o: Order) =>
+  o.orderStatus === "Confirmed" && Number(o.amount) > 0;
 const revenueOrders = computed(() => periodOrders.value.filter(isRevenue));
 const prevRevenueOrders = computed(() => prevOrders.value.filter(isRevenue));
 
