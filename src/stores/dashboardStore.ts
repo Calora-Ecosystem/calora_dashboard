@@ -114,9 +114,44 @@ export const useDashboardStore = defineStore("dashboard", () => {
     return await execute(async () => {
       return (
         await axios.get("/dashboard/orders/subscriptions", {
-          params: { skip, take },
+          params: {
+            skip,
+            take,
+            SortPropName: "createdAt",
+            SortDirection: "Descending",
+          },
         })
       ).data;
+    });
+  };
+
+  // Barcha obuna buyurtmalarini sahifalab, eng yangisidan boshlab to'liq olib
+  // keladi. Sobit `take` bilan cheklanmaydi — shuning uchun sotuvlar soni oshgani
+  // sayin ham so'nggi kunlardagi sotuvlar tushib qolmaydi.
+  const loadAllSubscriptionOrders = async (): Promise<any[]> => {
+    return await execute(async () => {
+      const pageSize = 500;
+      let skip = 0;
+      let total = Infinity;
+      const all: any[] = [];
+      while (skip < total) {
+        const { content, total: t } = (
+          await axios.get("/dashboard/orders/subscriptions", {
+            params: {
+              skip,
+              take: pageSize,
+              SortPropName: "createdAt",
+              SortDirection: "Descending",
+            },
+          })
+        ).data;
+        const rows = content ?? [];
+        all.push(...rows);
+        total = typeof t === "number" ? t : all.length;
+        if (!rows.length) break;
+        skip += pageSize;
+      }
+      return all;
     });
   };
 
@@ -126,19 +161,16 @@ export const useDashboardStore = defineStore("dashboard", () => {
     [],
   );
 
-  const loadRevenueByPlan = async (sample: number = 100) => {
+  const loadRevenueByPlan = async () => {
     await execute(async () => {
-      const { content } = (
-        await axios.get("/dashboard/orders/subscriptions", {
-          params: { skip: 0, take: sample },
-        })
-      ).data;
+      const orders = await loadAllSubscriptionOrders();
 
       const map = new Map<string, { amount: number; count: number }>();
-      for (const o of content ?? []) {
-        // Faqat tasdiqlangan (to'langan) buyurtmalar daromad hisoblanadi —
-        // bekor qilingan/kutilayotganlar tushumni oshirib yubormasligi uchun.
-        if (o.orderStatus !== "Confirmed") continue;
+      for (const o of orders) {
+        // Faqat haqiqatda to'langan sotuvlar (tasdiqlangan + summasi > 0).
+        // Bekor/kutilayotgan yoki 100% promokod bilan bepul olinganlar
+        // tushumga kirmaydi.
+        if (o.orderStatus !== "Confirmed" || !(Number(o.amount) > 0)) continue;
         const plan = o.plan || "Boshqa";
         const entry = map.get(plan) ?? { amount: 0, count: 0 };
         entry.amount += Number(o.amount) || 0;
@@ -164,6 +196,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     loadUserStatisticsRange,
     loadAudienceAnalytics,
     loadSubscriptionOrders,
+    loadAllSubscriptionOrders,
     loadRevenueByPlan,
   };
 });
