@@ -99,14 +99,18 @@ const inRange = (o: Order, r: { start: Date; end: Date }) => {
   return t >= r.start.getTime() && t <= r.end.getTime();
 };
 
-const completedOrderStatus = ["Confirmed"];
-
 const periodOrders = computed(() =>
   allOrders.value.filter((o) => inRange(o, activeRange.value)),
 );
 const prevOrders = computed(() =>
   allOrders.value.filter((o) => inRange(o, prevRange.value)),
 );
+
+// Faqat tasdiqlangan (to'langan) buyurtmalar daromad hisoblanadi — bekor
+// qilingan/kutilayotganlar tushumga kirmasligi kerak.
+const isRevenue = (o: Order) => o.orderStatus === "Confirmed";
+const revenueOrders = computed(() => periodOrders.value.filter(isRevenue));
+const prevRevenueOrders = computed(() => prevOrders.value.filter(isRevenue));
 
 const setPeriod = (p: typeof period.value) => {
   dateRange.value = null;
@@ -119,12 +123,14 @@ const growth = (cur: number, prev: number) =>
   prev ? Math.round(((cur - prev) / prev) * 100) : cur ? 100 : 0;
 
 const kpis = computed(() => {
-  const cur = periodOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus));
-  const prev = prevOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus));
-  const revenue = sum(cur);
-  const prevRevenue = sum(prev);
-  const avg = cur.length ? revenue / cur.length : 0;
-  const prevAvg = prev.length ? prevRevenue / prev.length : 0;
+  const cur = periodOrders.value;
+  const prev = prevOrders.value;
+  const rev = revenueOrders.value;
+  const prevRev = prevRevenueOrders.value;
+  const revenue = sum(rev);
+  const prevRevenue = sum(prevRev);
+  const avg = rev.length ? revenue / rev.length : 0;
+  const prevAvg = prevRev.length ? prevRevenue / prevRev.length : 0;
   const customers = new Set(cur.map((o) => o.userName)).size;
   const prevCustomers = new Set(prev.map((o) => o.userName)).size;
   return [
@@ -159,7 +165,7 @@ const buckets = computed(() => {
       map.set(keyOf(new Date(t)), 0);
     }
   }
-  for (const o of periodOrders.value.filter((o) => completedOrderStatus.includes(o.orderStatus))) {
+  for (const o of revenueOrders.value) {
     const k = keyOf(new Date(o.createdAt));
     map.set(k, (map.get(k) ?? 0) + (Number(o.amount) || 0));
   }
@@ -237,7 +243,7 @@ const statusChartOptions = { responsive: true, maintainAspectRatio: false, cutou
 const planColors = ["#7cc243", "#2e90fa", "#7a5af8", "#f79009", "#94a3b8"];
 const planGroups = computed(() => {
   const map = new Map<string, number>();
-  for (const o of periodOrders.value)
+  for (const o of revenueOrders.value)
     map.set(o.plan || "Boshqa", (map.get(o.plan || "Boshqa") ?? 0) + (Number(o.amount) || 0));
   const total = [...map.values()].reduce((a, b) => a + b, 0);
   return [...map.entries()]
@@ -326,7 +332,7 @@ const resetPage = () => (page.value = 1);
     <!-- Revenue chart -->
     <Card title="Tushum dinamikasi" subtitle="Tanlangan davr bo'yicha kunlik tushum">
       <div class="h-[300px]">
-        <Bar v-if="periodOrders.length" :data="revenueChartData" :options="revenueChartOptions" />
+        <Bar v-if="revenueOrders.length" :data="revenueChartData" :options="revenueChartOptions" />
         <div v-else class="h-full flex items-center justify-center text-[14px]" style="color: var(--text-faint)">
           Bu davrda savdolar yo'q
         </div>

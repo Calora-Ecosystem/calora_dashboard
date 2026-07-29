@@ -7,6 +7,7 @@ import type {
   EnumSPlans,
   GetAllUsersDto,
   SubscriptionDto,
+  UserDetailDto,
 } from "../@types/user";
 import { useApiCallStore } from "./apiCallStore";
 
@@ -24,7 +25,13 @@ export const useUserStore = defineStore("user", () => {
   const loadUsersPaged = async (
     skip: number,
     take: number,
-    filters?: { name?: string; email?: string; phone?: string },
+    filters?: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      sortPropName?: string;
+      sortDirection?: "Ascending" | "Descending";
+    },
   ): Promise<ApiBaseResponse<GetAllUsersDto[]>> => {
     return await execute(async () => {
       const FilteringExpression: string[] = [];
@@ -39,7 +46,8 @@ export const useUserStore = defineStore("user", () => {
         params: {
           Skip: skip,
           Take: take,
-          SortPropName: "id",
+          SortPropName: filters?.sortPropName || "id",
+          SortDirection: filters?.sortDirection || "Descending",
           ...(FilteringExpression.length
             ? FilteringExpression.reduce(
                 (acc, x) => ({
@@ -87,6 +95,15 @@ export const useUserStore = defineStore("user", () => {
     });
   };
 
+  const getUserDetail = async (
+    userId: number,
+  ): Promise<UserDetailDto | null> => {
+    return await execute(async () => {
+      const response = await axios.get(`/dashboard/users/${userId}/detail`);
+      return response.data?.content ?? null;
+    });
+  };
+
   // ── Subscriptions (admin-managed) ───────────────────────────────
   // Obunani to'lov oqimisiz to'g'ridan-to'g'ri admin tomonidan
   // yaratish/tahrirlash. Bitta foydalanuvchiga bitta obuna (upsert).
@@ -108,6 +125,7 @@ export const useUserStore = defineStore("user", () => {
   return {
     loadUsersPaged,
     getUserById,
+    getUserDetail,
     updateRoles,
     upsertSubscription,
     deleteSubscription,

@@ -25,6 +25,25 @@ export type UserStatistics = {
   monthlyRegistrations: Record<string, number>;
 };
 
+export type HourCount = { hour: number; count: number };
+export type WeekdayCount = { weekday: number; count: number };
+export type GenderCount = { gender: string; count: number };
+export type AgeGroupCount = { group: string; count: number };
+export type EnumCount = { value: number; name: string; count: number };
+
+export type AudienceAnalytics = {
+  totalUsers: number;
+  profiledUsers: number;
+  hourlyRegistrations: HourCount[];
+  weekdayRegistrations: WeekdayCount[];
+  peakHour: number | null;
+  genderBreakdown: GenderCount[];
+  ageGroups: AgeGroupCount[];
+  purposeBreakdown: EnumCount[];
+  activityLevelBreakdown: EnumCount[];
+  languageBreakdown: EnumCount[];
+};
+
 export type UserStatisticsRange = {
   from: string;
   to: string;
@@ -78,6 +97,16 @@ export const useDashboardStore = defineStore("dashboard", () => {
     });
   };
 
+  const audienceAnalytics = ref<AudienceAnalytics>();
+
+  const loadAudienceAnalytics = async (): Promise<AudienceAnalytics | undefined> => {
+    return await execute(async () => {
+      const response = await axios.get("/dashboard/users/audience");
+      audienceAnalytics.value = response.data.content;
+      return audienceAnalytics.value;
+    });
+  };
+
   const loadSubscriptionOrders = async (
     skip: number = 0,
     take: number = 10,
@@ -107,6 +136,9 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
       const map = new Map<string, { amount: number; count: number }>();
       for (const o of content ?? []) {
+        // Faqat tasdiqlangan (to'langan) buyurtmalar daromad hisoblanadi —
+        // bekor qilingan/kutilayotganlar tushumni oshirib yubormasligi uchun.
+        if (o.orderStatus !== "Confirmed") continue;
         const plan = o.plan || "Boshqa";
         const entry = map.get(plan) ?? { amount: 0, count: 0 };
         entry.amount += Number(o.amount) || 0;
@@ -124,11 +156,13 @@ export const useDashboardStore = defineStore("dashboard", () => {
     salesMonthlySummary,
     subscriptionOrders,
     userStatistics,
+    audienceAnalytics,
     revenueByPlan,
     loadOverallSummary,
     loadSalesMonthlySummary,
     loadUserStatistics,
     loadUserStatisticsRange,
+    loadAudienceAnalytics,
     loadSubscriptionOrders,
     loadRevenueByPlan,
   };
