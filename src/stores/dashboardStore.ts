@@ -136,6 +136,9 @@ export const useDashboardStore = defineStore("dashboard", () => {
 
       const map = new Map<string, { amount: number; count: number }>();
       for (const o of content ?? []) {
+        // Faqat tasdiqlangan (to'langan) buyurtmalar daromad hisoblanadi —
+        // bekor qilingan/kutilayotganlar tushumni oshirib yubormasligi uchun.
+        if (o.orderStatus !== "Confirmed") continue;
         const plan = o.plan || "Boshqa";
         const entry = map.get(plan) ?? { amount: 0, count: 0 };
         entry.amount += Number(o.amount) || 0;
