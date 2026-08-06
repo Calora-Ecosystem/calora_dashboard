@@ -261,6 +261,12 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/Team.vue"),
           },
           {
+            name: "event_logs",
+            path: "event-logs",
+            meta: SUPER_ADMIN,
+            component: () => import("./home/EventLogs.vue"),
+          },
+          {
             name: "billing",
             path: "billing",
             meta: SUPER_ADMIN,

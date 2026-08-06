@@ -56,6 +56,29 @@ export type UserStatisticsRange = {
   dailyPremium: DailyCount[];
 };
 
+// ── Umumiy hodisa jurnali (general-purpose event log) ────────────────
+export type EventStatus = "Success" | "Warning" | "Error";
+
+export type EventOutcomeCount = { outcome: string; status: EventStatus; count: number };
+export type EventErrorCount = { errorType: string; count: number; sampleMessage: string | null };
+export type DailyEventCount = { date: string; total: number; success: number; warning: number; error: number };
+
+export type EventLogSummary = {
+  source: string;
+  from: string;
+  to: string;
+  totalCount: number;
+  successCount: number;
+  warningCount: number;
+  errorCount: number;
+  errorRatePercent: number;
+  avgDurationMs: number | null;
+  maxDurationMs: number | null;
+  outcomeBreakdown: EventOutcomeCount[];
+  topErrors: EventErrorCount[];
+  dailyTrend: DailyEventCount[];
+};
+
 export const useDashboardStore = defineStore("dashboard", () => {
   const { execute } = useApiCallStore();
 
@@ -183,6 +206,31 @@ export const useDashboardStore = defineStore("dashboard", () => {
     });
   };
 
+  const eventLogSources = ref<string[]>([]);
+  const eventLogSummary = ref<EventLogSummary>();
+
+  const loadEventLogSources = async (): Promise<string[]> => {
+    return await execute(async () => {
+      const response = await axios.get("/dashboard/events/sources");
+      eventLogSources.value = response.data.content ?? [];
+      return eventLogSources.value;
+    });
+  };
+
+  const loadEventLogSummary = async (
+    source: string,
+    from?: string,
+    to?: string,
+  ): Promise<EventLogSummary | undefined> => {
+    return await execute(async () => {
+      const response = await axios.get("/dashboard/events/summary", {
+        params: { source, from, to },
+      });
+      eventLogSummary.value = response.data.content;
+      return eventLogSummary.value;
+    });
+  };
+
   return {
     overallSummary,
     salesMonthlySummary,
@@ -190,6 +238,8 @@ export const useDashboardStore = defineStore("dashboard", () => {
     userStatistics,
     audienceAnalytics,
     revenueByPlan,
+    eventLogSources,
+    eventLogSummary,
     loadOverallSummary,
     loadSalesMonthlySummary,
     loadUserStatistics,
@@ -198,5 +248,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     loadSubscriptionOrders,
     loadAllSubscriptionOrders,
     loadRevenueByPlan,
+    loadEventLogSources,
+    loadEventLogSummary,
   };
 });
