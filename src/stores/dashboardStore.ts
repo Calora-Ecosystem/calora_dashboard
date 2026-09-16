@@ -79,6 +79,49 @@ export type EventLogSummary = {
   dailyTrend: DailyEventCount[];
 };
 
+// ── AI statistikasi (food_recognition analytics) ───────────────────
+export type DailyAiStat = {
+  date: string;
+  requests: number;
+  users: number;
+  costUsd: number;
+  promptTokens: number;
+  candidateTokens: number;
+};
+
+export type TopAiUser = {
+  userId: number;
+  requestCount: number;
+  costUsd: number;
+};
+
+export type AiStatistics = {
+  from: string;
+  to: string;
+  days: number;
+  totalAiUsers: number;
+  totalRequests: number;
+  successRequests: number;
+  errorRequests: number;
+  avgRequestsPerUser: number;
+  avgRequestsPerDay: number;
+  minRequestsPerUser: number;
+  maxRequestsPerUser: number;
+  minRequestsPerDay: number;
+  maxRequestsPerDay: number;
+  avgDurationMs: number | null;
+  totalPromptTokens: number;
+  totalCandidateTokens: number;
+  totalTokens: number;
+  totalCostUsd: number;
+  costPerUserUsd: number;
+  costPerRequestUsd: number;
+  totalPremiumUsers: number;
+  activeAiPremiumUsers: number;
+  aiAdoptionRatePercent: number;
+  dailyTrend: DailyAiStat[];
+  topUsers: TopAiUser[];
+};
 export const useDashboardStore = defineStore("dashboard", () => {
   const { execute } = useApiCallStore();
 
@@ -209,6 +252,22 @@ export const useDashboardStore = defineStore("dashboard", () => {
   const eventLogSources = ref<string[]>([]);
   const eventLogSummary = ref<EventLogSummary>();
 
+  const aiStatistics = ref<AiStatistics>();
+
+  const loadAiStatistics = async (
+    days?: number,
+    from?: string,
+    to?: string,
+  ): Promise<AiStatistics | undefined> => {
+    return await execute(async () => {
+      const response = await axios.get("/dashboard/ai/statistics", {
+        params: { days, from, to },
+      });
+      aiStatistics.value = response.data.content;
+      return aiStatistics.value;
+    });
+  };
+
   const loadEventLogSources = async (): Promise<string[]> => {
     return await execute(async () => {
       const response = await axios.get("/dashboard/events/sources");
@@ -240,6 +299,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     revenueByPlan,
     eventLogSources,
     eventLogSummary,
+    aiStatistics,
     loadOverallSummary,
     loadSalesMonthlySummary,
     loadUserStatistics,
@@ -250,5 +310,6 @@ export const useDashboardStore = defineStore("dashboard", () => {
     loadRevenueByPlan,
     loadEventLogSources,
     loadEventLogSummary,
+    loadAiStatistics,
   };
 });

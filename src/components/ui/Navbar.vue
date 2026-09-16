@@ -85,6 +85,7 @@ const sections: Section[] = [
     items: [
       { icon: "navbar/user-edit.svg", path: "/team", label: "Jamoa", roles: ["SuperAdmin"] },
       { icon: "navbar/activity.svg", path: "/event-logs", label: "Hodisalar jurnali", roles: ["SuperAdmin"] },
+      { icon: "navbar/user-stat.svg", path: "/ai-statistics", label: "AI statistikasi", roles: ["SuperAdmin"] },
       {
         icon: "navbar/money-bag.svg",
         path: "/billing",

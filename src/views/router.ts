@@ -267,6 +267,12 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/EventLogs.vue"),
           },
           {
+            name: "ai_statistics",
+            path: "ai-statistics",
+            meta: SUPER_ADMIN,
+            component: () => import("./home/AiStatistics.vue"),
+          },
+          {
             name: "billing",
             path: "billing",
             meta: SUPER_ADMIN,
