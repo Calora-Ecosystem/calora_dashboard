@@ -75,7 +75,10 @@ const sections: Section[] = [
         path: "/notifications",
         label: "Bildirishnomalar",
         roles: ["SuperAdmin"],
-        children: [{ path: "/notifications/messages", label: "Xabarlar" }],
+        children: [
+          { path: "/notifications/broadcast", label: "Push yuborish" },
+          { path: "/notifications/messages", label: "Xabarlar" },
+        ],
       },
       { icon: "navbar/preference.svg", path: "/references", label: "Ma'lumotnomalar", roles: ["SuperAdmin"] },
     ],
