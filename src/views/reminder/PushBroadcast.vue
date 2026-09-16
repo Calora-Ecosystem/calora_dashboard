@@ -11,12 +11,9 @@ import {
   FormInstance,
   FormRules,
 } from "element-plus";
-import { computed, onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import FileUpload from "../../components/shared/FileUpload.vue";
-import {
-  useNotificationStore,
-  type BroadcastProgress,
-} from "../../stores/notificationStore";
+import { useNotificationStore } from "../../stores/notificationStore";
 
 const notificationStore = useNotificationStore();
 
@@ -81,18 +78,10 @@ onMounted(async () => {
 
 // ── Yuborish holati ───────────────────────────────────────────
 const sending = ref(false);
-const progress = ref<BroadcastProgress | null>(null);
-const result = ref<BroadcastProgress | null>(null);
-
-const percent = computed(() => {
-  const p = progress.value;
-  if (!p || p.total === 0) return 0;
-  return Math.round(((p.sent + p.failed) / p.total) * 100);
-});
+const result = ref<{ count: number; scheduled: string | null } | null>(null);
 
 const resetResult = () => {
   result.value = null;
-  progress.value = null;
 };
 
 const handleSend = async () => {
@@ -126,32 +115,26 @@ const handleSend = async () => {
   resetResult();
   sending.value = true;
   try {
-    const userIds = await notificationStore.loadAllUserIds();
-    if (userIds.length === 0) {
-      ElMessage.warning("Yuborish uchun foydalanuvchi topilmadi");
-      return;
-    }
-    progress.value = { total: userIds.length, sent: 0, failed: 0, done: false };
-    const final = await notificationStore.broadcast(
-      {
-        title: data.title.trim(),
-        description: data.description.trim(),
-        image: data.image,
-        scheduled: scheduledIso,
-      },
-      userIds,
-      (p) => (progress.value = p),
-    );
-    result.value = final;
-    if (final.failed === 0) {
-      ElMessage.success(`${final.sent} ta foydalanuvchiga yuborildi`);
-    } else {
-      ElMessage.warning(
-        `${final.sent} ta yuborildi, ${final.failed} ta muvaffaqiyatsiz`,
+    const res = await notificationStore.sendBatch({
+      title: data.title.trim(),
+      description: data.description.trim(),
+      image: data.image,
+      scheduled: scheduledIso,
+      allUsers: true,
+    });
+    if (res.code === 200) {
+      const count =
+        typeof res.content === "number" ? res.content : audienceTotal.value ?? 0;
+      result.value = { count, scheduled: scheduledIso };
+      ElMessage.success(
+        scheduledIso
+          ? `${count} ta foydalanuvchiga rejalashtirildi`
+          : `${count} ta foydalanuvchiga yuborildi`,
       );
     }
+    // Xato bo'lsa apiCallStore avtomatik bildirishnoma ko'rsatadi.
   } catch {
-    ElMessage.error("Yuborishda xatolik yuz berdi");
+    // execute() xatoni allaqachon qayd etadi
   } finally {
     sending.value = false;
   }
@@ -242,35 +225,25 @@ const startNew = () => {
           </div>
         </section>
 
-        <!-- Progress / result -->
-        <section v-if="progress || result" class="panel">
-          <h2 class="panel-title">
-            {{ result ? "Natija" : "Yuborilmoqda" }}
-          </h2>
-          <div class="mt-4">
-            <div class="progress-track">
-              <div class="progress-bar" :style="{ width: percent + '%' }"></div>
+        <!-- Natija -->
+        <section v-if="result" class="panel">
+          <div class="result-card">
+            <span class="result-icon">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <div class="min-w-0">
+              <p class="result-title">
+                {{ result.scheduled ? "Rejalashtirildi" : "Yuborildi" }}
+              </p>
+              <p class="result-sub">
+                {{ result.count }} ta foydalanuvchiga
+                <template v-if="result.scheduled">
+                  · {{ result.scheduled.slice(0, 16).replace("T", " ") }}
+                </template>
+              </p>
             </div>
-            <div class="progress-meta">
-              <span>{{ (progress?.sent ?? 0) + (progress?.failed ?? 0) }} / {{ progress?.total ?? 0 }}</span>
-              <span>{{ percent }}%</span>
-            </div>
-            <div class="stat-row mt-3">
-              <div class="stat" style="--c: var(--success)">
-                <span class="stat-val">{{ progress?.sent ?? 0 }}</span>
-                <span class="stat-lbl">Yuborildi</span>
-              </div>
-              <div class="stat" style="--c: var(--danger)">
-                <span class="stat-val">{{ progress?.failed ?? 0 }}</span>
-                <span class="stat-lbl">Xato</span>
-              </div>
-              <div class="stat" style="--c: var(--text-muted)">
-                <span class="stat-val">{{ progress?.total ?? 0 }}</span>
-                <span class="stat-lbl">Jami</span>
-              </div>
-            </div>
-            <button v-if="result" type="button" class="btn-ghost mt-4" @click="startNew">
-              Yangi xabar yozish
+            <button type="button" class="btn-ghost" @click="startNew">
+              Yangi xabar
             </button>
           </div>
         </section>
@@ -408,53 +381,34 @@ const startNew = () => {
 .mode-group {
   display: flex;
 }
-.progress-track {
-  width: 100%;
-  height: 12px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  overflow: hidden;
-}
-.progress-bar {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--brand), var(--brand-strong));
-  transition: width 0.25s ease;
-}
-.progress-meta {
+.result-card {
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.stat-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-.stat {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: 12px 6px;
-  border-radius: 12px;
-  background: var(--surface-2);
+  gap: 14px;
 }
-.stat-val {
-  font-size: 22px;
+.result-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--success);
+  background: var(--success-soft);
+  flex-shrink: 0;
+}
+.result-title {
+  font-size: 15.5px;
   font-weight: 700;
-  color: var(--c);
-  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
-.stat-lbl {
-  font-size: 11.5px;
-  color: var(--text-faint);
-  margin-top: 2px;
+.result-sub {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
 }
 .btn-ghost {
+  margin-left: auto;
   height: 40px;
   padding: 0 18px;
   border-radius: 11px;
@@ -463,6 +417,7 @@ const startNew = () => {
   color: var(--brand-strong);
   background: var(--brand-soft);
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 .btn-ghost:hover {
   filter: brightness(0.97);

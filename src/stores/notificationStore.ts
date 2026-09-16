@@ -1,48 +1,37 @@
 import { defineStore } from "pinia";
 import { axios } from "../integrations/axios";
 import type { ApiBaseResponse } from "../@types/common";
-import type { GetAllUsersDto } from "../@types/user";
 import type { MenuType } from "../@types/reminder";
 import { useApiCallStore } from "./apiCallStore";
-import { useTokenStore } from "./tokenStore";
 
-// Backend: POST /notifications  (Core.Services.Notification.Contracts.PushNotificationDto)
-// Har bir so'rov faqat bitta mavjud foydalanuvchiga push yuboradi. Backendda
-// "barcha userlarga" degan yagona endpoint yo'q, shuning uchun broadcast
-// frontendda barcha user id'lar bo'ylab aylanish orqali amalga oshiriladi.
+// Backend: POST /notifications/batch  (Core.Services.Notification.Contracts.BatchPushNotificationDto)
+// Bitta so'rov bilan bir nechta / barcha foydalanuvchilarga push yuboradi.
+// `allUsers: true` => hamma userlarga; aks holda `userIds` ro'yxatiga.
+// `scheduled` (ISO date-time) => server tomonda o'sha vaqtga rejalashtiradi (null => hoziroq).
+export type BatchPushNotificationDto = {
+  title: string;
+  description: string;
+  image?: string | null;
+  scheduled?: string | null;
+  meta?: Record<string, string> | null;
+  mealGateMenu?: MenuType | null;
+  allUsers: boolean;
+  userIds?: number[] | null;
+};
+
+// Bitta userga push uchun (POST /notifications).
 export type PushNotificationDto = {
   userId: number;
   title: string;
   description: string;
   image?: string | null;
-  // ISO date-time (masalan "2026-09-16T18:30:00"). null => hoziroq yuboriladi.
   scheduled?: string | null;
   meta?: Record<string, string> | null;
   mealGateMenu?: MenuType | null;
 };
 
-export type BroadcastPayload = Omit<PushNotificationDto, "userId">;
-
-export type BroadcastProgress = {
-  total: number;
-  sent: number;
-  failed: number;
-  done: boolean;
-};
-
 export const useNotificationStore = defineStore("notification", () => {
   const { execute } = useApiCallStore();
-  const tokenStore = useTokenStore();
-
-  // Bitta foydalanuvchiga push yuborish.
-  const sendToUser = async (
-    dto: PushNotificationDto,
-  ): Promise<ApiBaseResponse> => {
-    return await execute(async () => {
-      const response = await axios.post("/notifications", dto);
-      return response.data;
-    });
-  };
 
   // Barcha foydalanuvchilar sonini olish (broadcastdan oldin auditoriyani ko'rsatish uchun).
   const getUsersTotal = async (): Promise<number> => {
@@ -54,78 +43,29 @@ export const useNotificationStore = defineStore("notification", () => {
     });
   };
 
-  // Barcha foydalanuvchi id'larini sahifalab yig'ib olish.
-  const loadAllUserIds = async (): Promise<number[]> => {
+  // Broadcast / batch push. Javob `content` — yaratilgan bildirishnomalar soni.
+  const sendBatch = async (
+    dto: BatchPushNotificationDto,
+  ): Promise<ApiBaseResponse<number>> => {
     return await execute(async () => {
-      const take = 200;
-      let skip = 0;
-      const ids: number[] = [];
-      // Xavfsizlik uchun cheksiz sikldan himoya.
-      for (let guard = 0; guard < 1000; guard++) {
-        const response = await axios.get("/users", {
-          params: { Skip: skip, Take: take, SortPropName: "id", SortDirection: "Ascending" },
-        });
-        const content: GetAllUsersDto[] = response.data?.content ?? [];
-        for (const u of content) if (typeof u.id === "number") ids.push(u.id);
-        const total: number = response.data?.total ?? ids.length;
-        skip += take;
-        if (content.length === 0 || ids.length >= total) break;
-      }
-      return ids;
+      const response = await axios.post("/notifications/batch", dto);
+      return response.data;
     });
   };
 
-  // Bir xil push'ni ko'rsatilgan foydalanuvchilarga cheklangan parallellik bilan yuborish.
-  // HandlerChain'ni chetlab o'tamiz: har bir xatolik uchun global bildirishnoma
-  // chiqmasligi va global loading indikatori miltillamasligi uchun to'g'ridan-to'g'ri axios.
-  const broadcast = async (
-    payload: BroadcastPayload,
-    userIds: number[],
-    onProgress?: (p: BroadcastProgress) => void,
-    concurrency = 8,
-  ): Promise<BroadcastProgress> => {
-    const headers = tokenStore.accessToken
-      ? { Authorization: `Bearer ${tokenStore.accessToken}` }
-      : {};
-    const total = userIds.length;
-    let sent = 0;
-    let failed = 0;
-    const queue = [...userIds];
-
-    const emit = () => onProgress?.({ total, sent, failed, done: false });
-
-    const worker = async () => {
-      while (queue.length) {
-        const userId = queue.shift()!;
-        try {
-          await axios.post(
-            "/notifications",
-            { ...payload, userId },
-            { headers, silent: true } as any,
-          );
-          sent++;
-        } catch {
-          failed++;
-        }
-        emit();
-      }
-    };
-
-    const workers = Array.from(
-      { length: Math.min(concurrency, total) || 1 },
-      () => worker(),
-    );
-    await Promise.all(workers);
-
-    const final: BroadcastProgress = { total, sent, failed, done: true };
-    onProgress?.(final);
-    return final;
+  // Bitta foydalanuvchiga push (kerak bo'lganda).
+  const sendToUser = async (
+    dto: PushNotificationDto,
+  ): Promise<ApiBaseResponse> => {
+    return await execute(async () => {
+      const response = await axios.post("/notifications", dto);
+      return response.data;
+    });
   };
 
   return {
-    sendToUser,
     getUsersTotal,
-    loadAllUserIds,
-    broadcast,
+    sendBatch,
+    sendToUser,
   };
 });
