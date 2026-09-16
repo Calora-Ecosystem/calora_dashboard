@@ -227,6 +227,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import("./home/Notifications.vue"),
               },
               {
+                path: "broadcast",
+                name: "push_broadcast",
+                component: () => import("./reminder/PushBroadcast.vue"),
+              },
+              {
                 path: "messages",
                 children: [
                   {
