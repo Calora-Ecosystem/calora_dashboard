@@ -77,6 +77,7 @@ const sections: Section[] = [
         roles: ["SuperAdmin"],
         children: [
           { path: "/notifications/broadcast", label: "Push yuborish" },
+          { path: "/notifications/campaigns", label: "Segmentli push" },
           { path: "/notifications/messages", label: "Xabarlar" },
         ],
       },
