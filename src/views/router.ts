@@ -237,6 +237,11 @@ const routes: RouteRecordRaw[] = [
                 component: () => import("./reminder/PushCampaigns.vue"),
               },
               {
+                path: "sent",
+                name: "push_history",
+                component: () => import("./reminder/PushHistory.vue"),
+              },
+              {
                 path: "messages",
                 children: [
                   {

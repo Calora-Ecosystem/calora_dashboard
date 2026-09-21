@@ -78,6 +78,7 @@ const sections: Section[] = [
         children: [
           { path: "/notifications/broadcast", label: "Push yuborish" },
           { path: "/notifications/campaigns", label: "Segmentli push" },
+          { path: "/notifications/sent", label: "Yuborilganlar" },
           { path: "/notifications/messages", label: "Xabarlar" },
         ],
       },

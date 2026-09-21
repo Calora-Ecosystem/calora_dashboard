@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { axios } from "../integrations/axios";
 import type { ApiBaseResponse } from "../@types/common";
 import type { MenuType } from "../@types/reminder";
+import type { GetNotificationDto } from "../@types/pushHistory";
 import { useApiCallStore } from "./apiCallStore";
 
 // Backend: POST /notifications/batch  (Core.Services.Notification.Contracts.BatchPushNotificationDto)
@@ -63,9 +64,44 @@ export const useNotificationStore = defineStore("notification", () => {
     });
   };
 
+  // ── Server qutisi (joriy foydalanuvchi bildirishnomalari) ─────────
+  // `GET /notifications` faqat chaqiruvchi (token egasi) qutisini qaytaradi
+  // — global "yuborilganlar" ro'yxati emas.
+  const loadNotifications = async (
+    skip: number,
+    take: number,
+  ): Promise<ApiBaseResponse<GetNotificationDto[]>> => {
+    return await execute(async () => {
+      const response = await axios.get("/notifications", {
+        params: {
+          Skip: skip,
+          Take: take,
+          SortPropName: "id",
+          SortDirection: "Descending",
+        },
+      });
+      return response.data;
+    });
+  };
+
+  const markAsRead = async (id: number): Promise<void> => {
+    await execute(async () => {
+      await axios.put(`/notifications/mark-as-read/${id}`);
+    });
+  };
+
+  const markAllAsRead = async (): Promise<void> => {
+    await execute(async () => {
+      await axios.put("/notifications/mark-as-read/all");
+    });
+  };
+
   return {
     getUsersTotal,
     sendBatch,
     sendToUser,
+    loadNotifications,
+    markAsRead,
+    markAllAsRead,
   };
 });

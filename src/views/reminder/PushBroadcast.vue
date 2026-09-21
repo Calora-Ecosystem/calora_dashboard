@@ -14,8 +14,10 @@ import {
 import { onMounted, reactive, ref } from "vue";
 import FileUpload from "../../components/shared/FileUpload.vue";
 import { useNotificationStore } from "../../stores/notificationStore";
+import { usePushHistoryStore } from "../../stores/pushHistoryStore";
 
 const notificationStore = useNotificationStore();
+const pushHistoryStore = usePushHistoryStore();
 
 type Mode = "now" | "schedule";
 
@@ -126,6 +128,15 @@ const handleSend = async () => {
       const count =
         typeof res.content === "number" ? res.content : audienceTotal.value ?? 0;
       result.value = { count, scheduled: scheduledIso };
+      pushHistoryStore.record({
+        title: data.title.trim(),
+        description: data.description.trim(),
+        image: data.image,
+        audienceType: "all",
+        audienceLabel: "Barcha foydalanuvchilar",
+        recipientCount: count,
+        scheduled: scheduledIso,
+      });
       ElMessage.success(
         scheduledIso
           ? `${count} ta foydalanuvchiga rejalashtirildi`
