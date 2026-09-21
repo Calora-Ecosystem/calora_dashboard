@@ -15,6 +15,7 @@ import {
 import { computed, onMounted, reactive, ref } from "vue";
 import FileUpload from "../../components/shared/FileUpload.vue";
 import { useNotificationStore } from "../../stores/notificationStore";
+import { usePushHistoryStore } from "../../stores/pushHistoryStore";
 import { useAudienceStore } from "../../stores/audienceStore";
 import { emptySegmentFilter } from "../../@types/audience";
 import type {
@@ -27,6 +28,7 @@ import type {
 import { ACTIVITIES, GENDERS, PLANS } from "../../constants/ApiContstants";
 
 const notificationStore = useNotificationStore();
+const pushHistoryStore = usePushHistoryStore();
 const audienceStore = useAudienceStore();
 
 // ── Yorliqlar ─────────────────────────────────────────────────────
@@ -109,6 +111,23 @@ const isFilterEmpty = computed(
 );
 
 const resetFilter = () => Object.assign(filter, emptySegmentFilter());
+
+// Faol filtrni qisqa, o'qiladigan matnga aylantiradi (tarixga yozish uchun).
+const segmentSummary = computed(() => {
+  const parts: string[] = [];
+  if (filter.genders.length)
+    parts.push(filter.genders.map((g) => GENDER_LABELS[g]).join(", "));
+  if (filter.ageMin != null || filter.ageMax != null)
+    parts.push(`${filter.ageMin ?? "0"}–${filter.ageMax ?? "∞"} yosh`);
+  if (filter.plans.length) parts.push(filter.plans.join(", "));
+  if (filter.activityLevels.length)
+    parts.push(filter.activityLevels.map((a) => ACTIVITY_LABELS[a]).join(", "));
+  if (filter.engagement === "active")
+    parts.push(`≤${filter.activeWithinDays} kun faol`);
+  else if (filter.engagement === "dormant")
+    parts.push(`≥${filter.dormantAfterDays} kun kam faol`);
+  return parts.join(" · ") || "Barcha foydalanuvchilar";
+});
 
 // ── Snapshot & mos auditoriya ─────────────────────────────────────
 onMounted(() => {
@@ -258,6 +277,17 @@ const handleSend = async () => {
     if (res.code === 200) {
       const sent = typeof res.content === "number" ? res.content : count;
       result.value = { count: sent, scheduled: scheduledIso };
+      pushHistoryStore.record({
+        title: data.title.trim(),
+        description: data.description.trim(),
+        image: data.image,
+        audienceType: useAll ? "all" : "segment",
+        audienceLabel: useAll
+          ? "Barcha foydalanuvchilar"
+          : `Segment · ${segmentSummary.value}`,
+        recipientCount: sent,
+        scheduled: scheduledIso,
+      });
       ElMessage.success(
         scheduledIso
           ? `${sent} ta foydalanuvchiga rejalashtirildi`
