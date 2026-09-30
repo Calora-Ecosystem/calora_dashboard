@@ -54,6 +54,7 @@ const sections: Section[] = [
       { icon: "navbar/home.svg", path: "/dashboard", label: "Dashboard", roles: ["SuperAdmin"] },
       { icon: "navbar/users.svg", path: "/users", label: "Foydalanuvchilar", roles: ["SuperAdmin"] },
       { icon: "navbar/money-bag.svg", path: "/sales", label: "Savdolar", roles: ["SuperAdmin"] },
+      { icon: "navbar/trophy.svg", path: "/coins", label: "Coin reytingi", roles: ["SuperAdmin"] },
     ],
   },
   {
