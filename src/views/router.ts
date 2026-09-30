@@ -80,6 +80,22 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/Sales.vue"),
           },
           {
+            path: "coins",
+            meta: SUPER_ADMIN,
+            children: [
+              {
+                path: "",
+                name: "coin_ranking",
+                component: () => import("./coins/CoinRanking.vue"),
+              },
+              {
+                path: "users/:userId(\\d+)",
+                name: "coin_user",
+                component: () => import("./coins/UserCoins.vue"),
+              },
+            ],
+          },
+          {
             path: "courses",
             meta: SUPER_ADMIN,
             children: [
