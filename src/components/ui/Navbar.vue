@@ -39,12 +39,22 @@ const isExpanded = (item: MenuEntry) =>
 
 // Active only for the most specific (longest) matching item, so e.g. "/crm/sales"
 // is not highlighted while on "/crm/sales/leads".
+const matchesRoute = (p: string) =>
+  currentRoute.path === p || currentRoute.path.startsWith(p + "/");
+
 const isActive = (path: string) => {
-  const matches = (p: string) =>
-    currentRoute.path === p || currentRoute.path.startsWith(p + "/");
-  if (!matches(path)) return false;
+  if (!matchesRoute(path)) return false;
   const all = sections.flatMap((s) => s.items.map((i) => i.path));
-  return !all.some((p) => p !== path && p.length > path.length && matches(p));
+  return !all.some((p) => p !== path && p.length > path.length && matchesRoute(p));
+};
+
+// Submenu: only the most specific sibling is active (e.g. "/coins" is not
+// highlighted while on "/coins/market", but stays active on "/coins/users/5").
+const isChildActive = (item: MenuEntry, child: MenuChild) => {
+  if (!matchesRoute(child.path)) return false;
+  return !(item.children ?? []).some(
+    (c) => c.path !== child.path && c.path.length > child.path.length && matchesRoute(c.path),
+  );
 };
 
 const sections: Section[] = [
@@ -54,7 +64,18 @@ const sections: Section[] = [
       { icon: "navbar/home.svg", path: "/dashboard", label: "Dashboard", roles: ["SuperAdmin"] },
       { icon: "navbar/users.svg", path: "/users", label: "Foydalanuvchilar", roles: ["SuperAdmin"] },
       { icon: "navbar/money-bag.svg", path: "/sales", label: "Savdolar", roles: ["SuperAdmin"] },
-      { icon: "navbar/trophy.svg", path: "/coins", label: "Coin reytingi", roles: ["SuperAdmin"] },
+      {
+        icon: "navbar/trophy.svg",
+        path: "/coins",
+        label: "Coinlar",
+        roles: ["SuperAdmin"],
+        children: [
+          { path: "/coins", label: "Reyting" },
+          { path: "/coins/rules", label: "Qadam → coin qoidasi" },
+          { path: "/coins/market", label: "Coin do'koni" },
+        ],
+      },
+      { icon: "navbar/gift.svg", path: "/referrals", label: "Do'st taklifi", roles: ["SuperAdmin"] },
     ],
   },
   {
@@ -182,7 +203,7 @@ const visibleSections = computed(() =>
                 v-for="child in item.children"
                 :key="child.path"
                 class="text-left text-[13px] px-3 py-2 rounded-lg transition-colors"
-                :class="isActive(child.path) ? 'child-active' : 'child-idle'"
+                :class="isChildActive(item, child) ? 'child-active' : 'child-idle'"
                 @click="navigate(child.path)"
               >
                 {{ child.label }}

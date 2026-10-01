@@ -162,3 +162,61 @@ export const txTitle = (title: string) => {
   if (premium) return `Premium ${premium[1]} kun (do'kon)`;
   return title;
 };
+
+// ── Foiz / so'm ────────────────────────────────────────────────────
+/** 0..1 ulush → "12,5%". */
+export const formatPercent = (share: number | null | undefined, digits = 1) =>
+  `${(Number(share ?? 0) * 100).toLocaleString("ru-RU", { maximumFractionDigits: digits })}%`;
+
+/** So'm (backend tiyindan o'girgan) → "1 250 000 so'm". */
+export const formatSom = (v: number | null | undefined) =>
+  `${Math.round(Number(v ?? 0)).toLocaleString("ru-RU")} so'm`;
+
+/** Kasr son: "3,5". */
+export const formatDecimal = (v: number | null | undefined, digits = 1) =>
+  Number(v ?? 0).toLocaleString("ru-RU", { maximumFractionDigits: digits });
+
+// ── API xatolari (mutatsiyalar `silent` — matnni sahifa ko'rsatadi) ──
+const API_ERRORS: Record<string, string> = {
+  coin_rule_past_date: "Qoida faqat bugundan yoki kelajakdagi kundan kuchga kirishi mumkin",
+  coin_rule_locked: "O'tgan kunlardagi qoidani o'zgartirib yoki o'chirib bo'lmaydi",
+  coin_rule_not_found: "Qoida topilmadi",
+  coin_rule_invalid: "Qadam va limit kamida 1 bo'lishi kerak",
+  market_item_in_use: "Bu tarif sotib olingan — uni o'chirib bo'lmaydi, faolsizlantiring",
+  market_item_invalid: "Premium tarif 1 kundan 3650 kungacha bo'lishi kerak",
+  market_item_not_found: "Mahsulot topilmadi",
+};
+
+export const apiErrorMessage = (e: unknown, fallback = "Saqlab bo'lmadi") => {
+  const data = (e as any)?.response?.data;
+  const key: string | undefined = typeof data?.error === "string" ? data.error : undefined;
+  if (key && API_ERRORS[key]) return API_ERRORS[key];
+  const raw = JSON.stringify(data ?? "");
+  const found = Object.keys(API_ERRORS).find((k) => raw.includes(k));
+  if (found) return API_ERRORS[found];
+  const model = data?.modelStateError?.[0]?.message ?? data?.modelStateError?.[0]?.errors?.[0];
+  return model || key || fallback;
+};
+
+// ── Do'kon ─────────────────────────────────────────────────────────
+/** Mobile lokalizatsiya kalitlari (uz) — do'kon kartasidagi qisqa izoh. */
+export const MARKET_SUBTITLES: { value: string; label: string }[] = [
+  { value: "mi_premium_7_sub", label: "Sinab ko'rish uchun" },
+  { value: "mi_premium_30_sub", label: "To'liq bir oy" },
+  { value: "mi_premium_75_sub", label: "Foydali tanlov" },
+  { value: "mi_premium_120_sub", label: "Eng tejamkor" },
+];
+
+export const subtitleLabel = (subtitle: string | null | undefined) =>
+  !subtitle ? "" : (MARKET_SUBTITLES.find((x) => x.value === subtitle)?.label ?? subtitle);
+
+export const REWARD_TYPE_LABEL: Record<string, string> = {
+  PremiumDays: "Premium kunlar",
+  AiScans: "AI skanlar",
+  Coupon: "Chegirma kuponi",
+  Voucher: "Vaucher",
+};
+
+/** Do'kon mahsuloti nomi: Premium tarif — "Premium 30 kun". */
+export const marketItemLabel = (x: { title: string; rewardType: string; rewardValue: number }) =>
+  x.rewardType === "PremiumDays" ? `Premium ${x.rewardValue} kun` : txTitle(x.title);
