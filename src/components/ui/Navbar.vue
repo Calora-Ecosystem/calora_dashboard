@@ -71,7 +71,7 @@ const sections: Section[] = [
         roles: ["SuperAdmin"],
         children: [
           { path: "/coins", label: "Reyting" },
-          { path: "/coins/rules", label: "Qadam → coin qoidasi" },
+          { path: "/coins/rules", label: "Coin sozlamalari" },
           { path: "/coins/market", label: "Coin do'koni" },
         ],
       },

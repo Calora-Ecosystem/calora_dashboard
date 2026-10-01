@@ -182,6 +182,7 @@ const API_ERRORS: Record<string, string> = {
   coin_rule_locked: "O'tgan kunlardagi qoidani o'zgartirib yoki o'chirib bo'lmaydi",
   coin_rule_not_found: "Qoida topilmadi",
   coin_rule_invalid: "Qadam va limit kamida 1 bo'lishi kerak",
+  coin_earn_start_invalid: "Sana noto'g'ri — 2020 yildan keyingi va bir yildan oshmagan kun tanlang",
   market_item_in_use: "Bu tarif sotib olingan — uni o'chirib bo'lmaydi, faolsizlantiring",
   market_item_invalid: "Premium tarif 1 kundan 3650 kungacha bo'lishi kerak",
   market_item_not_found: "Mahsulot topilmadi",
