@@ -93,6 +93,32 @@ const routes: RouteRecordRaw[] = [
                 name: "coin_user",
                 component: () => import("./coins/UserCoins.vue"),
               },
+              {
+                path: "rules",
+                name: "coin_rules",
+                component: () => import("./coins/CoinRules.vue"),
+              },
+              {
+                path: "market",
+                name: "coin_market",
+                component: () => import("./coins/CoinMarket.vue"),
+              },
+            ],
+          },
+          {
+            path: "referrals",
+            meta: SUPER_ADMIN,
+            children: [
+              {
+                path: "",
+                name: "referrals",
+                component: () => import("./referrals/Referrals.vue"),
+              },
+              {
+                path: ":userId(\\d+)",
+                name: "referrer_detail",
+                component: () => import("./referrals/ReferrerDetail.vue"),
+              },
             ],
           },
           {

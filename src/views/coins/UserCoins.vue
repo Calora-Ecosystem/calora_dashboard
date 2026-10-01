@@ -95,6 +95,12 @@ const backToRanking = () =>
 
 const d = computed(() => data.value);
 const maxDaily = computed(() => d.value?.maxDailyCoins ?? 22);
+// Har kun o'sha kunda amal qilgan qoida bo'yicha (qoida dashboard'dan o'zgarishi mumkin).
+const dayLimit = (day: { maxDailyCoins?: number }) => day.maxDailyCoins || maxDaily.value;
+const rateChanged = computed(() => {
+  const days = d.value?.days ?? [];
+  return new Set(days.map((x) => `${x.stepsPerCoin}/${x.maxDailyCoins}`)).size > 1;
+});
 
 // ── Kunlar jadvali ────────────────────────────────────────────────
 const onlyCoinDays = ref(false);
@@ -144,8 +150,8 @@ const chartData = computed(() => {
     });
   datasets.push({
     type: "line",
-    label: `Kunlik limit (${maxDaily.value})`,
-    data: days.map(() => maxDaily.value),
+    label: rateChanged.value ? "Kunlik limit" : `Kunlik limit (${maxDaily.value})`,
+    data: days.map((x) => dayLimit(x)),
     borderColor: "#f79009",
     borderWidth: 1.5,
     borderDash: [5, 4],
@@ -188,7 +194,7 @@ const chartOptions = computed(() => ({
     y: {
       stacked: true,
       beginAtZero: true,
-      suggestedMax: maxDaily.value + 2,
+      suggestedMax: Math.max(maxDaily.value, ...(d.value?.days ?? []).map((x) => dayLimit(x))) + 2,
       grid: { color: gridColor.value },
       ticks: { color: tickColor.value, font: { size: 11 }, precision: 0 },
     },
@@ -370,7 +376,10 @@ const rankColor = computed(() =>
         <div class="table-toolbar">
           <div>
             <h2 class="section-title">Qaysi kuni qancha coin yig'gan</h2>
-            <p class="section-sub">{{ d.stepsPerCoin }} qadam = 1 coin, kuniga ko'pi bilan {{ d.maxDailyCoins }} coin</p>
+            <p class="section-sub">
+              Hozir {{ formatNumber(d.stepsPerCoin) }} qadam = 1 coin, kuniga ko'pi bilan {{ d.maxDailyCoins }} coin
+              <template v-if="rateChanged"> · har kun o'sha kundagi qoida bo'yicha</template>
+            </p>
           </div>
           <label class="switch-label">
             <ElSwitch v-model="onlyCoinDays" size="small" />
@@ -402,12 +411,13 @@ const rankColor = computed(() =>
                     <div class="bar-track">
                       <div
                         class="bar-fill"
-                        :class="{ full: day.stepCoins >= d.maxDailyCoins }"
-                        :style="{ width: Math.min(day.stepCoins / d.maxDailyCoins, 1) * 100 + '%' }"
+                        :class="{ full: day.stepCoins >= dayLimit(day) }"
+                        :style="{ width: Math.min(day.stepCoins / dayLimit(day), 1) * 100 + '%' }"
                       />
                     </div>
                     <span class="bar-num">{{ day.stepCoins }}</span>
-                    <span v-if="day.stepCoins >= d.maxDailyCoins" class="limit-tag">limit</span>
+                    <span v-if="day.stepCoins >= dayLimit(day)" class="limit-tag">limit</span>
+                    <span v-if="rateChanged && day.stepsPerCoin" class="rate-tag" :title="`O'sha kuni: ${day.stepsPerCoin} qadam = 1 coin, limit ${day.maxDailyCoins}`">{{ formatNumber(day.stepsPerCoin) }}/coin</span>
                   </div>
                 </td>
                 <td class="num">
@@ -551,6 +561,10 @@ const rankColor = computed(() =>
 .limit-tag {
   padding: 1px 6px; border-radius: 999px; font-size: 10.5px; font-weight: 700;
   background: var(--success-soft); color: var(--success);
+}
+.rate-tag {
+  padding: 1px 6px; border-radius: 999px; font-size: 10.5px; font-weight: 600; white-space: nowrap;
+  background: var(--surface-2); color: var(--text-faint);
 }
 .earned { font-weight: 800; color: var(--warning); }
 .lb tr.zero .earned { color: var(--text-faint); font-weight: 600; }
