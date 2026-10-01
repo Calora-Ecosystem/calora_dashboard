@@ -52,6 +52,9 @@ export type PlanExtraDto = {
   originalFee: number; // chegirmadan oldingi narx (UZS)
   isActive: boolean;
   isPopular: boolean; // "Eng yaxshi taklif" — admin tomonidan belgilanadi
+  // Oilaviy tarif (2 kishi): sotib olgan userga ikkinchi odam uchun bir
+  // martalik Premium kodi beriladi. Ilovada oddiy tariflardan alohida.
+  isFamily: boolean;
   createdAt: string;
 };
 
@@ -64,6 +67,7 @@ export type CreateOrUpdatePlanExtraDto = {
   originalFee: number;
   isActive: boolean;
   isPopular: boolean;
+  isFamily: boolean;
 };
 
 
