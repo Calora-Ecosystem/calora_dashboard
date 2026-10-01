@@ -6,7 +6,6 @@ import { makeFileUrl } from "../../integrations/axios";
 import { formatDate } from "../../utils/FormatHelper";
 import type { UserDetailDto } from "../../@types/user";
 import CopyText from "../shared/CopyText.vue";
-import { useIsMobile } from "../../composables/useIsMobile";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -15,7 +14,6 @@ const props = defineProps<{
 const emit = defineEmits<{ (e: "update:modelValue", v: boolean): void }>();
 
 const userStore = useUserStore();
-const isMobile = useIsMobile();
 const detail = ref<UserDetailDto | null>(null);
 const loading = ref(false);
 
@@ -119,7 +117,7 @@ const planStyle = (plan: string) => {
 </script>
 
 <template>
-  <ElDrawer v-model="open" title="Foydalanuvchi ma'lumotlari" :size="isMobile ? '100%' : '440px'" :destroy-on-close="true">
+  <ElDrawer v-model="open" title="Foydalanuvchi ma'lumotlari" size="440px" :destroy-on-close="true">
     <div v-if="loading" class="py-16 text-center text-[13px]" style="color: var(--text-faint)">
       Yuklanmoqda...
     </div>
