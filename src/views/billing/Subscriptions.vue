@@ -44,17 +44,18 @@ const planStyle = (plan: SubscriptionPlan) => {
   }
 };
 
-// Tariflarni plan turi bo'yicha guruhlash
+// Tariflarni plan turi bo'yicha guruhlash; oilaviy paketlar ilovada alohida
+// ro'yxat, shuning uchun bu yerda ham alohida guruh.
 const grouped = computed(() => {
   const order: SubscriptionPlan[] = ["Premium", "Pro", "Free"];
-  const map = new Map<SubscriptionPlan, PlanExtraDto[]>();
-  for (const p of plans.value) {
-    if (!map.has(p.plan)) map.set(p.plan, []);
-    map.get(p.plan)!.push(p);
+  const groups: { key: string; plan: SubscriptionPlan; family: boolean; items: PlanExtraDto[] }[] = [];
+  for (const plan of order) {
+    for (const family of [false, true]) {
+      const items = plans.value.filter((p) => p.plan === plan && !!p.isFamily === family);
+      if (items.length) groups.push({ key: `${plan}-${family}`, plan, family, items });
+    }
   }
-  return order
-    .filter((pl) => map.has(pl))
-    .map((pl) => ({ plan: pl, items: map.get(pl)! }));
+  return groups;
 });
 
 // ─── Yaratish / tahrirlash ────────────────────────────────────────
@@ -69,6 +70,7 @@ const emptyForm = (): CreateOrUpdatePlanExtraDto => ({
   originalFee: 0,
   isActive: true,
   isPopular: false,
+  isFamily: false,
 });
 
 const form = reactive<CreateOrUpdatePlanExtraDto>(emptyForm());
@@ -89,6 +91,7 @@ const openEdit = (p: PlanExtraDto) => {
     originalFee: p.originalFee,
     isActive: p.isActive,
     isPopular: p.isPopular,
+    isFamily: !!p.isFamily,
   });
   dialogOpen.value = true;
 };
@@ -149,6 +152,7 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
       originalFee: p.originalFee,
       isActive: p.isActive,
       isPopular: p.isPopular,
+      isFamily: !!p.isFamily,
       ...patch,
     });
     if (res.code !== 200) return;
@@ -189,9 +193,10 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
 
     <!-- Grouped plans -->
     <div v-else class="space-y-7">
-      <div v-for="group in grouped" :key="group.plan">
+      <div v-for="group in grouped" :key="group.key">
         <div class="flex items-center gap-2.5 mb-3">
           <span class="badge" :style="{ background: planStyle(group.plan).bg, color: planStyle(group.plan).color }">{{ group.plan }}</span>
+          <span v-if="group.family" class="badge" style="background: var(--info-soft); color: var(--info)">Oilaviy · 2 kishi</span>
           <span class="text-[12.5px]" style="color: var(--text-faint)">{{ group.items.length }} ta paket</span>
         </div>
 
@@ -202,7 +207,10 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
                 <span class="text-[26px] font-extrabold" style="color: var(--text)">{{ p.duration }}</span>
                 <span class="text-[14px] font-semibold" style="color: var(--text-muted)">oy</span>
               </div>
-              <span v-if="p.isPopular" class="mini-badge" style="background: var(--warning-soft); color: var(--warning)">★ Eng yaxshi taklif</span>
+              <div class="flex items-center gap-1.5">
+                <span v-if="p.isFamily" class="mini-badge" style="background: var(--info-soft); color: var(--info)">Oilaviy</span>
+                <span v-if="p.isPopular" class="mini-badge" style="background: var(--warning-soft); color: var(--warning)">★ Eng yaxshi taklif</span>
+              </div>
             </div>
 
             <div class="mt-3 flex items-baseline gap-2 flex-wrap">
@@ -306,7 +314,7 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
             <span v-if="form.isPopular" class="preview-ribbon">Eng yaxshi taklif</span>
             <div class="flex items-center justify-between gap-3">
               <span class="text-[14.5px] font-semibold" style="color: var(--text)">
-                {{ form.duration }} oylik {{ form.plan }}
+                {{ form.isFamily ? "Oila · 2 kishi" : `${form.duration} oylik ${form.plan}` }}
               </span>
               <div class="text-right">
                 <div class="text-[14.5px] font-bold" style="color: var(--text)">{{ formatMoney(form.fee || 0, "standard") }}</div>
@@ -329,10 +337,21 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
           <ElSwitch v-model="form.isActive" />
         </div>
 
+        <div class="flex items-center justify-between gap-4 py-1">
+          <div>
+            <div class="text-[13.5px] font-semibold" style="color: var(--text)">Oilaviy tarif (2 kishi)</div>
+            <div class="text-[12px]" style="color: var(--text-faint)">
+              Sotib olgan user Premium oladi va ikkinchi odam uchun muddat bo'yicha Premium kodi beriladi.
+              Faqat Payme / Click orqali sotiladi, oddiy tariflardan alohida ko'rinadi.
+            </div>
+          </div>
+          <ElSwitch v-model="form.isFamily" />
+        </div>
+
         <div class="flex items-center justify-between py-1">
           <div>
             <div class="text-[13.5px] font-semibold" style="color: var(--text)">Eng yaxshi taklif</div>
-            <div class="text-[12px]" style="color: var(--text-faint)">Har bir planda bittasi belgilanadi</div>
+            <div class="text-[12px]" style="color: var(--text-faint)">Har bir planda bittasi (oddiy va oilaviy alohida)</div>
           </div>
           <ElSwitch v-model="form.isPopular" :disabled="!form.isActive" />
         </div>
