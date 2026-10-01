@@ -217,3 +217,36 @@ export type MarketPurchaseDto = {
   rewardValue: number;
   code: string | null;
 };
+
+// ── Coin hisoblash kuni va reset (dashboard/coins/earn-start) ────────
+export type CoinResetDto = {
+  id: number;
+  createdAt: string;
+  createdBy: string | null;
+  earnStartDate: string;
+  usersAffected: number;
+  balanceRemoved: number;
+  earnedRemoved: number;
+  transactionsRemoved: number;
+};
+
+export type CoinEarnStartDto = {
+  earnStartDate: string;
+  isDefault: boolean;
+  updatedBy: string | null;
+  updatedAt: string | null;
+  today: string;
+  walletsWithCoins: number;
+  balance: number;
+  earned: number;
+  transactions: number;
+  earliestStepDay: string | null;
+  stepCoinsBeforeStart: number;
+  resets: CoinResetDto[];
+};
+
+export type SaveCoinEarnStartDto = {
+  /** "YYYY-MM-DD" */
+  earnStartDate: string;
+  resetCoins: boolean;
+};

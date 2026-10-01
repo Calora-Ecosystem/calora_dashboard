@@ -26,6 +26,7 @@ import {
   marketItemLabel,
   toDateStr,
 } from "./coinMeta";
+import CoinEarnStartCard from "./CoinEarnStartCard.vue";
 
 const coinStore = useCoinStore();
 
@@ -66,6 +67,12 @@ const load = async () => {
 };
 
 onMounted(load);
+
+// Hisoblash kuni yoki reset — qoidalar tarixidagi "ishga tushgan kun" va ta'sir jadvali yangilanadi.
+const onEarnStartChanged = async () => {
+  rules.value = await coinStore.getRules();
+  loadPreview();
+};
 
 const current = computed(() => rules.value?.current ?? null);
 const next = computed(() => rules.value?.next ?? null);
@@ -220,10 +227,10 @@ const rangeText = (r: CoinRuleDto) =>
       <div>
         <h1 class="page-title">
           <svg-icon icon="navbar/trophy.svg" class="title-icon" />
-          Qadam → coin qoidasi
+          Coin sozlamalari
         </h1>
         <p class="page-sub">
-          Necha qadam uchun 1 coin berilishini belgilang — mobile ilovadagi hamyon shu qoidani ko'rsatadi va shunga ko'ra coin yozadi
+          Coin qaysi kundan hisoblanishi, barcha coinlarni o'chirish va necha qadam uchun 1 coin berilishi — mobile ilovadagi hamyon shu sozlamalar bo'yicha ishlaydi
         </p>
       </div>
     </header>
@@ -231,6 +238,8 @@ const rangeText = (r: CoinRuleDto) =>
     <div v-if="loading && !rules" class="app-card p-6"><ElSkeleton :rows="6" animated /></div>
 
     <template v-else-if="rules && current">
+      <CoinEarnStartCard @changed="onEarnStartChanged" />
+
       <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_380px] gap-4">
         <!-- Chap: joriy qoida + forma -->
         <div class="flex flex-col gap-4 min-w-0">
@@ -456,7 +465,7 @@ const rangeText = (r: CoinRuleDto) =>
         <div class="table-toolbar">
           <div>
             <h2 class="section-title">Qoidalar tarixi</h2>
-            <p class="section-sub">Coin yig'ish {{ formatDayYear(rules.coinsEarnStartDate) }} da ishga tushgan</p>
+            <p class="section-sub">Coin {{ formatDayYear(rules.coinsEarnStartDate) }} dan hisoblanadi</p>
           </div>
         </div>
         <div class="table-wrap">

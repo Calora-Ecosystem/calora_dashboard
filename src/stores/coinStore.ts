@@ -3,6 +3,7 @@ import { axios } from "../integrations/axios";
 import type { ApiBaseResponse } from "../@types/common";
 import type {
   AdminMarketItemDto,
+  CoinEarnStartDto,
   CoinPeriodQuery,
   CoinRankingRowDto,
   CoinRulePreviewDto,
@@ -12,6 +13,7 @@ import type {
   CoinTxType,
   MarketPurchaseDto,
   MarketSummaryDto,
+  SaveCoinEarnStartDto,
   SaveCoinRuleDto,
   SaveMarketItemDto,
   UserCoinsDto,
@@ -109,6 +111,21 @@ export const useCoinStore = defineStore("coin", () => {
     });
   };
 
+  // ── Coin hisoblash kuni va barcha coinlarni o'chirish ────────────
+  const getEarnStart = async (): Promise<CoinEarnStartDto | null> => {
+    return await execute(async () => {
+      const response = await axios.get("/dashboard/coins/earn-start");
+      return response.data?.content ?? null;
+    });
+  };
+
+  const saveEarnStart = async (dto: SaveCoinEarnStartDto): Promise<CoinEarnStartDto | null> => {
+    return await execute(async () => {
+      const response = await axios.post("/dashboard/coins/earn-start", dto, { silent: true } as any);
+      return response.data?.content ?? null;
+    });
+  };
+
   // ── Coin do'koni ────────────────────────────────────────────────
   const getMarketItems = async (period: CoinPeriodQuery): Promise<AdminMarketItemDto[]> => {
     return await execute(async () => {
@@ -168,6 +185,8 @@ export const useCoinStore = defineStore("coin", () => {
     saveRule,
     deleteRule,
     previewRule,
+    getEarnStart,
+    saveEarnStart,
     getMarketItems,
     getMarketSummary,
     saveMarketItem,
