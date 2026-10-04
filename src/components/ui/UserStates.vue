@@ -23,8 +23,8 @@ const stats = computed(() => dashboardStore.userStatistics);
 const total = computed(() => stats.value?.totalUsers ?? 0);
 
 // Obuna kesimi: real backend ma'lumoti (premium/pro faol obunalar va bepul).
-const planNames: Record<number, string> = { 1: "Bepul", 2: "Premium", 3: "Pro" };
-const planColors: Record<number, string> = { 1: "#94a3b8", 2: "#7cc243", 3: "#7a5af8" };
+const planNames: Record<number, string> = { 1: "Bepul", 2: "Premium", 3: "Pro", 4: "Oilaviy" };
+const planColors: Record<number, string> = { 1: "#94a3b8", 2: "#7cc243", 3: "#7a5af8", 4: "#0ba5ec" };
 
 const segments = computed(() => {
   const breakdown = stats.value?.planBreakdown ?? [];
