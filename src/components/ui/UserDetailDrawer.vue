@@ -112,6 +112,7 @@ const norms = computed(() => detail.value?.norms ?? []);
 const planStyle = (plan: string) => {
   if (plan === "Pro") return { bg: "var(--purple-soft)", fg: "var(--purple)" };
   if (plan === "Premium") return { bg: "var(--brand-soft)", fg: "var(--brand-strong)" };
+  if (plan === "Family") return { bg: "var(--info-soft)", fg: "var(--info)" };
   return { bg: "var(--surface-hover)", fg: "var(--text-muted)" };
 };
 </script>

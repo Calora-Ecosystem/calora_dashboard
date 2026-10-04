@@ -6,6 +6,8 @@ import {
   ElMessage,
   ElOption,
   ElPopconfirm,
+  ElRadio,
+  ElRadioGroup,
   ElSelect,
   ElSwitch,
 } from "element-plus";
@@ -14,6 +16,8 @@ import {
   useBillingStore,
   type CreateOrUpdatePlanExtraDto,
   type PlanExtraDto,
+  type PlanFeatureDefinitionDto,
+  type PlanFeatureDto,
   type SubscriptionPlan,
 } from "../../stores/billingStore";
 import { formatMoney } from "../../utils/FormatHelper";
@@ -21,12 +25,31 @@ import { formatMoney } from "../../utils/FormatHelper";
 const billingStore = useBillingStore();
 
 const plans = ref<PlanExtraDto[]>([]);
+const featureDefs = ref<PlanFeatureDefinitionDto[]>([]);
 const loading = ref(true);
 
 const load = async () => {
   loading.value = true;
   try {
-    plans.value = await billingStore.loadPlans();
+    const [plansRes, featsRes] = await Promise.allSettled([
+      billingStore.loadPlans(),
+      billingStore.loadPlanFeatures(),
+    ]);
+
+    if (plansRes.status === "fulfilled") {
+      plans.value = plansRes.value;
+    }
+    if (featsRes.status === "fulfilled" && featsRes.value.length) {
+      featureDefs.value = featsRes.value;
+    } else {
+      featureDefs.value = [
+        {
+          featureKey: "AiScans",
+          name: "AI Scans",
+          description: "AI taomni aniqlash limiti ('unlimited' yoki raqam)",
+        },
+      ];
+    }
   } finally {
     loading.value = false;
   }
@@ -36,44 +59,126 @@ onMounted(load);
 const planStyle = (plan: SubscriptionPlan) => {
   switch (plan) {
     case "Premium":
-      return { bg: "var(--brand-soft)", color: "var(--brand-strong)" };
+      return { bg: "var(--brand-soft)", color: "var(--brand-strong)", badge: "Premium" };
+    case "Family":
+      return { bg: "var(--info-soft)", color: "var(--info)", badge: "Oilaviy · 2 kishi" };
     case "Pro":
-      return { bg: "var(--warning-soft)", color: "var(--warning)" };
+      return { bg: "var(--purple-soft, #f4ebff)", color: "var(--purple, #7a5af8)", badge: "Pro" };
+    case "Free":
+      return { bg: "var(--surface-2)", color: "var(--text-muted)", badge: "Free (Bepul)" };
     default:
-      return { bg: "var(--surface-2)", color: "var(--text-muted)" };
+      return { bg: "var(--surface-2)", color: "var(--text-muted)", badge: plan };
   }
 };
 
-// Tariflarni plan turi bo'yicha guruhlash; oilaviy paketlar ilovada alohida
-// ro'yxat, shuning uchun bu yerda ham alohida guruh.
+const featureDisplayName = (key: string) => {
+  if (key === "AiScans") return "AI Skan";
+  const found = featureDefs.value.find((f) => f.featureKey === key);
+  return found?.name || key;
+};
+
+const formatFeatureDisplay = (val: string) => {
+  if (!val) return "—";
+  if (val.trim().toLowerCase() === "unlimited") return "Cheksiz";
+  if (/^\d+$/.test(val.trim())) return `${val} ta`;
+  return val;
+};
+
+// Tariflarni plan turi bo'yicha guruhlash
 const grouped = computed(() => {
-  const order: SubscriptionPlan[] = ["Premium", "Pro", "Free"];
-  const groups: { key: string; plan: SubscriptionPlan; family: boolean; items: PlanExtraDto[] }[] = [];
-  for (const plan of order) {
-    for (const family of [false, true]) {
-      const items = plans.value.filter((p) => p.plan === plan && !!p.isFamily === family);
-      if (items.length) groups.push({ key: `${plan}-${family}`, plan, family, items });
+  const order: SubscriptionPlan[] = ["Premium", "Family", "Pro", "Free"];
+  const allKnown = [...new Set([...order, ...plans.value.map((p) => p.plan)])];
+  const groups: {
+    key: string;
+    plan: SubscriptionPlan;
+    title: string;
+    subtitle: string;
+    items: PlanExtraDto[];
+  }[] = [];
+
+  for (const plan of allKnown) {
+    const items = plans.value.filter((p) => p.plan === plan);
+    if (!items.length) continue;
+
+    let title = plan as string;
+    let subtitle = "";
+    if (plan === "Premium") {
+      title = "Premium";
+      subtitle = "Ilovadagi standart individual obuna paketlari";
+    } else if (plan === "Family") {
+      title = "Oilaviy (Family)";
+      subtitle = "2 kishi uchun paket — sotib olganga va ikkinchi a'zoga 100% kupon beriladi";
+    } else if (plan === "Pro") {
+      title = "Pro";
+      subtitle = "Kengaytirilgan imkoniyatlarga ega Pro paketlar";
+    } else if (plan === "Free") {
+      title = "Free (Bepul)";
+      subtitle = "Bepul tarif uchun standart limitlar";
     }
+
+    groups.push({ key: plan, plan, title, subtitle, items });
   }
+
   return groups;
 });
 
-// ─── Yaratish / tahrirlash ────────────────────────────────────────
+// ─── Yaratish / tahrirlash formasi ────────────────────────────────
+type FormFeatureItem = {
+  featureKey: string;
+  name: string;
+  description?: string | null;
+  enabled: boolean;
+  mode: "unlimited" | "custom";
+  count: number;
+};
+
+interface FormState {
+  id?: number;
+  plan: SubscriptionPlan;
+  duration: number;
+  fee: number;
+  originalFee: number;
+  isActive: boolean;
+  isPopular: boolean;
+  features: FormFeatureItem[];
+}
+
 const dialogOpen = ref(false);
 const saving = ref(false);
 const editingId = ref<number | null>(null);
 
-const emptyForm = (): CreateOrUpdatePlanExtraDto => ({
+const defaultFeaturesForPlan = (plan: SubscriptionPlan): FormFeatureItem[] => {
+  const defs = featureDefs.value.length
+    ? featureDefs.value
+    : [
+        {
+          featureKey: "AiScans",
+          name: "AI Scans",
+          description: "AI food recognition limit (e.g. number count or 'unlimited')",
+        },
+      ];
+
+  return defs.map((d) => ({
+    featureKey: d.featureKey,
+    name: d.name,
+    description: d.description,
+    enabled: true,
+    mode: plan === "Free" ? "custom" : "unlimited",
+    count: plan === "Free" ? 5 : 50,
+  }));
+};
+
+const emptyForm = (): FormState => ({
   plan: "Premium",
   duration: 1,
   fee: 0,
   originalFee: 0,
   isActive: true,
   isPopular: false,
-  isFamily: false,
+  features: defaultFeaturesForPlan("Premium"),
 });
 
-const form = reactive<CreateOrUpdatePlanExtraDto>(emptyForm());
+const form = reactive<FormState>(emptyForm());
 
 const openCreate = () => {
   editingId.value = null;
@@ -83,6 +188,55 @@ const openCreate = () => {
 
 const openEdit = (p: PlanExtraDto) => {
   editingId.value = p.id;
+
+  const defs = featureDefs.value.length
+    ? featureDefs.value
+    : [
+        {
+          featureKey: "AiScans",
+          name: "AI Scans",
+          description: "AI food recognition limit (e.g. number count or 'unlimited')",
+        },
+      ];
+
+  const featuresList: FormFeatureItem[] = defs.map((d) => {
+    const existing = p.features?.find((f) => f.featureKey === d.featureKey);
+    if (existing) {
+      const isUnlim = existing.value.trim().toLowerCase() === "unlimited";
+      return {
+        featureKey: d.featureKey,
+        name: d.name,
+        description: d.description,
+        enabled: true,
+        mode: isUnlim ? "unlimited" : "custom",
+        count: isUnlim ? 50 : parseInt(existing.value) || 0,
+      };
+    }
+    return {
+      featureKey: d.featureKey,
+      name: d.name,
+      description: d.description,
+      enabled: false,
+      mode: "unlimited",
+      count: 50,
+    };
+  });
+
+  // Agar backendda noma'lum boshqa feature bo'lsa, uni ham qo'shamiz
+  for (const ext of p.features || []) {
+    if (!featuresList.some((f) => f.featureKey === ext.featureKey)) {
+      const isUnlim = ext.value.trim().toLowerCase() === "unlimited";
+      featuresList.push({
+        featureKey: ext.featureKey,
+        name: ext.featureKey,
+        description: "",
+        enabled: true,
+        mode: isUnlim ? "unlimited" : "custom",
+        count: isUnlim ? 50 : parseInt(ext.value) || 0,
+      });
+    }
+  }
+
   Object.assign(form, {
     id: p.id,
     plan: p.plan,
@@ -91,9 +245,24 @@ const openEdit = (p: PlanExtraDto) => {
     originalFee: p.originalFee,
     isActive: p.isActive,
     isPopular: p.isPopular,
-    isFamily: !!p.isFamily,
+    features: featuresList,
   });
+
   dialogOpen.value = true;
+};
+
+const onPlanChange = (newPlan: SubscriptionPlan) => {
+  if (!editingId.value) {
+    // Yangi tarif yaratishda plan o'zgarsa, feature limitlarini qulay moslaymiz
+    for (const f of form.features) {
+      if (newPlan === "Free") {
+        f.mode = "custom";
+        if (f.count === 50) f.count = 5;
+      } else {
+        f.mode = "unlimited";
+      }
+    }
+  }
 };
 
 // Chegirma foizi — 0 bo'lsa eski narx ko'rsatilmaydi
@@ -104,7 +273,7 @@ const discountPercent = computed(() => {
 
 const formError = computed(() => {
   if (!form.duration || form.duration < 1) return "Muddat kamida 1 oy bo'lishi kerak";
-  if (form.fee <= 0) return "Joriy narxni kiriting";
+  if (form.fee < 0) return "Joriy narx manfiy bo'lishi mumkin emas";
   if (form.originalFee !== 0 && form.originalFee <= form.fee)
     return "Eski narx joriy narxdan katta bo'lishi kerak (yoki 0 — chegirmasiz)";
   return "";
@@ -114,10 +283,24 @@ const save = async () => {
   if (formError.value) return;
   saving.value = true;
   try {
+    const featuresPayload: PlanFeatureDto[] = form.features
+      .filter((f) => f.enabled)
+      .map((f) => ({
+        featureKey: f.featureKey,
+        value: f.mode === "unlimited" ? "unlimited" : String(f.count ?? 0),
+      }));
+
     const payload: CreateOrUpdatePlanExtraDto = {
-      ...form,
       ...(editingId.value ? { id: editingId.value } : {}),
+      plan: form.plan,
+      duration: form.duration,
+      fee: form.fee,
+      originalFee: form.originalFee,
+      isActive: form.isActive,
+      isPopular: form.isActive ? form.isPopular : false,
+      features: featuresPayload,
     };
+
     const res = await billingStore.modifyPlan(payload);
     if (res.code !== 200) return;
     ElMessage.success(editingId.value ? "Tarif yangilandi" : "Tarif yaratildi");
@@ -142,7 +325,7 @@ const removePlan = async (p: PlanExtraDto) => {
 };
 
 // Kartochkadan tez amallar: faollik va "eng yaxshi taklif"
-const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
+const quickToggle = async (p: PlanExtraDto, patch: Partial<CreateOrUpdatePlanExtraDto>) => {
   try {
     const res = await billingStore.modifyPlan({
       id: p.id,
@@ -152,7 +335,7 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
       originalFee: p.originalFee,
       isActive: p.isActive,
       isPopular: p.isPopular,
-      isFamily: !!p.isFamily,
+      features: p.features ? [...p.features] : [],
       ...patch,
     });
     if (res.code !== 200) return;
@@ -164,7 +347,7 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
 </script>
 
 <template>
-  <Card title="Obuna tariflari" subtitle="Ilovadagi obuna paketlarini boshqaring">
+  <Card title="Obuna tariflari" subtitle="Ilovadagi obuna paketlari va ularning imkoniyatlarini boshqaring">
     <template #actions>
       <div class="flex items-center gap-2">
         <button class="btn-ghost" :disabled="loading" @click="load">
@@ -192,12 +375,17 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
     </div>
 
     <!-- Grouped plans -->
-    <div v-else class="space-y-7">
+    <div v-else class="space-y-8">
       <div v-for="group in grouped" :key="group.key">
-        <div class="flex items-center gap-2.5 mb-3">
-          <span class="badge" :style="{ background: planStyle(group.plan).bg, color: planStyle(group.plan).color }">{{ group.plan }}</span>
-          <span v-if="group.family" class="badge" style="background: var(--info-soft); color: var(--info)">Oilaviy · 2 kishi</span>
-          <span class="text-[12.5px]" style="color: var(--text-faint)">{{ group.items.length }} ta paket</span>
+        <div class="flex items-center justify-between mb-3.5 flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="badge" :style="{ background: planStyle(group.plan).bg, color: planStyle(group.plan).color }">
+              {{ planStyle(group.plan).badge }}
+            </span>
+            <span class="text-[14px] font-semibold" style="color: var(--text)">{{ group.title }}</span>
+            <span class="text-[12px]" style="color: var(--text-faint)">({{ group.items.length }} ta paket)</span>
+          </div>
+          <span v-if="group.subtitle" class="text-[12px]" style="color: var(--text-muted)">{{ group.subtitle }}</span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -208,18 +396,59 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
                 <span class="text-[14px] font-semibold" style="color: var(--text-muted)">oy</span>
               </div>
               <div class="flex items-center gap-1.5">
-                <span v-if="p.isFamily" class="mini-badge" style="background: var(--info-soft); color: var(--info)">Oilaviy</span>
-                <span v-if="p.isPopular" class="mini-badge" style="background: var(--warning-soft); color: var(--warning)">★ Eng yaxshi taklif</span>
+                <span v-if="p.plan === 'Family'" class="mini-badge" style="background: var(--info-soft); color: var(--info)">
+                  Oilaviy (2 kishi)
+                </span>
+                <span v-if="p.isPopular" class="mini-badge" style="background: var(--warning-soft); color: var(--warning)">
+                  ★ Eng yaxshi taklif
+                </span>
               </div>
             </div>
 
+            <!-- Narx -->
             <div class="mt-3 flex items-baseline gap-2 flex-wrap">
-              <span class="text-[19px] font-bold" style="color: var(--brand-strong)">{{ formatMoney(p.fee, "standard") }}</span>
-              <span v-if="p.originalFee > p.fee" class="text-[13px] line-through" style="color: var(--text-faint)">{{ formatMoney(p.originalFee, "standard") }}</span>
+              <span class="text-[19px] font-bold" style="color: var(--brand-strong)">
+                {{ formatMoney(p.fee, "standard") }}
+              </span>
+              <span v-if="p.originalFee > p.fee" class="text-[13px] line-through" style="color: var(--text-faint)">
+                {{ formatMoney(p.originalFee, "standard") }}
+              </span>
             </div>
 
             <div v-if="p.originalFee > p.fee" class="mt-1">
-              <span class="save-chip">-{{ Math.round((1 - p.fee / p.originalFee) * 100) }}%</span>
+              <span class="save-chip">-{{ Math.round((1 - p.fee / p.originalFee) * 100) }}% chegirma</span>
+            </div>
+
+            <!-- Referral chegirmasi ma'lumoti -->
+            <div v-if="p.referralDiscountPercent && p.referralDiscountPercent > 0" class="mt-2 text-[12px] flex items-center gap-1.5" style="color: var(--info)">
+              <span class="mini-badge" style="background: var(--info-soft); color: var(--info)">
+                Referral: -{{ p.referralDiscountPercent }}%
+              </span>
+              <span v-if="p.discountedFee" class="font-semibold">
+                ({{ formatMoney(p.discountedFee, "standard") }})
+              </span>
+            </div>
+
+            <!-- Features ro'yxati -->
+            <div v-if="p.features && p.features.length" class="mt-3.5 pt-3 space-y-1.5" style="border-top: 1px dashed var(--border)">
+              <div class="text-[11px] font-bold uppercase tracking-wider" style="color: var(--text-faint)">
+                Imkoniyatlar (Features)
+              </div>
+              <div class="flex flex-wrap gap-1.5">
+                <div
+                  v-for="f in p.features"
+                  :key="f.featureKey"
+                  class="feature-pill"
+                >
+                  <span class="text-[11.5px]" style="color: var(--text-muted)">{{ featureDisplayName(f.featureKey) }}:</span>
+                  <span
+                    class="font-semibold text-[11.5px]"
+                    :style="{ color: f.value.trim().toLowerCase() === 'unlimited' ? 'var(--brand-strong)' : 'var(--text)' }"
+                  >
+                    {{ formatFeatureDisplay(f.value) }}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div class="mt-4 pt-3 flex items-center justify-between text-[12px]" style="border-top: 1px solid var(--border); color: var(--text-faint)">
@@ -278,17 +507,39 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
     <ElDialog
       v-model="dialogOpen"
       :title="editingId ? 'Tarifni tahrirlash' : 'Yangi tarif'"
-      width="520px"
+      width="560px"
       align-center
     >
       <div class="space-y-4">
+        <!-- Tarif turi va muddat -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="fld-label">Plan</label>
-            <ElSelect v-model="form.plan" class="w-full">
-              <ElOption label="Premium" value="Premium" />
-              <ElOption label="Pro" value="Pro" />
-              <ElOption label="Free" value="Free" />
+            <label class="fld-label">Tarif turi (Plan)</label>
+            <ElSelect v-model="form.plan" class="w-full" @change="onPlanChange">
+              <ElOption label="Premium" value="Premium">
+                <div class="flex items-center justify-between">
+                  <span>Premium</span>
+                  <span class="text-[11.5px]" style="color: var(--brand-strong)">Standart</span>
+                </div>
+              </ElOption>
+              <ElOption label="Family (Oilaviy · 2 kishi)" value="Family">
+                <div class="flex items-center justify-between">
+                  <span>Oilaviy (Family)</span>
+                  <span class="text-[11.5px]" style="color: var(--info)">2 kishi</span>
+                </div>
+              </ElOption>
+              <ElOption label="Pro" value="Pro">
+                <div class="flex items-center justify-between">
+                  <span>Pro</span>
+                  <span class="text-[11.5px]" style="color: var(--warning)">Kengaytirilgan</span>
+                </div>
+              </ElOption>
+              <ElOption label="Free" value="Free">
+                <div class="flex items-center justify-between">
+                  <span>Free (Bepul)</span>
+                  <span class="text-[11.5px]" style="color: var(--text-faint)">Standart limit</span>
+                </div>
+              </ElOption>
             </ElSelect>
           </div>
           <div>
@@ -297,25 +548,100 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
           </div>
         </div>
 
-        <div>
-          <label class="fld-label">Joriy narx (so'm)</label>
-          <ElInputNumber v-model="form.fee" :min="0" :step="1000" :controls="false" class="w-full num-input" />
+        <!-- Oilaviy tarif tanlanganda tushuntirish banneri -->
+        <div v-if="form.plan === 'Family'" class="family-notice">
+          <svg class="w-4 h-4 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div>
+            <strong>Oilaviy tarif (2 kishi):</strong> Xarid qilgan foydalanuvchiga to'liq Premium obuna ochiladi va ikkinchi odam uchun ushbu muddatga teng 100% chegirmali bir martalik kupon generatsiya qilinadi.
+          </div>
         </div>
 
-        <div>
-          <label class="fld-label">Eski narx (so'm) — chegirmasiz bo'lsa 0</label>
-          <ElInputNumber v-model="form.originalFee" :min="0" :step="1000" :controls="false" class="w-full num-input" />
+        <!-- Narxlar -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="fld-label">Joriy narx (so'm)</label>
+            <ElInputNumber v-model="form.fee" :min="0" :step="1000" :controls="false" class="w-full num-input" />
+          </div>
+          <div>
+            <label class="fld-label">Eski narx (so'm) — chegirmasiz: 0</label>
+            <ElInputNumber v-model="form.originalFee" :min="0" :step="1000" :controls="false" class="w-full num-input" />
+          </div>
         </div>
 
-        <!-- Ilovada qanday ko'rinishi -->
+        <!-- Features (Imkoniyatlar va limitlar) -->
+        <div class="feature-section">
+          <div class="flex items-center justify-between mb-2.5">
+            <div>
+              <span class="text-[13px] font-bold" style="color: var(--text)">Imkoniyatlar va limitlar (Features)</span>
+              <p class="text-[11.5px]" style="color: var(--text-faint)">
+                Ushbu tarif paketi doirasidagi imkoniyat limitlari (masalan, AI skanlar soni)
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div
+              v-for="feat in form.features"
+              :key="feat.featureKey"
+              class="feature-row"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <ElSwitch v-model="feat.enabled" size="small" />
+                  <div>
+                    <span class="text-[13px] font-semibold" style="color: var(--text)">{{ feat.name || feat.featureKey }}</span>
+                    <span class="text-[11.5px] ml-1.5" style="color: var(--text-faint)">({{ feat.featureKey }})</span>
+                  </div>
+                </div>
+                <div v-if="feat.enabled" class="flex items-center gap-2">
+                  <ElRadioGroup v-model="feat.mode" size="small">
+                    <ElRadio value="unlimited">Cheksiz (unlimited)</ElRadio>
+                    <ElRadio value="custom">Limit (son)</ElRadio>
+                  </ElRadioGroup>
+                </div>
+              </div>
+
+              <!-- Custom miqdor kiritish -->
+              <div v-if="feat.enabled && feat.mode === 'custom'" class="mt-2.5 pl-8 flex items-center gap-2.5">
+                <label class="text-[12px]" style="color: var(--text-muted)">Maksimal limit:</label>
+                <ElInputNumber
+                  v-model="feat.count"
+                  :min="0"
+                  :max="100000"
+                  :step="10"
+                  size="small"
+                  controls-position="right"
+                  style="width: 140px"
+                />
+                <span class="text-[12px]" style="color: var(--text-faint)">ta so'rov</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ilovada qanday ko'rinishi (Preview) -->
         <div class="preview">
-          <div class="text-[11.5px] font-semibold mb-2.5" style="color: var(--text-faint)">ILOVADA QANDAY KO'RINADI</div>
+          <div class="text-[11px] font-bold uppercase tracking-wider mb-2.5" style="color: var(--text-faint)">
+            ILOVADA QANDAY KO'RINADI
+          </div>
           <div class="preview-card" :class="{ 'is-popular': form.isPopular }">
             <span v-if="form.isPopular" class="preview-ribbon">Eng yaxshi taklif</span>
             <div class="flex items-center justify-between gap-3">
-              <span class="text-[14.5px] font-semibold" style="color: var(--text)">
-                {{ form.isFamily ? "Oila · 2 kishi" : `${form.duration} oylik ${form.plan}` }}
-              </span>
+              <div>
+                <span class="text-[14.5px] font-semibold" style="color: var(--text)">
+                  {{ form.plan === "Family" ? `${form.duration} oylik Oilaviy (2 kishi)` : `${form.duration} oylik ${form.plan}` }}
+                </span>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span
+                    v-for="feat in form.features.filter((f) => f.enabled)"
+                    :key="feat.featureKey"
+                    class="mini-badge"
+                    style="background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border)"
+                  >
+                    {{ feat.name }}: {{ feat.mode === 'unlimited' ? 'Cheksiz' : `${feat.count} ta` }}
+                  </span>
+                </div>
+              </div>
               <div class="text-right">
                 <div class="text-[14.5px] font-bold" style="color: var(--text)">{{ formatMoney(form.fee || 0, "standard") }}</div>
                 <div v-if="discountPercent" class="text-[12.5px] line-through" style="color: var(--text-faint)">
@@ -329,29 +655,21 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
           </div>
         </div>
 
+        <!-- Faollik va Eng yaxshi taklif -->
         <div class="flex items-center justify-between py-1">
           <div>
             <div class="text-[13.5px] font-semibold" style="color: var(--text)">Faol</div>
-            <div class="text-[12px]" style="color: var(--text-faint)">Faqat faol tariflar ilovada ko'rinadi</div>
+            <div class="text-[12px]" style="color: var(--text-faint)">Faqat faol tariflar ilovada xarid qilish uchun ko'rinadi</div>
           </div>
           <ElSwitch v-model="form.isActive" />
         </div>
 
-        <div class="flex items-center justify-between gap-4 py-1">
-          <div>
-            <div class="text-[13.5px] font-semibold" style="color: var(--text)">Oilaviy tarif (2 kishi)</div>
-            <div class="text-[12px]" style="color: var(--text-faint)">
-              Sotib olgan user Premium oladi va ikkinchi odam uchun muddat bo'yicha Premium kodi beriladi.
-              Faqat Payme / Click orqali sotiladi, oddiy tariflardan alohida ko'rinadi.
-            </div>
-          </div>
-          <ElSwitch v-model="form.isFamily" />
-        </div>
-
         <div class="flex items-center justify-between py-1">
           <div>
-            <div class="text-[13.5px] font-semibold" style="color: var(--text)">Eng yaxshi taklif</div>
-            <div class="text-[12px]" style="color: var(--text-faint)">Har bir planda bittasi (oddiy va oilaviy alohida)</div>
+            <div class="text-[13.5px] font-semibold" style="color: var(--text)">Eng yaxshi taklif (Popular)</div>
+            <div class="text-[12px]" style="color: var(--text-faint)">
+              Har bir tarif turida (Premium, Family, Pro...) eng ko'p tavsiya etiladigan bitta paket
+            </div>
           </div>
           <ElSwitch v-model="form.isPopular" :disabled="!form.isActive" />
         </div>
@@ -451,6 +769,15 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
   font-size: 11px;
   font-weight: 600;
 }
+.feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
 .save-chip {
   display: inline-flex;
   align-items: center;
@@ -500,6 +827,29 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<PlanExtraDto>) => {
   font-weight: 600;
   color: var(--text-muted);
   margin-bottom: 6px;
+}
+.family-notice {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--info-soft);
+  color: var(--info);
+  border: 1px solid rgba(11, 165, 236, 0.25);
+  font-size: 12.5px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.feature-section {
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.feature-row {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 .preview {
   padding: 14px;

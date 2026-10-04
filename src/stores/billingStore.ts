@@ -13,6 +13,8 @@ export type CouponDto = {
   oneTime: boolean;
   expireAt: string | null;
   allowedUserIds: number[] | null;
+  createdByUserId?: number | null;
+  createdByName?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -41,7 +43,20 @@ export type CheckCouponDto = {
   expireAt: string | null;
 };
 
-export type SubscriptionPlan = "Free" | "Premium" | "Pro";
+export type SubscriptionPlan = "Free" | "Premium" | "Pro" | "Family";
+
+export type PlanFeatureKey = "AiScans";
+
+export type PlanFeatureDto = {
+  featureKey: PlanFeatureKey | string;
+  value: string;
+};
+
+export type PlanFeatureDefinitionDto = {
+  featureKey: PlanFeatureKey | string;
+  name: string;
+  description?: string | null;
+};
 
 // Obuna tarifi paketi (backenddagi PlanExtra)
 export type PlanExtraDto = {
@@ -52,9 +67,9 @@ export type PlanExtraDto = {
   originalFee: number; // chegirmadan oldingi narx (UZS)
   isActive: boolean;
   isPopular: boolean; // "Eng yaxshi taklif" — admin tomonidan belgilanadi
-  // Oilaviy tarif (2 kishi): sotib olgan userga ikkinchi odam uchun bir
-  // martalik Premium kodi beriladi. Ilovada oddiy tariflardan alohida.
-  isFamily: boolean;
+  features: PlanFeatureDto[];
+  referralDiscountPercent?: number;
+  discountedFee?: number;
   createdAt: string;
 };
 
@@ -67,7 +82,7 @@ export type CreateOrUpdatePlanExtraDto = {
   originalFee: number;
   isActive: boolean;
   isPopular: boolean;
-  isFamily: boolean;
+  features?: PlanFeatureDto[];
 };
 
 
@@ -158,6 +173,13 @@ export const useBillingStore = defineStore("billing", () => {
     });
   };
 
+  const loadPlanFeatures = async (): Promise<PlanFeatureDefinitionDto[]> => {
+    return await execute(async () => {
+      const response = await axios.get("/billing/plans/features");
+      return (response.data.content ?? []) as PlanFeatureDefinitionDto[];
+    });
+  };
+
   return {
     editingCoupon,
     loadCoupons,
@@ -167,6 +189,7 @@ export const useBillingStore = defineStore("billing", () => {
     checkCoupon,
     getPlanExtras,
     loadPlans,
+    loadPlanFeatures,
     modifyPlan,
     deletePlan,
   };
