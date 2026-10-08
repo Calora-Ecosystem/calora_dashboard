@@ -76,14 +76,6 @@ const planConfig: Record<
     color: "var(--info)",
     dot: "#0ba5ec",
   },
-  Pro: {
-    label: "Pro",
-    badge: "Pro",
-    hint: "Kengaytirilgan imkoniyatlarga ega paketlar",
-    bg: "var(--purple-soft, #f4ebff)",
-    color: "var(--purple, #7a5af8)",
-    dot: "#7a5af8",
-  },
   Free: {
     label: "Free (Bepul)",
     badge: "Free",
@@ -120,7 +112,7 @@ const formatFeatureDisplay = (val: string) => {
 
 // Guruhlangan tariflar
 const grouped = computed(() => {
-  const order: SubscriptionPlan[] = ["Premium", "Family", "Pro", "Free"];
+  const order: SubscriptionPlan[] = ["Premium", "Family", "Free"];
   const allKnown = [...new Set([...order, ...plans.value.map((p) => p.plan)])];
   const groups: {
     key: string;
@@ -142,9 +134,6 @@ const grouped = computed(() => {
     } else if (plan === "Family") {
       title = "Oilaviy (Family) tariflar";
       subtitle = "2 kishi uchun paket — xarid qilgan foydalanuvchi va ikkinchi a'zo uchun 100% kupon";
-    } else if (plan === "Pro") {
-      title = "Pro tariflar";
-      subtitle = "Kengaytirilgan imkoniyatlarga ega paketlar";
     } else if (plan === "Free") {
       title = "Free (Bepul) tarif";
       subtitle = "Barcha ro'yxatdan o'tgan foydalanuvchilar uchun standart limitlar";

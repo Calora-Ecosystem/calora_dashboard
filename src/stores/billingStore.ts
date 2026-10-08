@@ -43,7 +43,7 @@ export type CheckCouponDto = {
   expireAt: string | null;
 };
 
-export type SubscriptionPlan = "Free" | "Premium" | "Pro" | "Family";
+export type SubscriptionPlan = "Free" | "Premium" | "Family";
 
 export type PlanFeatureKey = "AiScans";
 
