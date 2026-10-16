@@ -35,6 +35,7 @@ const titleMap: Record<string, string> = {
   dashboard: "Dashboard",
   users: "Foydalanuvchilar",
   sales: "Savdolar",
+  ltv: "LTV va retention",
   coin_ranking: "Coin reytingi",
   coin_user: "Coin reytingi",
   premium: "Premium",
