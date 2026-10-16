@@ -340,7 +340,7 @@ const openEdit = (p: PlanExtraDto) => {
     plan: p.plan,
     duration: p.duration,
     fee: p.fee,
-    originalFee: p.originalFee,
+    originalFee: normalizedOriginalFee(p),
     isActive: p.isActive,
     isPopular: p.isPopular,
     features: featuresList,
@@ -422,26 +422,57 @@ const removePlan = async (p: PlanExtraDto) => {
   }
 };
 
-// Kartochkadan tez amallar
+// Eski tariflarda eski narx joriy narxga teng (yoki kichik) saqlangan bo'lishi
+// mumkin. Backend bunday tarifni har qanday saqlashda rad etadi
+// (plan_extra_fee_invalid) — shu jumladan faqat o'chirishda ham. Amalda bu
+// "chegirmasiz" degani, shuning uchun 0 qilib yuboramiz.
+const normalizedOriginalFee = (p: Pick<PlanExtraDto, "fee" | "originalFee">) =>
+  p.originalFee > p.fee ? p.originalFee : 0;
+
+const togglingId = ref<number | null>(null);
+
+// Kartochkadan tez amallar. `features` yuborilmaydi — backend bu holda
+// tarif imkoniyatlariga tegmaydi (bo'sh ro'yxat yuborilsa ularni o'chirib yuboradi).
 const quickToggle = async (p: PlanExtraDto, patch: Partial<CreateOrUpdatePlanExtraDto>) => {
+  togglingId.value = p.id;
   try {
     const res = await billingStore.modifyPlan({
       id: p.id,
       plan: p.plan,
       duration: p.duration,
       fee: p.fee,
-      originalFee: p.originalFee,
+      originalFee: normalizedOriginalFee(p),
       isActive: p.isActive,
       isPopular: p.isPopular,
-      features: p.features ? [...p.features] : [],
       ...patch,
     });
     if (res.code !== 200) return;
+    if (patch.isActive === false)
+      ElMessage.success(`${planStyle(p.plan).badge} · ${p.duration} oy sotuvdan olindi — ilovada endi ko'rinmaydi`);
+    else if (patch.isActive === true)
+      ElMessage.success(`${planStyle(p.plan).badge} · ${p.duration} oy yana sotuvda`);
     await load();
   } catch {
     // xato bildirishnomasi apiCallStore'da ko'rsatiladi
+  } finally {
+    togglingId.value = null;
   }
 };
+
+const setOnSale = (p: PlanExtraDto, onSale: boolean) =>
+  quickToggle(p, { isActive: onSale, isPopular: onSale ? p.isPopular : false });
+
+// Ilovadagi to'lov oynasida hozir ko'rinadigan (faol, pullik) paketlar
+const onSalePlans = computed(() =>
+  plans.value
+    .filter((p) => p.isActive && p.plan !== "Free")
+    .sort((a, b) =>
+      a.plan === b.plan ? a.duration - b.duration : a.plan === "Premium" ? -1 : 1,
+    ),
+);
+
+const durationLabel = (months: number) =>
+  months % 12 === 0 ? (months === 12 ? "1 yil" : `${months / 12} yil`) : `${months} oy`;
 </script>
 
 <template>
@@ -474,6 +505,27 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<CreateOrUpdatePlanExt
 
     <!-- Grouped plans -->
     <div v-else class="space-y-8">
+      <!-- Ilovada hozir nima sotilyapti -->
+      <div class="sale-strip" :class="{ 'is-empty': !onSalePlans.length }">
+        <div class="flex items-center gap-2.5 shrink-0">
+          <span class="sale-icon">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </span>
+          <div>
+            <div class="text-[13px] font-bold" style="color: var(--text)">Ilovada hozir sotuvda</div>
+            <div class="text-[11.5px]" style="color: var(--text-faint)">
+              {{ onSalePlans.length ? "To'lov oynasida aynan shu paketlar ko'rinadi" : "Ilovada sotib olish uchun birorta ham paket yo'q!" }}
+            </div>
+          </div>
+        </div>
+        <div v-if="onSalePlans.length" class="flex flex-wrap gap-2">
+          <span v-for="p in onSalePlans" :key="p.id" class="sale-chip" :style="{ background: planStyle(p.plan).bg, color: planStyle(p.plan).color }">
+            {{ p.plan === "Family" ? "Oilaviy" : p.plan }} · {{ durationLabel(p.duration) }}
+            <span class="font-medium opacity-80">{{ formatMoney(p.fee, "standard") }}</span>
+          </span>
+        </div>
+      </div>
+
       <div v-for="group in grouped" :key="group.key">
         <div class="flex items-center justify-between mb-3.5 flex-wrap gap-2">
           <div class="flex items-center gap-2.5">
@@ -549,9 +601,20 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<CreateOrUpdatePlanExt
               </div>
             </div>
 
-            <div class="mt-4 pt-3 flex items-center justify-between text-[12px]" style="border-top: 1px solid var(--border); color: var(--text-faint)">
-              <span>ID: {{ p.id }}</span>
-              <span class="dot" :class="p.isActive ? 'dot-on' : 'dot-off'">{{ p.isActive ? "Faol" : "Faol emas" }}</span>
+            <div class="mt-4 pt-3 flex items-center justify-between gap-3" style="border-top: 1px solid var(--border)">
+              <div class="min-w-0">
+                <div class="text-[12.5px] font-semibold" :style="{ color: p.isActive ? 'var(--brand-strong)' : 'var(--danger)' }">
+                  {{ p.plan === "Free" ? (p.isActive ? "Faol" : "Faol emas") : (p.isActive ? "Ilovada sotuvda" : "Sotuvda emas") }}
+                </div>
+                <div class="text-[11.5px]" style="color: var(--text-faint)">ID: {{ p.id }}</div>
+              </div>
+              <ElSwitch
+                :model-value="p.isActive"
+                :loading="togglingId === p.id"
+                :disabled="togglingId !== null && togglingId !== p.id"
+                :title="p.isActive ? 'Sotuvdan olish' : 'Sotuvga qo\'yish'"
+                @change="(v: string | number | boolean) => setOnSale(p, !!v)"
+              />
             </div>
 
             <!-- Amallar -->
@@ -570,17 +633,6 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<CreateOrUpdatePlanExt
                 @click="quickToggle(p, { isPopular: !p.isPopular })"
               >
                 <svg class="w-4 h-4" viewBox="0 0 24 24" :fill="p.isPopular ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              </button>
-
-              <button
-                class="icon-act"
-                :title="p.isActive ? 'Faolsizlantirish' : 'Faollashtirish'"
-                :style="p.isActive
-                  ? { color: 'var(--warning)', background: 'var(--warning-soft)' }
-                  : { color: 'var(--brand-strong)', background: 'var(--brand-soft)' }"
-                @click="quickToggle(p, { isActive: !p.isActive, isPopular: p.isActive ? false : p.isPopular })"
-              >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
               </button>
 
               <ElPopconfirm
@@ -888,9 +940,9 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<CreateOrUpdatePlanExt
         <div class="p-3 rounded-xl space-y-3" style="background: var(--surface-2); border: 1px solid var(--border)">
           <div class="flex items-center justify-between">
             <div>
-              <div class="text-[13px] font-semibold" style="color: var(--text)">Faol tarif (isActive)</div>
+              <div class="text-[13px] font-semibold" style="color: var(--text)">Ilovada sotuvda (isActive)</div>
               <div class="text-[11.5px]" style="color: var(--text-faint)">
-                Faqat faol tariflar ilovada sotuv uchun chiqariladi
+                O'chirilsa paket ilovadagi to'lov oynasidan yo'qoladi. Avval sotib olganlarning obunasi saqlanadi.
               </div>
             </div>
             <ElSwitch v-model="form.isActive" />
@@ -1048,22 +1100,44 @@ const quickToggle = async (p: PlanExtraDto, patch: Partial<CreateOrUpdatePlanExt
   background: var(--brand-soft);
   color: var(--brand-strong);
 }
-.dot {
+.sale-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.sale-strip.is-empty {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+.sale-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+}
+.sale-strip.is-empty .sale-icon {
+  background: var(--surface);
+  color: var(--danger);
+}
+.sale-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-weight: 600;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
 }
-.dot::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-.dot-on { color: var(--brand-strong); }
-.dot-on::before { background: var(--brand); }
-.dot-off { color: var(--danger); }
-.dot-off::before { background: var(--danger); }
 .icon-act {
   width: 34px;
   height: 34px;
