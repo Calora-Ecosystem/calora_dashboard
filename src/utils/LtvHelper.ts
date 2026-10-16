@@ -6,8 +6,9 @@
 //
 // Muhim cheklov: App Store / Google Play (IAP) obunasi avtomatik yangilanganda
 // backend yangi buyurtma yaratmaydi — faqat obuna tugash sanasini suradi
-// (RevenueCat RENEWAL). Shuning uchun IAP foydalanuvchisining keyingi
-// to'lovlari bu yerda ko'rinmaydi va ular "unknown" holatida qoladi.
+// (RevenueCat RENEWAL). Shuning uchun IAP yangilanishlari userning obuna qatori
+// (GET /dashboard/subscriptions/{userId}) dan taxminan tiklanadi va
+// `inferred: true` bilan belgilanadi.
 
 export type SubscriptionOrderDto = {
   id: number;
@@ -23,6 +24,15 @@ export type SubscriptionOrderDto = {
   coupon?: { id: number; code: string } | null;
 };
 
+// GET /dashboard/subscriptions/{userId}
+export type StoreSubscription = {
+  userId: number;
+  plan: string;
+  startsAt: string;
+  endsAt: string;
+  isActive: boolean;
+};
+
 export type Payment = {
   orderId: number;
   at: Date;
@@ -30,6 +40,7 @@ export type Payment = {
   plan: string;
   months: number;
   provider: string;
+  inferred?: boolean; // store avto-yangilanishi, obuna tugash sanasidan taxminlangan
 };
 
 export type Period = { start: Date; end: Date };
@@ -38,7 +49,7 @@ export type Period = { start: Date; end: Date };
 // late     — keyinroq qaytib to'ladi
 // pending  — birinchi muddati hali tugamagan, qaror qilish vaqti bor
 // churned  — muddat tugadi, qayta to'lamadi
-// unknown  — IAP: store avto-yangilanishi buyurtmalarda ko'rinmaydi
+// unknown  — IAP: store yangilanishini tiklab bo'lmadi
 export type RenewalStatus = "renewed" | "late" | "pending" | "churned" | "unknown";
 
 export type LtvUser = {
@@ -59,7 +70,11 @@ export type LtvUser = {
 // Muddat tugaganidan keyin shuncha kun ichida to'lasa ham "o'z vaqtida" hisoblanadi
 // (Payme/Click'da avto-yechish yo'q — user o'zi qayta to'laydi).
 export const RENEWAL_GRACE_DAYS = 7;
-export const COHORT_MONTHS = 13; // Xarid oyi + keyingi 12 oy
+// Obuna qatori IAP xaridiga tegishli deb hisoblanishi uchun StartsAt xarid
+// sanasiga shuncha kun yaqin bo'lishi kerak (coin/admin premiumi qatorni qayta yozadi).
+const STORE_MATCH_DAYS = 3;
+// Tugash sanasidan shuncha kun oldingi yangilanish sanasi hisobga olinmaydi.
+const STORE_TOLERANCE_DAYS = 2;
 
 const DAY = 86_400_000;
 
@@ -84,7 +99,34 @@ export const addMonths = (d: Date, months: number) => {
   return r;
 };
 
-export const buildLtvUsers = (orders: SubscriptionOrderDto[], now = new Date()): LtvUser[] => {
+// Obuna qatori faqat oxirgi xaridni aks ettiradi: oxirgi to'lov IAP bo'lsa va
+// qator o'sha xariddan boshlangan bo'lsa, tugash sanasigacha har davr boshida
+// store to'lov olgan deb hisoblaymiz. null — tiklab bo'lmaydi.
+const inferStoreRenewals = (
+  payments: Payment[],
+  sub: StoreSubscription | null | undefined,
+  now: Date,
+): Payment[] | null => {
+  const last = payments[payments.length - 1];
+  if (!isStoreProvider(last.provider)) return [];
+  if (!sub || sub.plan === "Free") return null;
+  if (Math.abs(new Date(sub.startsAt).getTime() - last.at.getTime()) > STORE_MATCH_DAYS * DAY) return null;
+
+  const limit = Math.min(new Date(sub.endsAt).getTime() - STORE_TOLERANCE_DAYS * DAY, now.getTime());
+  const renewals: Payment[] = [];
+  for (let k = 1; k <= 120; k++) {
+    const at = addMonths(last.at, last.months * k);
+    if (at.getTime() >= limit) break;
+    renewals.push({ ...last, at, inferred: true });
+  }
+  return renewals;
+};
+
+export const buildLtvUsers = (
+  orders: SubscriptionOrderDto[],
+  storeSubs: Map<number, StoreSubscription | null> | null,
+  now = new Date(),
+): LtvUser[] => {
   const byUser = new Map<number, { name: string; payments: Payment[] }>();
   for (const o of orders) {
     if (!isPaidOrder(o)) continue;
@@ -104,6 +146,10 @@ export const buildLtvUsers = (orders: SubscriptionOrderDto[], now = new Date()):
   for (const [userId, { name, payments }] of byUser) {
     payments.sort((a, b) => a.at.getTime() - b.at.getTime());
 
+    const renewals = storeSubs ? inferStoreRenewals(payments, storeSubs.get(userId), now) : null;
+    const storeTracked = renewals !== null || !isStoreProvider(payments[payments.length - 1].provider);
+    if (renewals?.length) payments.push(...renewals);
+
     // Backend kabi: faol obuna ustiga to'lansa yangi muddat eskisining oxiridan boshlanadi.
     const periods: Period[] = [];
     let end: Date | null = null;
@@ -121,7 +167,7 @@ export const buildLtvUsers = (orders: SubscriptionOrderDto[], now = new Date()):
     let status: RenewalStatus;
     if (second) status = second.at <= renewalDeadline ? "renewed" : "late";
     else if (now < renewalDeadline) status = "pending";
-    else if (isStoreProvider(first.provider)) status = "unknown";
+    else if (!storeTracked) status = "unknown";
     else status = "churned";
 
     users.push({
@@ -165,106 +211,100 @@ export const renewalStats = (users: LtvUser[]): RenewalStats => {
   };
 };
 
-export type CohortRow = {
-  cohort: number;
-  label: string;
-  size: number;
+/* ---------------- Kalendar kohortlari ---------------- */
+
+export type CohortBuyer = { user: LtvUser; payments: Payment[] };
+
+export type CohortCell = {
+  month: number;
+  buyers: CohortBuyer[]; // shu oyda to'lov qilganlar
+  active: LtvUser[]; // shu oyda to'langan obunasi amalda bo'lganlar
   revenue: number;
-  // index = xariddan keyingi oy (0 = xarid oyi); null = bu oy hali kelmagan
-  paid: (number | null)[]; // shu oyda to'lov qilganlar soni
-  active: (number | null)[]; // shu oyda obunasi faol bo'lganlar soni
-  cumRevenue: (number | null)[]; // 0..k oylardagi jami tushum
-  currentMonthOffset: number; // joriy (tugamagan) oy indeksi
+  inferredBuyers: number; // faqat taxminiy store yangilanishi bilan kirganlar
 };
 
-const MONTHS_UZ = ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg", "Sen", "Okt", "Noy", "Dek"];
+export type CalendarCohort = {
+  cohort: number;
+  users: LtvUser[];
+  revenue: number;
+  cells: (CohortCell | null)[]; // months bilan bir xil tartibda; kohortdan oldingi oylar — null
+};
 
-export const monthLabel = (index: number) =>
-  `${MONTHS_UZ[index % 12]} ${Math.floor(index / 12)}`;
+export type MonthTotal = {
+  month: number;
+  payers: number;
+  newBuyers: number;
+  returning: number;
+  payments: number;
+  revenue: number;
+};
 
-export const buildCohorts = (users: LtvUser[], now = new Date()): CohortRow[] => {
+export type CalendarTable = { months: number[]; rows: CalendarCohort[]; totals: MonthTotal[] };
+
+export const buildCalendarTable = (users: LtvUser[], now = new Date()): CalendarTable => {
+  if (!users.length) return { months: [], rows: [], totals: [] };
   const current = monthIndex(now);
+  const firstMonth = Math.min(...users.map((u) => u.cohort));
+  const months: number[] = [];
+  for (let m = firstMonth; m <= current; m++) months.push(m);
+
+  const paymentsIn = (u: LtvUser, m: number) => u.payments.filter((p) => monthIndex(p.at) === m);
+
   const groups = new Map<number, LtvUser[]>();
-  for (const u of users) {
-    const list = groups.get(u.cohort) ?? [];
-    list.push(u);
-    groups.set(u.cohort, list);
-  }
+  for (const u of users) groups.set(u.cohort, [...(groups.get(u.cohort) ?? []), u]);
 
-  const rows: CohortRow[] = [];
-  for (const [cohort, members] of groups) {
-    const maxK = Math.min(COHORT_MONTHS - 1, current - cohort);
-    const paid: (number | null)[] = [];
-    const active: (number | null)[] = [];
-    const cumRevenue: (number | null)[] = [];
-    let cum = 0;
-
-    for (let k = 0; k < COHORT_MONTHS; k++) {
-      if (k > maxK) {
-        paid.push(null);
-        active.push(null);
-        cumRevenue.push(null);
-        continue;
-      }
-      const mFrom = monthStart(cohort + k);
-      const mTo = monthStart(cohort + k + 1);
-      let paidCount = 0;
-      let activeCount = 0;
-      for (const u of members) {
-        const monthPays = u.payments.filter((p) => monthIndex(p.at) === cohort + k);
-        if (monthPays.length) paidCount++;
-        cum += monthPays.reduce((s, p) => s + p.amount, 0);
-        if (u.periods.some((p) => p.start < mTo && p.end > mFrom)) activeCount++;
-      }
-      paid.push(paidCount);
-      active.push(activeCount);
-      cumRevenue.push(cum);
-    }
-
-    rows.push({
+  const rows: CalendarCohort[] = [...groups.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([cohort, members]) => ({
       cohort,
-      label: monthLabel(cohort),
-      size: members.length,
+      users: members,
       revenue: members.reduce((s, u) => s + u.totalPaid, 0),
-      paid,
-      active,
-      cumRevenue,
-      currentMonthOffset: current - cohort,
-    });
-  }
-  return rows.sort((a, b) => b.cohort - a.cohort);
-};
+      cells: months.map((m) => {
+        if (m < cohort) return null;
+        const from = monthStart(m);
+        const to = monthStart(m + 1);
+        const buyers: CohortBuyer[] = [];
+        let revenue = 0;
+        let inferredBuyers = 0;
+        for (const u of members) {
+          const pays = paymentsIn(u, m);
+          if (!pays.length) continue;
+          buyers.push({ user: u, payments: pays });
+          revenue += pays.reduce((s, p) => s + p.amount, 0);
+          if (pays.every((p) => p.inferred)) inferredBuyers++;
+        }
+        const active = members.filter((u) => u.periods.some((p) => p.start < to && p.end > from));
+        return { month: m, buyers, active, revenue, inferredBuyers };
+      }),
+    }));
 
-// Barcha kohortlar bo'yicha o'rtacha egri chiziq. k-oy uchun faqat shu oyni
-// to'liq o'tgan kohortlar olinadi (joriy, tugamagan oy natijani pasaytirmasin);
-// xarid oyi (k = 0) esa har doim to'liq. Har oyda kohortlar to'plami
-// o'zgargani uchun LTV oylik o'sishlar zanjiri sifatida yig'iladi — aks holda
-// eski (kichik) kohortlar ustun bo'lgan oylarda egri chiziq pasayib ketardi.
-export type CurvePoint = { k: number; ltv: number | null; paidPct: number | null; activePct: number | null; cohorts: number };
-
-export const buildCurve = (rows: CohortRow[]): CurvePoint[] => {
-  const points: CurvePoint[] = [];
-  let ltv = 0;
-  for (let k = 0; k < COHORT_MONTHS; k++) {
-    const eligible = rows.filter((r) => r.paid[k] !== null && (k === 0 || k < r.currentMonthOffset));
-    const size = eligible.reduce((s, r) => s + r.size, 0);
-    if (!size) {
-      points.push({ k, ltv: null, paidPct: null, activePct: null, cohorts: 0 });
-      continue;
+  const totals: MonthTotal[] = months.map((m) => {
+    let payers = 0;
+    let newBuyers = 0;
+    let payments = 0;
+    let revenue = 0;
+    for (const u of users) {
+      const pays = paymentsIn(u, m);
+      if (!pays.length) continue;
+      payers++;
+      if (u.cohort === m) newBuyers++;
+      payments += pays.length;
+      revenue += pays.reduce((s, p) => s + p.amount, 0);
     }
-    const sum = (pick: (r: CohortRow) => number | null) =>
-      eligible.reduce((s, r) => s + (pick(r) ?? 0), 0);
-    ltv += sum((r) => (r.cumRevenue[k] ?? 0) - (k ? r.cumRevenue[k - 1] ?? 0 : 0)) / size;
-    points.push({
-      k,
-      ltv,
-      paidPct: (sum((r) => r.paid[k]) / size) * 100,
-      activePct: (sum((r) => r.active[k]) / size) * 100,
-      cohorts: eligible.length,
-    });
-  }
-  return points;
+    return { month: m, payers, newBuyers, returning: payers - newBuyers, payments, revenue };
+  });
+
+  return { months, rows, totals };
 };
+
+const MONTHS_UZ = ["Yanvar", "Fevral", "Mart", "Aprel", "May", "Iyun", "Iyul", "Avgust", "Sentabr", "Oktabr", "Noyabr", "Dekabr"];
+// "Iyun" / "Iyul" ning dastlabki 3 harfi bir xil, shuning uchun qisqa nomlar alohida
+const MONTHS_UZ_SHORT = ["Yan", "Fev", "Mar", "Apr", "May", "Iyn", "Iyl", "Avg", "Sen", "Okt", "Noy", "Dek"];
+
+export const monthName = (index: number) => MONTHS_UZ[index % 12];
+export const monthYear = (index: number) => Math.floor(index / 12);
+export const monthLabel = (index: number) => `${monthName(index)} ${monthYear(index)}`;
+export const monthShort = (index: number) => `${MONTHS_UZ_SHORT[index % 12]} ${String(monthYear(index)).slice(2)}`;
 
 export const planKey = (p: Pick<Payment, "plan" | "months">) => `${p.plan}|${p.months}`;
 

@@ -221,6 +221,18 @@ export const useDashboardStore = defineStore("dashboard", () => {
     });
   };
 
+  // Userning joriy obuna qatori (null — obunasi yo'q). LTV sahifasi App Store /
+  // Google Play yangilanishlarini taxminlash uchun ishlatadi: ular buyurtma
+  // yaratmaydi, faqat obuna tugash sanasini suradi.
+  const loadUserSubscription = async (userId: number) => {
+    return await execute(async () => {
+      const response = await axios.get(`/dashboard/subscriptions/${userId}`, {
+        silent: true,
+      } as any);
+      return response.data?.content ?? null;
+    });
+  };
+
   // Real revenue breakdown grouped by plan, derived from recent subscription
   // orders (no dedicated endpoint yet, so we aggregate client-side).
   const revenueByPlan = ref<{ plan: string; amount: number; count: number }[]>(
@@ -307,6 +319,7 @@ export const useDashboardStore = defineStore("dashboard", () => {
     loadAudienceAnalytics,
     loadSubscriptionOrders,
     loadAllSubscriptionOrders,
+    loadUserSubscription,
     loadRevenueByPlan,
     loadEventLogSources,
     loadEventLogSummary,
