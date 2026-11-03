@@ -64,6 +64,7 @@ const titleMap: Record<string, string> = {
   reminder_message_edit: "Eslatma xabarlari",
   references: "Ma'lumotnomalar",
   team: "Jamoa",
+  ai_scans: "AI skan limitlari",
   coupons: "Kuponlar",
   coupon_create: "Kuponlar",
   coupon_edit: "Kuponlar",

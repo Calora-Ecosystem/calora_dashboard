@@ -336,6 +336,12 @@ const routes: RouteRecordRaw[] = [
             component: () => import("./home/AiStatistics.vue"),
           },
           {
+            name: "ai_scans",
+            path: "ai-scans",
+            meta: SUPER_ADMIN,
+            component: () => import("./home/AiScans.vue"),
+          },
+          {
             name: "billing",
             path: "billing",
             meta: SUPER_ADMIN,
